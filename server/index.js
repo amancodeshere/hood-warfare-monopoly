@@ -175,15 +175,18 @@ function releasePresence(socket, g) {
       );
 }
 function attach(socket, g, p, token, spectator = false) {
-  if (socket.data.code && socket.data.code !== g.code) {
+  if (
+    socket.data.code &&
+    (socket.data.code !== g.code || socket.data.player !== p.id)
+  ) {
     const old = rooms.get(socket.data.code);
     releasePresence(socket, old);
     if (socket.data.spectator && old)
       old.spectators = old.spectators.filter(
         (x) => x.id !== socket.data.player,
       );
-    socket.leave(socket.data.code);
-    if (old) publish(old);
+    if (socket.data.code !== g.code) socket.leave(socket.data.code);
+    if (old && old !== g) publish(old);
   }
   Object.assign(socket.data, { code: g.code, player: p.id, token, spectator });
   socket.join(g.code);

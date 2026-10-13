@@ -181,6 +181,14 @@ test("real multiplayer: authority, room capacity, reconnect, origin checks, and 
   assert(!watch.game.chat.some((m) => m.text === "Secret plan"));
   await send(host, "chat", { text: "Hello table" });
   assert(watch.game.chat.some((m) => m.text === "Hello table"));
+  const changingRole = await client();
+  clients.push(changingRole);
+  const observing = await send(changingRole, "spectate", { code: pub.code });
+  assert(
+    (await send(changingRole, "join", { code: pub.code, name: "Fresh seat" }))
+      .ok,
+  );
+  assert(!changingRole.game.spectators.some((p) => p.id === observing.id));
   await send(enemy, "profile-change", { type: "mute", to: hp.profile.id });
   assert(!enemy.game.chat.some((m) => m.text === "Hello table"));
   await send(host, "lobby", { type: "start" });
