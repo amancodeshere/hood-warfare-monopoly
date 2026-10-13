@@ -99,7 +99,113 @@ export const MAPS = [
     name: "Night Shift",
     description: "After-hours stores, arcade luck, and lowrider routes.",
   },
+  {
+    id: "boardwalk",
+    name: "Lackin’ by the Beach",
+    description: "Beach bags, overpriced drip, and a very suspicious pier.",
+    verified: true,
+    colors: [
+      "#b6d9bd",
+      "#92cbd3",
+      "#e6bb85",
+      "#d7a3b5",
+      "#a5badc",
+      "#e1cf8b",
+      "#a5cdb7",
+      "#d7b7dd",
+    ],
+  },
+  {
+    id: "snow-day",
+    name: "Cold Streets",
+    description: "Frozen pipes. Heated beef. Snow-day hustles.",
+    verified: true,
+    colors: [
+      "#a8ced4",
+      "#c0cde4",
+      "#b8bad8",
+      "#a6c5bd",
+      "#cfb8d2",
+      "#d2d1b2",
+      "#b2c8d5",
+      "#d4bed0",
+    ],
+  },
+  {
+    id: "neon",
+    name: "Neon Problems",
+    description: "Arcade scams and main-character money after midnight.",
+    verified: true,
+    colors: [
+      "#d69dc5",
+      "#9ccbc5",
+      "#b0a1db",
+      "#dfad91",
+      "#a2bcdf",
+      "#d0cf92",
+      "#bd9dcf",
+      "#8fc9ad",
+    ],
+  },
+  {
+    id: "festival",
+    name: "Cookout County",
+    description: "Uncle’s grill, auntie’s side-eye, and rent at the cookout.",
+    verified: true,
+    colors: [
+      "#d6b18b",
+      "#bac68b",
+      "#dd9e91",
+      "#d3bb82",
+      "#a6c7b3",
+      "#d4a7c5",
+      "#9db9d4",
+      "#c7b2d3",
+    ],
+  },
 ];
+const THEME_WORDS = {
+  boardwalk: [
+    "Sand in the Jordans",
+    "Pier Pressure",
+    "Beach Bag Bandit",
+    "Sunburn Side Hustle",
+    "Boardwalk Beef",
+    "Flip Flop Flex",
+    "Seagull Stole My Chips",
+    "Lifeguard Lackin’",
+  ],
+  "snow-day": [
+    "Frozen Drip",
+    "Black Ice Boulevard",
+    "Cold Shoulder",
+    "Snowball Scheme",
+    "Puffer Jacket Palace",
+    "Heated Beef",
+    "Slush Fund",
+    "Icebox Uncle",
+  ],
+  neon: [
+    "RGB Rent",
+    "Arcade Opps",
+    "NPC Boulevard",
+    "Lag Switch Lane",
+    "Neon No Cap",
+    "Respawn Row",
+    "Pixel Paper",
+    "Final Boss Energy",
+  ],
+  festival: [
+    "Auntie’s Side Eye",
+    "Uncle Burnt the Ribs",
+    "Plate Tax",
+    "Cookout Credentials",
+    "Extra Sauce Estate",
+    "DJ No Requests",
+    "Leftovers Lick",
+    "Foldout Chair Flex",
+  ],
+};
 const NIGHT_NAMES = [
   "Midnight Bodega",
   "Last Slice Lane",
@@ -134,6 +240,22 @@ export function makeBoard(map = "trenches") {
           ? NIGHT_NAMES[i++]
           : t.name,
     };
+    if (THEME_WORDS[map] && t.type === "property")
+      tile.name =
+        THEME_WORDS[map][t.group] +
+        (t.id % 3 === 0 ? " Heights" : t.id % 3 === 1 ? " Row" : " Corner");
+    if (["neon", "festival"].includes(map) && [2, 17].includes(t.id)) {
+      tile.type = "roulette";
+      tile.name = map === "neon" ? "Arcade Jackpot" : "Uncle’s Lucky Draw";
+    }
+    if (map === "boardwalk" && t.id === 28) {
+      tile.type = "stoppa";
+      tile.name = "Seagull Stoppa";
+    }
+    if (map === "snow-day" && t.id === 22) {
+      tile.type = "card";
+      tile.name = "Cold Street Luck";
+    }
     if (map === "night-shift" && t.id === 17) {
       tile.type = "roulette";
       tile.name = "After Hours Roulette";

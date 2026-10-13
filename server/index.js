@@ -23,7 +23,6 @@ import {
   timeoutAction,
 } from "./game.js";
 import { settings, matchLimit } from "../shared/settings.js";
-import { makeBoard } from "../shared/board.js";
 import { profileStore } from "./profiles.js";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const dataDir = process.env.DATA_DIR || resolve(root, "data");
@@ -281,6 +280,7 @@ function createRoom(socket, d) {
     !opts.registeredOnly || profile.passwordHash,
     "Create an account before requiring registered seats.",
   );
+  const city = profiles.resolveMap(profile.id, opts.map);
   let code;
   do {
     code = randomBytes(4).toString("hex").slice(0, 6).toUpperCase();
@@ -290,7 +290,7 @@ function createRoom(socket, d) {
   const g = room(code, p);
   g.settings = opts;
   g.limit = matchLimit(d.limit);
-  g.board = makeBoard(opts.map);
+  Object.assign(g, city);
   rooms.set(code, g);
   const token = tokenFor(code, p.id);
   attach(socket, g, p, token);
@@ -394,6 +394,19 @@ io.on("connection", (socket) => {
       profileUpdates();
       return a;
     });
+  for (const [event, operation] of [
+    ["profile-email-request", profiles.requestEmail],
+    ["profile-email-verify", profiles.verifyEmail],
+    ["map-save", profiles.saveMap],
+    ["map-delete", profiles.deleteMap],
+  ]) {
+    handle(event, async (d) => {
+      const p = getProfile(socket);
+      const result = await operation(p.id, d, socket.handshake.address);
+      profileUpdates();
+      return result;
+    });
+  }
   handle("profile-change", (d) => {
     getProfile(socket);
     if (d.type === "invite") {
@@ -555,7 +568,13 @@ io.on("connection", (socket) => {
         revision = g.revision,
         code = g.code,
         teamNames = g.teamNames,
-        host = g.host;
+        host = g.host,
+        city = {
+          board: structuredClone(g.board),
+          districts: g.districts,
+          mapName: g.mapName,
+          mapTheme: g.mapTheme,
+        };
       for (const key of Object.keys(g)) delete g[key];
       Object.assign(
         g,
@@ -566,7 +585,7 @@ io.on("connection", (socket) => {
         {
           settings: opts,
           limit,
-          board: makeBoard(opts.map),
+          ...city,
           revision,
           teamNames,
           players: old.map((p) => ({
@@ -603,9 +622,10 @@ io.on("connection", (socket) => {
             ),
           "Every human seat needs an account for this rule.",
         );
+        const city = profiles.resolveMap(socket.data.profile, next.map);
         g.settings = next;
         if ("limit" in d) g.limit = matchLimit(d.limit);
-        g.board = makeBoard(next.map);
+        Object.assign(g, city);
       } else if (d.type === "start") {
         if (g.settings.autoFill) fillBots(g);
         teams(g);

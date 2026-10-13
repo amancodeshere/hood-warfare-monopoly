@@ -1,3 +1,4 @@
+import { MAPS } from "./board.js";
 export const DEFAULT_SETTINGS = {
   maxPlayers: 4,
   startingCash: 1500,
@@ -93,7 +94,11 @@ export function settings(input = {}, previous = DEFAULT_SETTINGS) {
       throw new Error("Choose a valid starting cash amount.");
     else if (key === "turnSeconds" && ![60, 90, 120].includes(value))
       throw new Error("Choose a valid turn clock.");
-    else if (key === "map" && !["trenches", "night-shift"].includes(value))
+    else if (
+      key === "map" &&
+      !MAPS.some((m) => m.id === value) &&
+      !(typeof value === "string" && /^custom:[a-f0-9-]{36}$/.test(value))
+    )
       throw new Error("Choose a city map.");
     else if (key === "visibility" && !["private", "public"].includes(value))
       throw new Error("Choose a room visibility.");

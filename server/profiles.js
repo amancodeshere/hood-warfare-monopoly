@@ -1,16 +1,29 @@
-import { randomBytes, randomUUID, scrypt, timingSafeEqual } from "node:crypto";
+import {
+  randomBytes,
+  randomUUID,
+  randomInt,
+  createHash,
+  scrypt,
+  timingSafeEqual,
+} from "node:crypto";
 import { promisify } from "node:util";
 import { readFileSync, writeFileSync, renameSync } from "node:fs";
 import { resolve } from "node:path";
 import { assert, worth } from "./game.js";
 import { COSMETICS } from "../shared/cosmetics.js";
+import { sendVerification, emailAvailable } from "./email.js";
+import { mapDefinition, presetMap, customMap } from "../shared/maps.js";
+import { MAPS } from "../shared/board.js";
 const derive = promisify(scrypt);
 const text = (v, n = 20) =>
   String(v || "")
     .replace(/[<>]/g, "")
     .trim()
     .slice(0, n);
-export function profileStore(dir) {
+export function profileStore(
+  dir,
+  { send = sendVerification, now = Date.now, available = emailAvailable } = {},
+) {
   const file = resolve(dir, "profiles.json"),
     profiles = new Map(),
     tokens = new Map(),
@@ -40,6 +53,11 @@ export function profileStore(dir) {
       name: p.name,
       username: p.username || null,
       registered: !!p.passwordHash,
+      verified: !!p.verifiedAt,
+      email: viewer === p.id ? p.email || null : undefined,
+      pendingEmail: viewer === p.id ? p.verification?.email || null : undefined,
+      emailAvailable: viewer === p.id ? available() : undefined,
+      savedMaps: viewer === p.id ? p.savedMaps || [] : undefined,
       appearance: p.appearance,
       stats: p.stats,
       respect: p.respect,
@@ -148,6 +166,122 @@ export function profileStore(dir) {
       "Username or password is incorrect.",
     );
     return issue(p);
+  }
+  const sending = new Set();
+  const digest = (nonce, code) =>
+    createHash("sha256")
+      .update(nonce + ":" + code)
+      .digest("hex");
+  async function requestEmail(id, input, ip) {
+    const p = profile(id);
+    assert(p?.passwordHash, "Create an account before verifying an email.");
+    assert(!sending.has(id), "A code is already being sent.");
+    assert(
+      !p.verification || now() - p.verification.sentAt >= 60000,
+      "Wait a minute before requesting another code.",
+    );
+    const email = String(input.email || "")
+      .trim()
+      .toLowerCase();
+    assert(
+      email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),
+      "Enter a valid email address.",
+    );
+    gate("email-ip:" + ip);
+    gate("email-account:" + id);
+    const code = String(randomInt(100000, 1000000)),
+      nonce = randomBytes(24).toString("hex");
+    sending.add(id);
+    try {
+      await send({ email, code });
+      p.verification = {
+        email,
+        nonce,
+        digest: digest(nonce, code),
+        sentAt: now(),
+        expires: now() + 900000,
+        attempts: 0,
+      };
+      persist();
+      return { profile: safe(p) };
+    } finally {
+      sending.delete(id);
+    }
+  }
+  function verifyEmail(id, input) {
+    const p = profile(id),
+      v = p?.verification;
+    assert(
+      v && v.expires > now() && v.attempts < 5,
+      "This code expired. Request a new one.",
+    );
+    v.attempts++;
+    const valid =
+      typeof input.code === "string" &&
+      /^\d{6}$/.test(input.code) &&
+      timingSafeEqual(
+        Buffer.from(digest(v.nonce, input.code), "hex"),
+        Buffer.from(v.digest, "hex"),
+      );
+    persist();
+    assert(valid, "That code is incorrect. Check your email and try again.");
+    assert(
+      ![...profiles.values()].some(
+        (x) => x.id !== id && x.verifiedAt && x.email === v.email,
+      ),
+      "This email already belongs to another verified account.",
+    );
+    p.email = v.email;
+    p.verifiedAt = now();
+    delete p.verification;
+    persist();
+    return { profile: safe(p) };
+  }
+  function requireVerified(id) {
+    const p = profile(id);
+    assert(
+      p?.passwordHash && p.verifiedAt,
+      "Verify your email to unlock this map and Map Studio.",
+    );
+    return p;
+  }
+  function saveMap(id, input) {
+    const p = requireVerified(id),
+      definition = mapDefinition(input.definition);
+    p.savedMaps ||= [];
+    const existing = input.id
+      ? p.savedMaps.find((m) => m.id === input.id)
+      : null;
+    assert(!input.id || existing, "That map is not in your collection.");
+    assert(
+      existing || p.savedMaps.length < 10,
+      "You can save ten maps. Edit or delete one first.",
+    );
+    const map = { id: existing?.id || randomUUID(), definition };
+    if (existing) Object.assign(existing, map);
+    else p.savedMaps.push(map);
+    persist();
+    return { profile: safe(p), map };
+  }
+  function deleteMap(id, input) {
+    const p = requireVerified(id);
+    assert(
+      p.savedMaps?.some((m) => m.id === input.id),
+      "That map is not in your collection.",
+    );
+    p.savedMaps = p.savedMaps.filter((m) => m.id !== input.id);
+    persist();
+    return { profile: safe(p) };
+  }
+  function resolveMap(id, selection) {
+    if (selection.startsWith("custom:")) {
+      const p = requireVerified(id),
+        m = p.savedMaps?.find((m) => "custom:" + m.id === selection);
+      assert(m, "That map is not in your collection.");
+      return customMap(m.definition);
+    }
+    if (MAPS.find((m) => m.id === selection)?.verified) requireVerified(id);
+    return presetMap(selection);
   }
   function find(value) {
     value = String(value || "").replace(/^@/, "");
@@ -314,6 +448,11 @@ export function profileStore(dir) {
       tokens.delete(token);
       persist();
     },
+    requestEmail,
+    verifyEmail,
+    saveMap,
+    deleteMap,
+    resolveMap,
     authorize,
     register,
     login,
