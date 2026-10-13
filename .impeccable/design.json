@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-13T14:30:16.198158+00:00",
+  "generatedAt": "2026-10-13T15:27:24.671016+00:00",
   "title": "Design System: Spin the Block",
   "extensions": {
     "colorMeta": {
@@ -619,6 +619,286 @@
           "oklch(83.57% 0.0424 54.37)",
           "oklch(95% 0.0424 54.37)"
         ]
+      },
+      "night-owls": {
+        "role": "secondary",
+        "displayName": "Night Owls",
+        "tonalRamp": [
+          "oklch(15.00% 0.0943 97.32)",
+          "oklch(26.43% 0.0943 97.32)",
+          "oklch(37.86% 0.0943 97.32)",
+          "oklch(49.29% 0.0943 97.32)",
+          "oklch(60.71% 0.0943 97.32)",
+          "oklch(72.14% 0.0943 97.32)",
+          "oklch(83.57% 0.0943 97.32)",
+          "oklch(95.00% 0.0943 97.32)"
+        ]
+      },
+      "northside-motion": {
+        "role": "secondary",
+        "displayName": "Northside Motion",
+        "tonalRamp": [
+          "oklch(15.00% 0.0920 353.10)",
+          "oklch(26.43% 0.0920 353.10)",
+          "oklch(37.86% 0.0920 353.10)",
+          "oklch(49.29% 0.0920 353.10)",
+          "oklch(60.71% 0.0920 353.10)",
+          "oklch(72.14% 0.0920 353.10)",
+          "oklch(83.57% 0.0920 353.10)",
+          "oklch(95.00% 0.0920 353.10)"
+        ]
+      },
+      "lowrider-league": {
+        "role": "secondary",
+        "displayName": "Lowrider League",
+        "tonalRamp": [
+          "oklch(15.00% 0.0717 152.20)",
+          "oklch(26.43% 0.0717 152.20)",
+          "oklch(37.86% 0.0717 152.20)",
+          "oklch(49.29% 0.0717 152.20)",
+          "oklch(60.71% 0.0717 152.20)",
+          "oklch(72.14% 0.0717 152.20)",
+          "oklch(83.57% 0.0717 152.20)",
+          "oklch(95.00% 0.0717 152.20)"
+        ]
+      },
+      "after-hours": {
+        "role": "secondary",
+        "displayName": "After Hours",
+        "tonalRamp": [
+          "oklch(15.00% 0.1038 272.03)",
+          "oklch(26.43% 0.1038 272.03)",
+          "oklch(37.86% 0.1038 272.03)",
+          "oklch(49.29% 0.1038 272.03)",
+          "oklch(60.71% 0.1038 272.03)",
+          "oklch(72.14% 0.1038 272.03)",
+          "oklch(83.57% 0.1038 272.03)",
+          "oklch(95.00% 0.1038 272.03)"
+        ]
+      },
+      "motion-mansion": {
+        "role": "tertiary",
+        "displayName": "Motion Mansion",
+        "tonalRamp": [
+          "oklch(15.00% 0.0711 163.67)",
+          "oklch(26.43% 0.0711 163.67)",
+          "oklch(37.86% 0.0711 163.67)",
+          "oklch(49.29% 0.0711 163.67)",
+          "oklch(60.71% 0.0711 163.67)",
+          "oklch(72.14% 0.0711 163.67)",
+          "oklch(83.57% 0.0711 163.67)",
+          "oklch(95.00% 0.0711 163.67)"
+        ]
+      },
+      "final-boss-row": {
+        "role": "tertiary",
+        "displayName": "Final Boss Row",
+        "tonalRamp": [
+          "oklch(15.00% 0.0659 83.85)",
+          "oklch(26.43% 0.0659 83.85)",
+          "oklch(37.86% 0.0659 83.85)",
+          "oklch(49.29% 0.0659 83.85)",
+          "oklch(60.71% 0.0659 83.85)",
+          "oklch(72.14% 0.0659 83.85)",
+          "oklch(83.57% 0.0659 83.85)",
+          "oklch(95.00% 0.0659 83.85)"
+        ]
+      },
+      "panel-divider": {
+        "role": "neutral",
+        "displayName": "Panel Divider",
+        "tonalRamp": [
+          "oklch(15.00% 0.0370 133.66)",
+          "oklch(26.43% 0.0370 133.66)",
+          "oklch(37.86% 0.0370 133.66)",
+          "oklch(49.29% 0.0370 133.66)",
+          "oklch(60.71% 0.0370 133.66)",
+          "oklch(72.14% 0.0370 133.66)",
+          "oklch(83.57% 0.0370 133.66)",
+          "oklch(95.00% 0.0370 133.66)"
+        ]
+      },
+      "panel-label": {
+        "role": "neutral",
+        "displayName": "Panel Label",
+        "tonalRamp": [
+          "oklch(15.00% 0.0244 127.61)",
+          "oklch(26.43% 0.0244 127.61)",
+          "oklch(37.86% 0.0244 127.61)",
+          "oklch(49.29% 0.0244 127.61)",
+          "oklch(60.71% 0.0244 127.61)",
+          "oklch(72.14% 0.0244 127.61)",
+          "oklch(83.57% 0.0244 127.61)",
+          "oklch(95.00% 0.0244 127.61)"
+        ]
+      },
+      "panel-support": {
+        "role": "neutral",
+        "displayName": "Panel Support",
+        "tonalRamp": [
+          "oklch(15.00% 0.0415 130.38)",
+          "oklch(26.43% 0.0415 130.38)",
+          "oklch(37.86% 0.0415 130.38)",
+          "oklch(49.29% 0.0415 130.38)",
+          "oklch(60.71% 0.0415 130.38)",
+          "oklch(72.14% 0.0415 130.38)",
+          "oklch(83.57% 0.0415 130.38)",
+          "oklch(95.00% 0.0415 130.38)"
+        ]
+      },
+      "appearance-equipped": {
+        "role": "neutral",
+        "displayName": "Equipped Appearance",
+        "tonalRamp": [
+          "oklch(15.00% 0.0458 134.67)",
+          "oklch(26.43% 0.0458 134.67)",
+          "oklch(37.86% 0.0458 134.67)",
+          "oklch(49.29% 0.0458 134.67)",
+          "oklch(60.71% 0.0458 134.67)",
+          "oklch(72.14% 0.0458 134.67)",
+          "oklch(83.57% 0.0458 134.67)",
+          "oklch(95.00% 0.0458 134.67)"
+        ]
+      },
+      "owner-highlight": {
+        "role": "neutral",
+        "displayName": "Owner Highlight",
+        "tonalRamp": [
+          "oklch(15.00% 0.0279 113.53)",
+          "oklch(26.43% 0.0279 113.53)",
+          "oklch(37.86% 0.0279 113.53)",
+          "oklch(49.29% 0.0279 113.53)",
+          "oklch(60.71% 0.0279 113.53)",
+          "oklch(72.14% 0.0279 113.53)",
+          "oklch(83.57% 0.0279 113.53)",
+          "oklch(95.00% 0.0279 113.53)"
+        ]
+      },
+      "stoppa-rim": {
+        "role": "neutral",
+        "displayName": "Stoppa Rim",
+        "tonalRamp": [
+          "oklch(15.00% 0.0833 126.96)",
+          "oklch(26.43% 0.0833 126.96)",
+          "oklch(37.86% 0.0833 126.96)",
+          "oklch(49.29% 0.0833 126.96)",
+          "oklch(60.71% 0.0833 126.96)",
+          "oklch(72.14% 0.0833 126.96)",
+          "oklch(83.57% 0.0833 126.96)",
+          "oklch(95.00% 0.0833 126.96)"
+        ]
+      },
+      "stoppa-sector-dark": {
+        "role": "neutral",
+        "displayName": "Stoppa Dark Sector",
+        "tonalRamp": [
+          "oklch(15.00% 0.0576 132.81)",
+          "oklch(26.43% 0.0576 132.81)",
+          "oklch(37.86% 0.0576 132.81)",
+          "oklch(49.29% 0.0576 132.81)",
+          "oklch(60.71% 0.0576 132.81)",
+          "oklch(72.14% 0.0576 132.81)",
+          "oklch(83.57% 0.0576 132.81)",
+          "oklch(95.00% 0.0576 132.81)"
+        ]
+      },
+      "stoppa-sector-light": {
+        "role": "neutral",
+        "displayName": "Stoppa Light Sector",
+        "tonalRamp": [
+          "oklch(15.00% 0.0630 134.14)",
+          "oklch(26.43% 0.0630 134.14)",
+          "oklch(37.86% 0.0630 134.14)",
+          "oklch(49.29% 0.0630 134.14)",
+          "oklch(60.71% 0.0630 134.14)",
+          "oklch(72.14% 0.0630 134.14)",
+          "oklch(83.57% 0.0630 134.14)",
+          "oklch(95.00% 0.0630 134.14)"
+        ]
+      },
+      "stoppa-center": {
+        "role": "neutral",
+        "displayName": "Stoppa Center",
+        "tonalRamp": [
+          "oklch(15.00% 0.0345 143.14)",
+          "oklch(26.43% 0.0345 143.14)",
+          "oklch(37.86% 0.0345 143.14)",
+          "oklch(49.29% 0.0345 143.14)",
+          "oklch(60.71% 0.0345 143.14)",
+          "oklch(72.14% 0.0345 143.14)",
+          "oklch(83.57% 0.0345 143.14)",
+          "oklch(95.00% 0.0345 143.14)"
+        ]
+      },
+      "stoppa-center-border": {
+        "role": "neutral",
+        "displayName": "Stoppa Center Border",
+        "tonalRamp": [
+          "oklch(15.00% 0.0885 126.67)",
+          "oklch(26.43% 0.0885 126.67)",
+          "oklch(37.86% 0.0885 126.67)",
+          "oklch(49.29% 0.0885 126.67)",
+          "oklch(60.71% 0.0885 126.67)",
+          "oklch(72.14% 0.0885 126.67)",
+          "oklch(83.57% 0.0885 126.67)",
+          "oklch(95.00% 0.0885 126.67)"
+        ]
+      },
+      "stoppa-number": {
+        "role": "neutral",
+        "displayName": "Stoppa Number",
+        "tonalRamp": [
+          "oklch(15.00% 0.0205 121.84)",
+          "oklch(26.43% 0.0205 121.84)",
+          "oklch(37.86% 0.0205 121.84)",
+          "oklch(49.29% 0.0205 121.84)",
+          "oklch(60.71% 0.0205 121.84)",
+          "oklch(72.14% 0.0205 121.84)",
+          "oklch(83.57% 0.0205 121.84)",
+          "oklch(95.00% 0.0205 121.84)"
+        ]
+      },
+      "overlay-error": {
+        "role": "neutral",
+        "displayName": "Overlay Error",
+        "tonalRamp": [
+          "oklch(15.00% 0.0625 27.75)",
+          "oklch(26.43% 0.0625 27.75)",
+          "oklch(37.86% 0.0625 27.75)",
+          "oklch(49.29% 0.0625 27.75)",
+          "oklch(60.71% 0.0625 27.75)",
+          "oklch(72.14% 0.0625 27.75)",
+          "oklch(83.57% 0.0625 27.75)",
+          "oklch(95.00% 0.0625 27.75)"
+        ]
+      },
+      "overlay-error-text": {
+        "role": "neutral",
+        "displayName": "Overlay Error Text",
+        "tonalRamp": [
+          "oklch(15.00% 0.0328 41.46)",
+          "oklch(26.43% 0.0328 41.46)",
+          "oklch(37.86% 0.0328 41.46)",
+          "oklch(49.29% 0.0328 41.46)",
+          "oklch(60.71% 0.0328 41.46)",
+          "oklch(72.14% 0.0328 41.46)",
+          "oklch(83.57% 0.0328 41.46)",
+          "oklch(95.00% 0.0328 41.46)"
+        ]
+      },
+      "overlay-error-border": {
+        "role": "neutral",
+        "displayName": "Overlay Error Border",
+        "tonalRamp": [
+          "oklch(15.00% 0.0893 34.97)",
+          "oklch(26.43% 0.0893 34.97)",
+          "oklch(37.86% 0.0893 34.97)",
+          "oklch(49.29% 0.0893 34.97)",
+          "oklch(60.71% 0.0893 34.97)",
+          "oklch(72.14% 0.0893 34.97)",
+          "oklch(83.57% 0.0893 34.97)",
+          "oklch(95.00% 0.0893 34.97)"
+        ]
       }
     },
     "typographyMeta": {
@@ -645,6 +925,42 @@
       "button": {
         "displayName": "Action text",
         "purpose": "Room and turn controls."
+      },
+      "panel-meta": {
+        "displayName": "Panel Meta",
+        "purpose": "Supporting panel and exchange labels."
+      },
+      "event-copy": {
+        "displayName": "Event Copy",
+        "purpose": "Event explanations and disclosure summaries."
+      },
+      "appearance-name": {
+        "displayName": "Appearance Name",
+        "purpose": "Appearance choices and unlock rows."
+      },
+      "profile-code": {
+        "displayName": "Profile Code",
+        "purpose": "Friend code in the street profile."
+      },
+      "profile-stat": {
+        "displayName": "Profile Stat",
+        "purpose": "Profile statistics."
+      },
+      "panel-section": {
+        "displayName": "Panel Section",
+        "purpose": "Chat and exchange section headings."
+      },
+      "stoppa-result": {
+        "displayName": "Stoppa Result",
+        "purpose": "Percentage-loss outcome heading."
+      },
+      "stoppa-number": {
+        "displayName": "Stoppa Number",
+        "purpose": "Dial center percentage."
+      },
+      "auction-bid": {
+        "displayName": "Auction Bid",
+        "purpose": "Current leading auction bid."
       }
     },
     "shadows": [
@@ -682,6 +998,11 @@
         "name": "roulette",
         "value": "0 7px 22px #10180b90",
         "purpose": "Wheel object"
+      },
+      {
+        "name": "overlay-error",
+        "value": "0 6px 24px #101a0c80",
+        "purpose": "Error feedback above an active dialog"
       }
     ],
     "motion": [
@@ -714,6 +1035,21 @@
         "name": "reduced-motion",
         "value": "(prefers-reduced-motion: reduce)",
         "purpose": "Disable CSS animations and transitions; use automatic scrolling. The 2.6-second roulette result gate remains."
+      },
+      {
+        "name": "token-arrive",
+        "value": ".14s ease-out",
+        "purpose": "A short translateY and scale settle on arrival; disabled under reduced motion."
+      },
+      {
+        "name": "token-walk-step",
+        "value": "45ms",
+        "purpose": "Movement advances through perimeter positions; reduced motion skips this walk."
+      },
+      {
+        "name": "stoppa-spin",
+        "value": "1.75s cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Percentage-loss dial reveal; reduced motion removes the transition."
       }
     ],
     "breakpoints": [
@@ -740,8 +1076,8 @@
       "name": "Primary action",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "The cabinet\u2019s main room or turn action.",
-      "html": "<button class=\"ds-button ds-primary\">Create a private room <span aria-hidden=\"true\">\u2192</span></button>",
+      "description": "The cabinet’s main room or turn action.",
+      "html": "<button class=\"ds-button ds-primary\">Create a private room <span aria-hidden=\"true\">→</span></button>",
       "css": ".ds-button{display:flex;align-items:center;justify-content:space-between;gap:9px;width:100%;min-height:45px;padding:12px 13px;font-family:\"Barlow\",sans-serif;font-size:12px;font-weight:600;border-radius:5px;cursor:pointer;transition:background .15s ease,color .15s ease,opacity .15s ease}.ds-button:disabled{opacity:.42;cursor:not-allowed}.ds-button:focus-visible{outline:2px solid var(--lime,#c6ed72);outline-offset:4px;}@media(prefers-reduced-motion:reduce){.ds-button{transition:none}}.ds-primary{background:var(--lime,#c6ed72);border:1px solid var(--lime,#c6ed72);color:#1c2b19}.ds-primary:hover:not(:disabled){background:#d8f899}"
     },
     {
@@ -749,7 +1085,7 @@
       "kind": "button",
       "refersTo": "button-secondary",
       "description": "A supporting or alternate game action.",
-      "html": "<button class=\"ds-button ds-secondary\">Keep my cash <span aria-hidden=\"true\">\u2192</span></button>",
+      "html": "<button class=\"ds-button ds-secondary\">Keep my cash <span aria-hidden=\"true\">→</span></button>",
       "css": ".ds-button{display:flex;align-items:center;justify-content:space-between;gap:9px;width:100%;min-height:45px;padding:12px 13px;font-family:\"Barlow\",sans-serif;font-size:12px;font-weight:600;border-radius:5px;cursor:pointer;transition:background .15s ease,color .15s ease,opacity .15s ease}.ds-button:disabled{opacity:.42;cursor:not-allowed}.ds-button:focus-visible{outline:2px solid var(--lime,#c6ed72);outline-offset:4px;}@media(prefers-reduced-motion:reduce){.ds-button{transition:none}}.ds-secondary{background:transparent;border:1px solid #52634b;color:#d6e0cb}.ds-secondary:hover:not(:disabled){background:#354630}"
     },
     {
@@ -757,7 +1093,7 @@
       "kind": "button",
       "refersTo": "button-danger",
       "description": "A consequential action paired with explanatory copy.",
-      "html": "<button class=\"ds-button ds-danger\">Challenge to a shootout <span aria-hidden=\"true\">\u2192</span></button>",
+      "html": "<button class=\"ds-button ds-danger\">Challenge to a shootout <span aria-hidden=\"true\">→</span></button>",
       "css": ".ds-button{display:flex;align-items:center;justify-content:space-between;gap:9px;width:100%;min-height:45px;padding:12px 13px;font-family:\"Barlow\",sans-serif;font-size:12px;font-weight:600;border-radius:5px;cursor:pointer;transition:background .15s ease,color .15s ease,opacity .15s ease}.ds-button:disabled{opacity:.42;cursor:not-allowed}.ds-button:focus-visible{outline:2px solid var(--lime,#c6ed72);outline-offset:4px;}@media(prefers-reduced-motion:reduce){.ds-button{transition:none}}.ds-danger{background:#ecaa7c;border:1px solid #ecaa7c;color:#30251e}.ds-danger:hover:not(:disabled){filter:brightness(1.1)}"
     },
     {
@@ -772,15 +1108,15 @@
       "name": "Action navigation",
       "kind": "nav",
       "refersTo": "action-panel",
-      "description": "Three native button tabs for turn, turf, and trade.",
-      "html": "<nav class=\"ds-tabs\" aria-label=\"Game panel\"><button class=\"ds-tab ds-current\">The move</button><button class=\"ds-tab\">My turf <span>2</span></button><button class=\"ds-tab\">Trade</button></nav>",
+      "description": "Four native button tabs for turn, turf, trade, and chat.",
+      "html": "<nav class=\"ds-tabs\" aria-label=\"Game panel\"><button class=\"ds-tab ds-current\">The move</button><button class=\"ds-tab\">My turf <span>2</span></button><button class=\"ds-tab\">Trade</button><button class=\"ds-tab\">Chat</button></nav>",
       "css": ".ds-tabs{display:flex;gap:15px;border-bottom:1px solid #42513a}.ds-tab{position:relative;display:flex;align-items:center;gap:4px;padding:0 0 13px;background:none;border:0;color:#b5c3aa;font-family:\"Barlow\",sans-serif;font-size:11px;white-space:nowrap;cursor:pointer}.ds-current{color:var(--lime,#c6ed72)}.ds-current:after{content:\"\";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--lime,#c6ed72)}.ds-tab span{padding:1px 4px;border-radius:3px;background:#37482e;color:#d4e3c4;font-size:8px}.ds-tab:hover{filter:brightness(1.1)}.ds-tab:focus-visible{outline:2px solid var(--lime,#c6ed72);outline-offset:4px;}"
     },
     {
       "name": "Crew badge",
       "kind": "chip",
       "refersTo": "crew-card",
-      "description": "Circular crew identity that combines color and symbol.",
+      "description": "One of eight crew identities, combining a distinct color, symbol, and named accessible identity.",
       "html": "<span class=\"ds-crew-mark\" aria-label=\"Grove Collective\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m2 8 3 12h14l3-12-6 5-4-10-4 10-6-5Z\"/><path d=\"M5 21h14\"/></svg></span>",
       "css": ".ds-crew-mark{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;color:var(--lime,#c6ed72);background:color-mix(in srgb,var(--lime,#c6ed72) 12%,#202722);border:1px solid color-mix(in srgb,var(--lime,#c6ed72) 45%,#202722);border-radius:50%}"
     },
@@ -788,7 +1124,7 @@
       "name": "Active crew card",
       "kind": "card",
       "refersTo": "crew-card",
-      "description": "The current player\u2019s roster surface and cash balance.",
+      "description": "The current player’s roster surface and cash balance.",
       "html": "<article class=\"ds-crew-card\"><div class=\"ds-crew-name\">Your crew<small>Grove Collective</small></div><strong>$1,500</strong><span class=\"ds-in-play\">IN PLAY</span></article>",
       "css": ".ds-crew-card{position:relative;padding:15px 13px 13px;background:#253024;border:1px solid var(--lime,#c6ed72);border-radius:7px;color:#edf0e6;font-family:\"Barlow\",sans-serif}.ds-crew-name{font-size:13px;font-weight:600;line-height:1.1}.ds-crew-name small{display:block;margin-top:5px;color:#a8b29f;font-size:10px;font-weight:400}.ds-crew-card strong{display:block;margin-top:13px;font-size:18px;font-weight:600;letter-spacing:-.02em}.ds-in-play{position:absolute;right:11px;bottom:11px;color:var(--lime,#c6ed72);font-size:8px;letter-spacing:.1em}"
     },
@@ -796,8 +1132,8 @@
       "name": "Selected property tile",
       "kind": "custom",
       "refersTo": "board-tile-selected",
-      "description": "A district-coded board button with explicit selected state.",
-      "html": "<button class=\"ds-tile\" aria-label=\"Grove Street, $120\"><span class=\"ds-stripe\"></span><span class=\"ds-tile-name\">Grove Street</span><span class=\"ds-price\">$120</span></button>",
+      "description": "A district-coded board button with explicit selected state; readable-map mobile names stay at 9px while overview names hide.",
+      "html": "<button class=\"ds-tile\" aria-label=\"Auntie’s Bodega, $60\"><span class=\"ds-stripe\"></span><span class=\"ds-tile-name\">Auntie’s Bodega</span><span class=\"ds-price\">$60</span></button>",
       "css": ".ds-tile{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;width:88px;height:88px;padding:15px 3px 5px;background:#e1e6cc;border:1px solid #5a6854;border-radius:2px;color:#263326;font-family:\"Barlow\",sans-serif;outline:2px solid var(--lime,#c6ed72);outline-offset:0;cursor:pointer;transition:background .15s ease}.ds-stripe{position:absolute;left:0;right:0;top:0;height:14%;background:#a3ba86}.ds-tile-name{max-width:95%;font-size:12px;font-weight:700;line-height:1.15;text-align:center}.ds-price{font-size:10px;font-weight:500;line-height:1.05}.ds-tile:hover{background:#e0e3cf}.ds-tile:focus-visible{outline:2px solid var(--lime,#c6ed72);outline-offset:4px;}@media(prefers-reduced-motion:reduce){.ds-tile{transition:none}}"
     },
     {
@@ -812,14 +1148,14 @@
       "name": "Decision dialog",
       "kind": "custom",
       "refersTo": "modal",
-      "description": "The bordered dark surface for rules, roulette, and duel decisions.",
-      "html": "<section class=\"ds-modal\" aria-label=\"Street rules\"><h2>Street rules</h2><p>Claim your blocks. Collect the rent. Keep your crew in play.</p><button class=\"ds-button ds-primary\">Let\u2019s play <span aria-hidden=\"true\">\u2192</span></button></section>",
-      "css": ".ds-button{display:flex;align-items:center;justify-content:space-between;gap:9px;width:100%;min-height:45px;padding:12px 13px;font-family:\"Barlow\",sans-serif;font-size:12px;font-weight:600;border-radius:5px;cursor:pointer;transition:background .15s ease,color .15s ease,opacity .15s ease}.ds-button:disabled{opacity:.42;cursor:not-allowed}.ds-button:focus-visible{outline:2px solid var(--lime,#c6ed72);outline-offset:4px;}@media(prefers-reduced-motion:reduce){.ds-button{transition:none}}.ds-modal{max-width:490px;padding:28px;background:#253025;border:1px solid #637d51;border-radius:10px;color:#edf0e6;box-shadow:0 24px 80px #0009;font-family:\"Barlow\",sans-serif}.ds-modal h2{margin:0 0 20px;font-family:\"Barlow Condensed\",sans-serif;font-size:42px;font-weight:700;line-height:1.02;letter-spacing:-.015em}.ds-modal p{margin:0 0 20px;color:#c0d0b3;font-size:12px;line-height:1.6}.ds-primary{background:var(--lime,#c6ed72);border:1px solid var(--lime,#c6ed72);color:#1c2b19}.ds-primary:hover:not(:disabled){background:#d8f899}"
+      "description": "The shared dark, bordered, scrollable surface for rules, settings, rooms, auctions, Stoppa, social, and profiles; 490px default and 610px wide.",
+      "html": "<section class=\"ds-modal\" aria-label=\"Street rules\"><h2>Street rules</h2><p>Claim your blocks. Collect the rent. Keep your crew in play.</p><button class=\"ds-button ds-primary\">Let’s play <span aria-hidden=\"true\">→</span></button></section>",
+      "css": ".ds-button{display:flex;align-items:center;justify-content:space-between;gap:9px;width:100%;min-height:45px;padding:12px 13px;font-family:\"Barlow\",sans-serif;font-size:12px;font-weight:600;border-radius:5px;cursor:pointer;transition:background .15s ease,color .15s ease,opacity .15s ease}.ds-button:disabled{opacity:.42;cursor:not-allowed}.ds-button:focus-visible{outline:2px solid var(--lime,#c6ed72);outline-offset:4px;}@media(prefers-reduced-motion:reduce){.ds-button{transition:none}}.ds-modal{max-width:490px;padding:28px;background:#253025;border:1px solid #637d51;border-radius:10px;color:#edf0e6;box-shadow:0 24px 80px #0009;font-family:\"Barlow\",sans-serif}.ds-modal h2{margin:0 0 20px;font-family:\"Barlow Condensed\",sans-serif;font-size:42px;font-weight:700;line-height:1.02;letter-spacing:-.015em}.ds-modal p{margin:0 0 20px;color:#c0d0b3;font-size:12px;line-height:1.6}.ds-primary{background:var(--lime,#c6ed72);border:1px solid var(--lime,#c6ed72);color:#1c2b19}.ds-primary:hover:not(:disabled){background:#d8f899}.ds-modal{max-height:90dvh;overflow:auto;overscroll-behavior:contain}.ds-modal.ds-wide{max-width:610px}.ds-modal label{display:block;font-size:14px;color:#d7dfce}.ds-modal p{line-height:1.5}"
     }
   ],
   "narrative": {
     "northStar": "Street game cabinet",
-    "overview": "This documents the implemented direction recorded in `index.html`: a street game table where land, luck, and duels meet. Dark asphalt surfaces surround a pale square board, painted district strips, condensed sporting type, lime controls, and an original isometric city. The cabinet carries the visual identity; the room and turn controls make the game playable.\n\nThe interface is dense around the board and more spacious around consequential actions. Friendly crew symbols and muted city colors give the original setting character without making players decode decoration. This is a record of the built system under the user's creative liberty. No approved visual comparisons, reference images, or image-generation assets were supplied.",
+    "overview": "This documents the implemented direction recorded in `index.html`: a street game table where land, luck, and duels meet. Dark asphalt surfaces surround a pale square board, painted district strips, condensed sporting type, lime controls, and an original isometric city. The cabinet carries the visual identity; the room and turn controls make the game playable. The expanded board, eight crews, and supporting settings, room, social, and profile panels continue this same world.\n\nThe interface is dense around the board and more spacious around consequential actions. Friendly crew symbols and muted city colors give the original setting character without making players decode decoration. This is a record of the built system under the user's creative liberty. No approved visual comparisons, reference images, or image-generation assets were supplied.",
     "keyCharacteristics": [
       "Asphalt and olive surfaces with pale, readable board pieces.",
       "Condensed display type paired with direct, compact interface text.",
@@ -836,7 +1172,7 @@
     ],
     "dos": [
       "**Do** preserve the square perimeter board and the original city at its center.",
-      "**Do** retain controls-first mobile presentation and focus the selected property detail.",
+      "**Do** retain controls-first mobile presentation, contained readable-map scrolling, the full-map overview toggle, and focus the selected property detail.",
       "**Do** pair district and crew colors with names, symbols, strips, or explicit text.",
       "**Do** keep native keyboard activation, visible focus, dialog focus handling, and polite game announcements.",
       "**Do** self-host the existing Barlow families and honor reduced motion.",

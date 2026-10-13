@@ -29,6 +29,7 @@ export function migrate(g) {
   g.settings = { ...DEFAULT_SETTINGS, ...g.settings };
   g.chat ||= [];
   g.spectators ||= [];
+  g.turnStarted ??= Date.now();
   g.players.forEach((p) => {
     p.reserve ??= 60;
     p.afk ??= 0;
@@ -337,6 +338,8 @@ export function eliminate(g, p, creditor) {
     else delete g.props[t.id];
   }
   if (heir) heir.cash += p.cash;
+  if (heir) heir.escapes += p.escapes;
+  p.escapes = 0;
   p.cash = 0;
   g.pending = null;
   g.trade = null;

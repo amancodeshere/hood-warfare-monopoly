@@ -174,6 +174,8 @@ function attach(socket, g, p, token, spectator = false) {
   Object.assign(socket.data, { code: g.code, player: p.id, token, spectator });
   socket.join(g.code);
   p.connected = true;
+  if (!spectator && !p.profileId && socket.data.profile)
+    p.profileId = socket.data.profile;
   profileUpdates();
   if (!spectator && g.pausedAt && g.status === "playing") {
     const delta = Date.now() - g.pausedAt;
@@ -287,12 +289,21 @@ function joinRoom(socket, d) {
   assert(typeof d.code === "string", "Enter a room code.");
   const g = rooms.get(d.code.trim().toUpperCase());
   assert(g, "That room does not exist or has expired.");
+  getProfile(socket, d.name);
+  const existing = g.players.find((p) => p.profileId === socket.data.profile);
+  if (existing) {
+    if (socket.data.code !== g.code || socket.data.player !== existing.id)
+      maySwitch(socket);
+    const token = tokenFor(g.code, existing.id);
+    attach(socket, g, existing, token);
+    publish(g);
+    return { token, code: g.code, id: existing.id };
+  }
   assert(
     g.status === "lobby",
     "This match has started. Spectate or resume your saved seat.",
   );
   assert(g.players.length < g.settings.maxPlayers, "That room is full.");
-  getProfile(socket, d.name);
   assert(
     availableRoom(socket, g),
     "This room requires an account or is unavailable for your profile.",
@@ -528,6 +539,7 @@ io.on("connection", (socket) => {
         code = g.code,
         teamNames = g.teamNames,
         host = g.host;
+      for (const key of Object.keys(g)) delete g[key];
       Object.assign(
         g,
         room(
@@ -539,6 +551,7 @@ io.on("connection", (socket) => {
           limit,
           board: makeBoard(opts.map),
           revision,
+          teamNames,
           players: old.map((p) => ({
             ...player(p.name, p.bot),
             id: p.id,

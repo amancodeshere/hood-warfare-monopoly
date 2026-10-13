@@ -1,10 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { io } from "socket.io-client";
+import { room, player, start } from "../server/game.js";
 const data = mkdtempSync(join(tmpdir(), "stb-test-"));
 const port = 4387,
   url = `http://127.0.0.1:${port}`;
@@ -50,6 +51,28 @@ const send = (s, e, d = {}) =>
     s.timeout(3000).emit(e, d, (err, r) => (err ? reject(err) : resolve(r))),
   );
 test("real multiplayer: authority, room capacity, reconnect, origin checks, and persistence", async (t) => {
+  const captain = player("Captain"),
+    finished = room("REPLAY", captain);
+  finished.players.push(player("Bot", true));
+  start(finished, captain.id);
+  Object.assign(finished, {
+    status: "finished",
+    phase: "finished",
+    winner: captain.id,
+    winners: [captain.id],
+    statsRecorded: true,
+    finishedAt: Date.now(),
+    auction: { tile: 1 },
+    lastMove: { id: "old" },
+    teamNames: { 1: "Custom crew" },
+  });
+  writeFileSync(
+    join(data, "rooms.json"),
+    JSON.stringify({
+      rooms: [finished],
+      sessions: [["rematch-host", { code: "REPLAY", id: captain.id }]],
+    }),
+  );
   await boot();
   const clients = [];
   t.after(async () => {
@@ -163,6 +186,13 @@ test("real multiplayer: authority, room capacity, reconnect, origin checks, and 
   await send(host, "lobby", { type: "start" });
   assert.equal(host.game.players.length, 8);
   assert((await send(watch, "action", { type: "roll" })).error);
+  const secondDevice = await client();
+  clients.push(secondDevice);
+  await send(secondDevice, "profile-auth", { token: hp.token });
+  const recovered = await send(secondDevice, "join", { code: pub.code });
+  assert(recovered.ok);
+  assert.equal(recovered.id, pub.id);
+  assert.equal(secondDevice.game.players.length, 8);
   const profileLookup = await send(watch, "profile-find", {
     query: hp.profile.id,
   });
@@ -185,12 +215,32 @@ test("real multiplayer: authority, room capacity, reconnect, origin checks, and 
   // Single-player creation supports seven opponents and no implicit round cap.
   const solo = await client();
   clients.push(solo);
-  assert(
-    (await send(solo, "create", { solo: true, settings: { maxPlayers: 8 } }))
-      .ok,
-  );
+  const soloCreated = await send(solo, "create", {
+    solo: true,
+    settings: { maxPlayers: 8 },
+  });
+  assert(soloCreated.ok);
+  solo.savedToken = soloCreated.token;
   assert.equal(solo.game.players.filter((p) => p.bot).length, 7);
   assert.equal(solo.game.limit, null);
+  const replay = await client();
+  clients.push(replay);
+  await send(replay, "resume", { token: "rematch-host" });
+  assert((await send(replay, "lobby", { type: "rematch" })).ok);
+  assert.equal(replay.game.status, "lobby");
+  assert.equal(replay.game.winner, undefined);
+  assert.equal(replay.game.statsRecorded, undefined);
+  assert.equal(replay.game.auction, undefined);
+  assert.equal(replay.game.lastMove, undefined);
+  assert.equal(replay.game.teamNames["1"], "Custom crew");
+  // The solo room freezes its clock while no human is connected.
+  const deadline = solo.game.deadline;
+  solo.disconnect();
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+  const soloReconnect = await client();
+  clients.push(soloReconnect);
+  assert((await send(soloReconnect, "resume", { token: solo.savedToken })).ok);
+  assert(soloReconnect.game.deadline >= deadline + 1200);
   const health = await fetch(url + "/api/health");
   assert.equal(health.status, 200);
   const blocked = io(url, {

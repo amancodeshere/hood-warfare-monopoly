@@ -48,6 +48,7 @@ import {
   money,
   coordinates,
 } from "../shared/board.js";
+import { DISTRICTS as LEGACY_DISTRICTS } from "../shared/legacy-board.js";
 import { Modal } from "./Modal.jsx";
 import {
   SettingsPanel,
@@ -163,7 +164,8 @@ function Button({ children, secondary = false, danger = false, ...props }) {
 }
 function Board({ game, selected, setSelected, rolling, highlight }) {
   const BOARD = game?.board || DEFAULT_BOARD,
-    size = BOARD.length / 4 + 1;
+    size = BOARD.length / 4 + 1,
+    districts = game?.schemaVersion === 1 ? LEGACY_DISTRICTS : DISTRICTS;
   const [walking, setWalking] = useState(null),
     lastMove = useRef(game?.lastMove?.id);
   useEffect(() => {
@@ -208,7 +210,7 @@ function Board({ game, selected, setSelected, rolling, highlight }) {
                 gridRow: pos.row,
                 gridColumn: pos.col,
                 "--district":
-                  t.group !== undefined ? DISTRICTS[t.group].color : "#77887c",
+                  t.group !== undefined ? districts[t.group].color : "#77887c",
                 "--owner": q
                   ? CREWS[game.players.find((p) => p.id === q.owner)?.crew || 0]
                       .color
@@ -569,6 +571,27 @@ function App() {
     [confirmForfeit, setConfirmForfeit] = useState(false),
     [highlight, setHighlight] = useState(null),
     [mapOverview, setMapOverview] = useState(false);
+  useEffect(() => {
+    if (
+      game?.status === "playing" &&
+      [
+        "roulette",
+        "roulette-result",
+        "duel",
+        "duel-result",
+        "auction",
+        "stoppa",
+        "stoppa-result",
+      ].includes(game.phase)
+    ) {
+      setRules(false);
+      setSettingsOpen(false);
+      setAccountOpen(false);
+      setRoomsOpen(false);
+      setPlayerOpen(null);
+      setConfirmForfeit(false);
+    }
+  }, [game?.phase, game?.status]);
   const propertyFocus = useRef(null);
   useEffect(() => {
     if (selected !== null && window.innerWidth <= 720) {
@@ -748,6 +771,7 @@ function App() {
     }
   }
   const BOARD = game?.board || DEFAULT_BOARD;
+  const districts = game?.schemaVersion === 1 ? LEGACY_DISTRICTS : DISTRICTS;
   const me = game?.players.find((p) => p.id === game.me),
     current = game?.players[game.turn],
     mine = me?.id === current?.id && !me?.out,
@@ -779,7 +803,7 @@ function App() {
         aria-labelledby="property-heading"
         style={{
           "--district":
-            t.group !== undefined ? DISTRICTS[t.group].color : "#92a392",
+            t.group !== undefined ? districts[t.group].color : "#92a392",
         }}
       >
         <div className="property-title">
@@ -794,7 +818,7 @@ function App() {
         </div>
         <p>
           {t.group !== undefined
-            ? DISTRICTS[t.group].name
+            ? districts[t.group].name
             : t.type === "transit"
               ? "City transit"
               : t.type === "stoppa"
@@ -1358,7 +1382,7 @@ function App() {
             )}
           <div className="district-key">
             <h3>THE NEIGHBORHOODS</h3>
-            {DISTRICTS.map((d) => (
+            {districts.map((d) => (
               <div key={d.name}>
                 <i style={{ background: d.color }} />
                 <span>{d.name}</span>
@@ -1877,7 +1901,7 @@ function App() {
                             background:
                               t.group === undefined
                                 ? "#92a392"
-                                : DISTRICTS[t.group].color,
+                                : districts[t.group].color,
                           }}
                         />
                         <span>
