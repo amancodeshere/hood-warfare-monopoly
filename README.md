@@ -82,8 +82,6 @@ The entry page supports guest play and username/password sign-in. Guests can hos
 
 Production email delivery needs these private Railway service variables:
 
-Follow the [email delivery activation runbook](docs/email-delivery.md) for the player flow, DNS setup, safe configuration check, and live acceptance test.
-
 - `RESEND_API_KEY`: a sending API key from Resend.
 - `EMAIL_FROM`: an address on your verified Resend sending domain, for example `Spin the Block <play@your-domain.com>`.
 
