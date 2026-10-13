@@ -332,61 +332,201 @@ export function RoomsPanel({ emit, enter, close, disabled }) {
     </Modal>
   );
 }
-export function ExchangePanel({ game, act, disabled }) {
+export function TradeSummary({ game, offer, viewer = game.me }) {
+  const board = game.board || BOARD;
+  const receiving = offer.to === viewer;
+  const sides = [
+    {
+      title: receiving ? "You receive" : "You give",
+      ids: offer.giveTiles || [offer.give],
+      cash: offer.cash || 0,
+      cards: offer.giveEscapes || 0,
+      player: offer.from,
+    },
+    {
+      title: receiving ? "You give" : "You receive",
+      ids: offer.takeTiles || [offer.take],
+      cash: offer.requestCash || 0,
+      cards: offer.takeEscapes || 0,
+      player: offer.to,
+    },
+  ];
+  return (
+    <div className="deal-summary">
+      {sides.map((side) => (
+        <section key={side.title}>
+          <h4>{side.title}</h4>
+          <ul>
+            {side.ids
+              .filter((id) => board[id]?.price)
+              .map((id) => (
+                <li key={id}>
+                  <span>{board[id].name}</span>
+                  <small>
+                    {money(board[id].price)} list price
+                    {game.props[id]?.mortgaged ? " · mortgaged; no rent" : ""}
+                  </small>
+                </li>
+              ))}
+            {!!side.cash && <li>{money(side.cash)} cash</li>}
+            {!!side.cards && (
+              <li>
+                {side.cards} escape card{side.cards === 1 ? "" : "s"}
+              </li>
+            )}
+            {!side.ids.some((id) => board[id]?.price) &&
+              !side.cash &&
+              !side.cards && <li>Nothing</li>}
+          </ul>
+        </section>
+      ))}
+      <p className="deal-cash-note">
+        Your cash after this deal:{" "}
+        {money(
+          (game.players.find((p) => p.id === viewer)?.cash || 0) +
+            (receiving
+              ? (offer.cash || 0) - (offer.requestCash || 0)
+              : (offer.requestCash || 0) - (offer.cash || 0)),
+        )}
+        . Mortgages stay with the property.
+      </p>
+    </div>
+  );
+}
+export function ExchangePanel({ game, act, disabled, counter, clearCounter }) {
   const me = game.players.find((p) => p.id === game.me),
     board = game.board || BOARD;
-  const [to, setTo] = useState(""),
-    [give, setGive] = useState([]),
-    [take, setTake] = useState([]),
-    [cash, setCash] = useState("0"),
-    [requestCash, setRequestCash] = useState("0"),
-    [escapes, setEscapes] = useState("0"),
-    [requestEscapes, setRequestEscapes] = useState("0");
-  const partner = game.players.find((p) => p.id === to),
-    mine = game.players[game.turn].id === game.me && !me?.out;
+  const [to, setTo] = useState(counter?.from || ""),
+    [give, setGive] = useState(counter?.takeTiles || []),
+    [take, setTake] = useState(counter?.giveTiles || []),
+    [cash, setCash] = useState(String(counter?.requestCash || 0)),
+    [requestCash, setRequestCash] = useState(String(counter?.cash || 0)),
+    [escapes, setEscapes] = useState(String(counter?.takeEscapes || 0)),
+    [requestEscapes, setRequestEscapes] = useState(
+      String(counter?.giveEscapes || 0),
+    );
+  const partner = game.players.find((p) => p.id === to);
   if (!me || me.out)
-    return (
-      <p className="empty-copy">
-        Trading is for active crews. You can keep watching the deals.
-      </p>
-    );
-  const available = (id) =>
-    board.filter(
-      (t) =>
-        game.props[t.id]?.owner === id &&
-        !game.props[t.id]?.level &&
-        (t.group === undefined ||
-          !board.some((x) => x.group === t.group && game.props[x.id]?.level)),
-    );
+    return <p className="empty-copy">Trading is for active crews.</p>;
+  const available = (t, id) =>
+    game.props[t.id]?.owner === id &&
+    !game.props[t.id]?.level &&
+    (t.group === undefined ||
+      !board.some((x) => x.group === t.group && game.props[x.id]?.level));
   const toggle = (id, list, set) =>
     set(list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
-  const movable = mine && ["roll", "end", "rent", "buy"].includes(game.phase);
+  const movable = ["roll", "end", "rent", "buy"].includes(game.phase);
+  const draft = {
+    from: me.id,
+    to,
+    giveTiles: give,
+    takeTiles: take,
+    cash: Number(cash),
+    requestCash: Number(requestCash),
+    giveEscapes: Number(escapes),
+    takeEscapes: Number(requestEscapes),
+  };
+  const validAmount = (value, max) =>
+    value !== "" &&
+    Number.isInteger(Number(value)) &&
+    Number(value) >= 0 &&
+    Number(value) <= max;
+  const valid =
+    partner &&
+    !partner.out &&
+    validAmount(cash, me.cash) &&
+    validAmount(requestCash, partner.cash) &&
+    validAmount(escapes, me.escapes) &&
+    validAmount(requestEscapes, partner.escapes) &&
+    give.every((id) => available(board[id], me.id)) &&
+    take.every((id) => available(board[id], to)) &&
+    give.length +
+      take.length +
+      draft.cash +
+      draft.requestCash +
+      draft.giveEscapes +
+      draft.takeEscapes >
+      0;
+  const stale = counter && game.trade?.id !== counter.id;
+  const assets = (id, selected, set) => {
+    const owned = board.filter((t) => game.props[t.id]?.owner === id);
+    return owned.length ? (
+      owned.map((t) => (
+        <label className="asset-check" key={t.id}>
+          <input
+            type="checkbox"
+            disabled={!available(t, id)}
+            checked={selected.includes(t.id)}
+            onChange={() => toggle(t.id, selected, set)}
+          />
+          <span>
+            {t.name}
+            <small>
+              {money(t.price)} ·{" "}
+              {game.props[t.id].mortgaged
+                ? "Mortgaged; no rent"
+                : "Base rent " + (t.rent ? money(t.rent) : "varies")}
+              {!available(t, id) ? " · Sell district buildings first" : ""}
+            </small>
+          </span>
+        </label>
+      ))
+    ) : (
+      <p className="empty-copy">
+        No properties yet. Cash and cards can still be traded.
+      </p>
+    );
+  };
   return (
     <div className="exchange">
       <div className="turf-heading">
-        <h2>Let’s make a deal.</h2>
+        <h2>{counter ? "Make a counteroffer." : "Let’s make a deal."}</h2>
         <p>
-          Trade several blocks, cash, and escape cards in one offer. Send a
-          rescue bag at any time outside special events.
+          Swap multiple properties, cash, and escape cards. Any active crew can
+          negotiate between events.
         </p>
       </div>
       {game.trade?.from === me.id ? (
         <>
-          <p className="waiting">Offer sent. Waiting for the other crew.</p>
-          <Btn secondary onClick={() => act({ type: "trade-cancel" })}>
-            Cancel offer
+          <p className="waiting">
+            Offer sent to{" "}
+            {game.players.find((p) => p.id === game.trade.to)?.name}. Waiting
+            for an answer.
+          </p>
+          <TradeSummary game={game} offer={game.trade} />
+          <Btn
+            secondary
+            disabled={disabled}
+            onClick={() =>
+              act({ type: "trade-cancel", offerId: game.trade.id })
+            }
+          >
+            Withdraw offer
           </Btn>
         </>
       ) : (
         <>
+          {counter && (
+            <p className="panel-notice" role="status">
+              {stale
+                ? "This offer was replaced or expired. Start a fresh deal."
+                : "The original stays open until you send your counteroffer. Sending replaces it; no assets move yet."}
+              <button className="text-button" onClick={clearCounter}>
+                Discard counteroffer draft
+              </button>
+            </p>
+          )}
           <label htmlFor="exchange-crew">
             Trade with
             <select
               id="exchange-crew"
               value={to}
+              disabled={!!counter || disabled}
               onChange={(e) => {
                 setTo(e.target.value);
                 setTake([]);
+                setRequestCash("0");
+                setRequestEscapes("0");
               }}
             >
               <option value="">Choose a crew</option>
@@ -394,26 +534,17 @@ export function ExchangePanel({ game, act, disabled }) {
                 .filter((p) => p.id !== me.id && !p.out)
                 .map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.name}
+                    {p.name} · {money(p.cash)}
                   </option>
                 ))}
             </select>
           </label>
-          <fieldset disabled={!movable || disabled} className="exchange-fields">
-            <legend>Your offer</legend>
-            {available(me.id).map((t) => (
-              <label className="asset-check" key={t.id}>
-                <input
-                  type="checkbox"
-                  checked={give.includes(t.id)}
-                  onChange={() => toggle(t.id, give, setGive)}
-                />
-                <span>
-                  {t.name}
-                  {game.props[t.id].mortgaged ? " · mortgaged" : ""}
-                </span>
-              </label>
-            ))}
+          <fieldset
+            disabled={!movable || disabled || stale}
+            className="exchange-fields"
+          >
+            <legend>You give · {money(me.cash)} available</legend>
+            {assets(me.id, give, setGive)}
             <div className="amount-fields">
               <label>
                 Cash to give
@@ -421,16 +552,18 @@ export function ExchangePanel({ game, act, disabled }) {
                   type="number"
                   min={0}
                   max={me.cash}
+                  step={1}
                   value={cash}
                   onChange={(e) => setCash(e.target.value)}
                 />
               </label>
               <label>
-                Escape cards
+                Escape cards to give
                 <input
                   type="number"
                   min={0}
                   max={me.escapes}
+                  step={1}
                   value={escapes}
                   onChange={(e) => setEscapes(e.target.value)}
                 />
@@ -438,23 +571,19 @@ export function ExchangePanel({ game, act, disabled }) {
             </div>
           </fieldset>
           <fieldset
-            disabled={!movable || disabled || !partner}
+            disabled={!movable || disabled || !partner || stale}
             className="exchange-fields"
           >
-            <legend>Their offer</legend>
-            {available(to).map((t) => (
-              <label className="asset-check" key={t.id}>
-                <input
-                  type="checkbox"
-                  checked={take.includes(t.id)}
-                  onChange={() => toggle(t.id, take, setTake)}
-                />
-                <span>
-                  {t.name}
-                  {game.props[t.id].mortgaged ? " · mortgaged" : ""}
-                </span>
-              </label>
-            ))}
+            <legend>
+              You receive{partner ? ` · ${money(partner.cash)} available` : ""}
+            </legend>
+            {partner ? (
+              assets(to, take, setTake)
+            ) : (
+              <p className="empty-copy">
+                Choose a crew to see their properties.
+              </p>
+            )}
             <div className="amount-fields">
               <label>
                 Cash to receive
@@ -462,72 +591,91 @@ export function ExchangePanel({ game, act, disabled }) {
                   type="number"
                   min={0}
                   max={partner?.cash || 0}
+                  step={1}
                   value={requestCash}
                   onChange={(e) => setRequestCash(e.target.value)}
                 />
               </label>
               <label>
-                Escape cards
+                Escape cards to receive
                 <input
                   type="number"
                   min={0}
                   max={partner?.escapes || 0}
+                  step={1}
                   value={requestEscapes}
                   onChange={(e) => setRequestEscapes(e.target.value)}
                 />
               </label>
             </div>
           </fieldset>
+          {partner && (
+            <>
+              <h3 className="deal-preview-title">
+                Review your {counter ? "counteroffer" : "offer"}
+              </h3>
+              <TradeSummary game={game} offer={draft} />
+              {!valid && (
+                <p className="micro-note">
+                  Select an available asset and use whole amounts within each
+                  crew’s balance.
+                </p>
+              )}
+            </>
+          )}
           <Btn
             disabled={
               !movable ||
               disabled ||
-              !to ||
-              !!game.trade ||
-              (!give.length &&
-                !take.length &&
-                !Number(cash) &&
-                !Number(requestCash) &&
-                !Number(escapes) &&
-                !Number(requestEscapes))
+              !valid ||
+              stale ||
+              (!!game.trade && !counter)
             }
-            onClick={() =>
-              act({
-                type: "trade",
-                to,
-                giveTiles: give,
-                takeTiles: take,
-                cash: Number(cash),
-                requestCash: Number(requestCash),
-                giveEscapes: Number(escapes),
-                takeEscapes: Number(requestEscapes),
-              })
-            }
+            onClick={async () => {
+              if (
+                await act({
+                  type: counter ? "trade-counter" : "trade",
+                  ...draft,
+                  offerId: counter?.id,
+                })
+              ) {
+                clearCounter();
+                setGive([]);
+                setTake([]);
+                setCash("0");
+                setRequestCash("0");
+                setEscapes("0");
+                setRequestEscapes("0");
+              }
+            }}
           >
-            Send offer <Handshake size={18} />
+            {counter ? "Send counteroffer" : "Send offer"}{" "}
+            <Handshake size={18} />
           </Btn>
-          <Btn
-            secondary
-            disabled={
-              disabled ||
-              !to ||
-              Number(cash) <= 0 ||
-              Number(cash) > me.cash ||
-              [
-                "rent",
-                "duel",
-                "duel-result",
-                "auction",
-                "stoppa-result",
-              ].includes(game.phase)
-            }
-            onClick={() => act({ type: "gift", to, amount: Number(cash) })}
-          >
-            Send {money(Number(cash) || 0)} as a gift
-          </Btn>
+          {!movable && (
+            <p className="panel-notice">
+              Finish the current event before sending or accepting trades.
+            </p>
+          )}
+          {!counter && (
+            <Btn
+              secondary
+              disabled={
+                disabled ||
+                !partner ||
+                Number(cash) <= 0 ||
+                !validAmount(cash, me.cash) ||
+                !movable ||
+                (game.players[game.turn].id === me.id && game.phase === "rent")
+              }
+              onClick={() => act({ type: "gift", to, amount: Number(cash) })}
+            >
+              Send {money(Number(cash) || 0)} as a gift
+            </Btn>
+          )}
           <p className="micro-note">
-            Only unbuilt districts can change hands. Debt trades must return
-            fair value. Offers expire at the end of the turn.
+            Sell all buildings in a district before trading its properties. Debt
+            trades must return fair value. Offers expire when the turn ends.
           </p>
         </>
       )}
@@ -541,7 +689,9 @@ export function ChatPanel({ game, emit, disabled, onPlayer }) {
   const end = useRef(null),
     me = game.players.find((p) => p.id === game.me);
   useEffect(() => {
-    end.current?.scrollIntoView({ block: "nearest" });
+    if (end.current?.parentElement)
+      end.current.parentElement.scrollTop =
+        end.current.parentElement.scrollHeight;
   }, [game.chat?.length]);
   return (
     <section className="chat-panel" aria-label="Room chat">
@@ -579,7 +729,9 @@ export function ChatPanel({ game, emit, disabled, onPlayer }) {
               <span>{m.text}</span>
             </p>
           ))}
-        {!game.chat?.length && (
+        {!(game.chat || []).some((m) =>
+          team ? m.team === String(me?.team) : !m.team,
+        ) && (
           <p className="empty-copy">
             Say hello, talk trades, or call your shot.
           </p>
@@ -598,14 +750,14 @@ export function ChatPanel({ game, emit, disabled, onPlayer }) {
         <div className="join-row">
           <input
             id="chat-message"
-            disabled={disabled || busy}
+            disabled={disabled || busy || !me}
             maxLength={280}
             placeholder={me ? "Say something…" : "Spectators can read chat"}
             value={text}
             onChange={(e) => setText(e.target.value)}
           />
           <button
-            disabled={disabled || busy || !text.trim()}
+            disabled={disabled || busy || !me || !text.trim()}
             aria-label="Send chat message"
           >
             <Send size={18} />

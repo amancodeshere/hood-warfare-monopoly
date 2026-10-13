@@ -34,7 +34,7 @@ This release does not provide payment commerce, email verification/recovery, upl
 
 ## Verification
 
-CI runs lint, Node engine/profile/multiplayer tests with coverage, production build, and 13 Chromium browser tests. Game tests exercise legacy preservation, 40-space geometry, optional limits, cash conservation, auctions, team ownership/inheritance, fair trades, human timeouts, secret choices, and seeded full-match simulations. Integration tests exercise real sockets, origin rejection, private/public discovery, capacity, bot filling, team-chat secrecy, spectators, profile preferences, and restart recovery. Browser tests exercise desktop/mobile room play, roulette, shootouts, solo opponents, house settings, Oppa Stoppa, auctions, team chat, cosmetics, and account sign-in.
+CI runs lint, Node engine/profile/multiplayer tests with coverage, production build, and 16 Chromium browser tests. Game tests exercise legacy preservation, 40-space geometry, optional limits, cash conservation, auctions, team ownership/inheritance, fair trades, human timeouts, secret choices, and seeded full-match simulations. Integration tests exercise real sockets, origin rejection, private/public discovery, capacity, bot filling, team-chat secrecy, spectators, profile preferences, and restart recovery. Browser tests exercise desktop/mobile room play, roulette, shootouts, solo opponents, house settings, Oppa Stoppa, auctions, team chat, cosmetics, and account sign-in.
 
 ## Accounts and cities
 
@@ -50,3 +50,11 @@ CI runs lint, Node engine/profile/multiplayer tests with coverage, production bu
 New challenges use an authoritative 2D first-person alley duel with ready/countdown, aiming, dodge lanes, duck cover, head/body hit boxes, six-round magazines, reloads, health, a 30-second cap, bots, pause/recovery, and spectator restrictions. An exact timed tie protects the landlord; no hidden coin toss. Saved tactic duels remain compatible.
 
 Ownership has a named crew badge and explicit mortgage state. Larger illustrated hooded crew figures, house counts, and hotel silhouettes remain readable on the detailed mobile board. Stacks show a primary piece and count; the property panel lists every resident crew. Earned token emblems remain visible.
+
+## Negotiation, chat, and eliminated seats
+
+Any active crew can propose multi-property/cash/escape-card deals between events without waiting for their turn. Counteroffers prefill reversed assets and replace an offer atomically; unique offer IDs reject stale responses. Summaries use the current map names, show mortgage status and cash after settlement, and preserve mortgage flags. Acceptance rechecks ownership, balances, cards, unbuilt districts, and debt fair-value constraints. Declining or withdrawing works during events; offers expire on turn advance.
+
+Room chat appears beside the board, remains available while editing deals, retains private team channels and mute/block filtering, and has a direct composer shortcut. Eliminated seats get a prominent leave action, are not trapped by event overlays, clear browser seat state on exit, and cannot resume a revoked seat. Browser coverage includes two-crew counters, cross-browser chat, and mobile exit during an event.
+
+Richup’s live game connection was unavailable during this implementation. These negotiation behaviors are implemented and tested; exact parity with its current trading UI/rules has not been verified.

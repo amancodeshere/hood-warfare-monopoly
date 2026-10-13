@@ -10,6 +10,8 @@
   --line: #343d35;
   --panel: #202722;
   --ink: #192019;
+  --secondary-text: #d6e0cb;
+  --secondary-border: #52634b;
 }
 * {
   box-sizing: border-box;
@@ -2668,6 +2670,95 @@ button:hover:not(:disabled) {
   font-family: "Barlow Condensed", sans-serif;
   font-size: 30px;
   margin: 15px 0;
+}
+.board-chat {
+  margin-top: 24px;
+  border-top: 1px solid var(--line);
+  padding: 4px 0 18px;
+}
+.board-chat .chat-messages {
+  min-height: 120px;
+  max-height: 240px;
+}
+.board-chat .join-row input {
+  font-size: 16px;
+  letter-spacing: normal;
+  text-transform: none;
+}
+.eliminated-exit {
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--secondary-border);
+}
+.eliminated-exit h2 {
+  font:
+    600 30px "Barlow Condensed",
+    sans-serif;
+}
+.eliminated-exit p {
+  color: var(--secondary-text);
+  font-size: 16px;
+  line-height: 1.5;
+  margin: 10px 0 16px;
+}
+.deal-summary,
+.trade-inbox > .deal-summary {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin: 14px 0 20px;
+}
+.deal-summary section {
+  border-top: 1px solid var(--secondary-border);
+  padding-top: 10px;
+  min-width: 0;
+}
+.deal-summary h4,
+.deal-preview-title {
+  font-size: 16px;
+  color: var(--lime);
+  margin: 0 0 8px;
+}
+.deal-summary ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.deal-summary li {
+  font-size: 16px;
+  margin: 8px 0;
+  overflow-wrap: anywhere;
+}
+.deal-summary small,
+.exchange .asset-check small {
+  display: block;
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--secondary-text);
+}
+.deal-summary .deal-cash-note,
+.trade-inbox .deal-cash-note {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--secondary-text);
+}
+.trade-inbox > div:last-child {
+  flex-wrap: wrap;
+}
+.trade-inbox .button {
+  min-height: 44px;
+  font-size: 14px;
+}
+.exchange .asset-check {
+  font-size: 16px;
+  padding: 12px 0;
+}
+.exchange .asset-check:has(input:disabled) {
+  opacity: 0.65;
+}
+.exchange .amount-fields input {
+  font-size: 16px;
 }
 .chat-channel {
   display: flex;

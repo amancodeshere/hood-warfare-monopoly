@@ -57,6 +57,7 @@ import {
   SettingsPanel,
   RoomsPanel,
   ExchangePanel,
+  TradeSummary,
   ChatPanel,
   AccountPanel,
   Auction,
@@ -615,6 +616,7 @@ function App() {
       new URLSearchParams(location.search).get("room") || "",
     ),
     [tab, setTab] = useState("turn"),
+    [counterOffer, setCounterOffer] = useState(null),
     [limit, setLimit] = useState(0),
     [muted, setMuted] = useState(stored("stb-sound") !== "on"),
     [now, setNow] = useState(Date.now()),
@@ -653,7 +655,8 @@ function App() {
       setConfirmForfeit(false);
     }
   }, [game?.phase, game?.status]);
-  const propertyFocus = useRef(null);
+  const propertyFocus = useRef(null),
+    chatFocus = useRef(null);
   useEffect(() => {
     if (selected !== null && window.innerWidth <= 720) {
       propertyFocus.current?.focus({ preventScroll: true });
@@ -817,6 +820,9 @@ function App() {
       persist("stb-seat", null);
       history.replaceState({}, "", "/");
       setSelected(null);
+      setTab("turn");
+      setCounterOffer(null);
+      setCode("");
     }
   }
   const act = (a) => emit("action", a),
@@ -1048,7 +1054,7 @@ function App() {
           <h2>{current.name}’s move.</h2>
           <p>
             {me?.out
-              ? "Your crew is out. Stay to watch the block change hands."
+              ? "Your crew is out. Leave for a new game, or stay to watch and chat."
               : `They’re ${game.phase === "duel" ? "settling a score" : game.phase === "roll" ? "getting ready to roll" : "at " + BOARD[current.pos].name}. ${!me ? "You’re watching from the sidelines." : "Your seat is next in line."}`}
           </p>
           <div className="waiting-dots">
@@ -1585,6 +1591,16 @@ function App() {
               Crew badges show who owns each block. Tap a tile for details.
             </p>
           )}
+          {game && (
+            <div className="board-chat" ref={chatFocus}>
+              <ChatPanel
+                game={game}
+                emit={emit}
+                disabled={!connected || !me}
+                onPlayer={setPlayerOpen}
+              />
+            </div>
+          )}
           {showLog && (
             <section className="activity-log" aria-label="Street activity">
               <div className="section-heading">
@@ -1616,6 +1632,18 @@ function App() {
           )}
         </section>
         <aside className="action-sidebar">
+          {game?.status === "playing" && me?.out && (
+            <section className="eliminated-exit" aria-label="Your crew is out">
+              <h2>Your crew is out.</h2>
+              <p>
+                Leave for another table whenever you’re ready. Watching is
+                optional.
+              </p>
+              <Button disabled={disabled} onClick={leave}>
+                <LogOut size={18} /> Leave game session
+              </Button>
+            </section>
+          )}
           {!game ? (
             <>
               <div className="welcome">
@@ -1945,9 +1973,22 @@ function App() {
                   <button
                     key={x.id}
                     className={tab === x.id ? "active" : ""}
-                    onClick={() => setTab(x.id)}
+                    onClick={() => {
+                      if (x.id === "chat") {
+                        chatFocus.current?.scrollIntoView({
+                          block: "center",
+                          behavior: "smooth",
+                        });
+                        chatFocus.current
+                          ?.querySelector("input")
+                          ?.focus({ preventScroll: true });
+                      } else setTab(x.id);
+                    }}
                   >
                     {x.label}
+                    {x.id === "chat" && (
+                      <span aria-hidden="true">{game.chat?.length || 0}</span>
+                    )}
                     {x.id === "turf" && <span>{owned.length}</span>}
                   </button>
                 ))}
@@ -1956,45 +1997,50 @@ function App() {
                 <div className="trade-inbox">
                   <Handshake size={20} />
                   <h3>
-                    A deal from{" "}
+                    {game.trade.revision > 1
+                      ? "Counteroffer from "
+                      : "A deal from "}
                     {game.players.find((p) => p.id === game.trade.from)?.name}
                   </h3>
-                  <p>
-                    Get{" "}
-                    {(game.trade.giveTiles || [game.trade.give])
-                      .map((id) => BOARD[id]?.name)
-                      .filter(Boolean)
-                      .join(", ") || "cash/cards"}{" "}
-                    + {money(game.trade.cash || 0)}
-                    {game.trade.giveEscapes
-                      ? ` + ${game.trade.giveEscapes} escape card(s)`
-                      : ""}
-                    .<br />
-                    Give{" "}
-                    {(game.trade.takeTiles || [game.trade.take])
-                      .map((id) => BOARD[id]?.name)
-                      .filter(Boolean)
-                      .join(", ") || "cash/cards"}{" "}
-                    + {money(game.trade.requestCash || 0)}
-                    {game.trade.takeEscapes
-                      ? ` + ${game.trade.takeEscapes} escape card(s)`
-                      : ""}
-                    .
-                  </p>
+                  <TradeSummary game={game} offer={game.trade} />
                   <div>
                     <Button
-                      disabled={disabled}
+                      disabled={
+                        disabled ||
+                        !["roll", "end", "rent", "buy"].includes(game.phase)
+                      }
                       onClick={() =>
-                        act({ type: "trade-respond", accept: true })
+                        act({
+                          type: "trade-respond",
+                          accept: true,
+                          offerId: game.trade.id,
+                        })
                       }
                     >
-                      Accept
+                      Accept deal
+                    </Button>
+                    <Button
+                      secondary
+                      disabled={
+                        disabled ||
+                        !["roll", "end", "rent", "buy"].includes(game.phase)
+                      }
+                      onClick={() => {
+                        setCounterOffer(game.trade);
+                        setTab("trade");
+                      }}
+                    >
+                      Counteroffer
                     </Button>
                     <Button
                       secondary
                       disabled={disabled}
                       onClick={() =>
-                        act({ type: "trade-respond", accept: false })
+                        act({
+                          type: "trade-respond",
+                          accept: false,
+                          offerId: game.trade.id,
+                        })
                       }
                     >
                       Decline
@@ -2057,15 +2103,15 @@ function App() {
                     Escape cards: {me?.escapes || 0}
                   </p>
                 </>
-              ) : tab === "chat" ? (
-                <ChatPanel
-                  game={game}
-                  emit={emit}
-                  disabled={disabled || !me}
-                  onPlayer={setPlayerOpen}
-                />
               ) : (
-                <ExchangePanel game={game} act={act} disabled={disabled} />
+                <ExchangePanel
+                  key={counterOffer?.id || "new"}
+                  game={game}
+                  act={act}
+                  disabled={disabled}
+                  counter={counterOffer}
+                  clearCounter={() => setCounterOffer(null)}
+                />
               )}
               {!mine &&
                 me &&
@@ -2278,17 +2324,20 @@ function App() {
         </Modal>
       )}
       {game?.status === "playing" &&
+        !me?.out &&
         ["stoppa", "stoppa-result"].includes(game.phase) && (
           <Stoppa game={game} act={act} disabled={disabled} />
         )}
-      {game?.status === "playing" && game.phase === "auction" && (
+      {game?.status === "playing" && !me?.out && game.phase === "auction" && (
         <Auction game={game} act={act} disabled={disabled} now={now} />
       )}
       {game?.status === "playing" &&
+        !me?.out &&
         ["roulette", "roulette-result"].includes(game.phase) && (
           <Roulette game={game} act={act} disabled={disabled} />
         )}
       {game?.status === "playing" &&
+        !me?.out &&
         ["duel", "duel-result"].includes(game.phase) && (
           <Duel
             game={game}

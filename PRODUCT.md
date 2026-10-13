@@ -20,7 +20,7 @@ A complete property trading party game inspired by the energy and turf battles o
 
 ## Capabilities and Constraints
 
-Rent debt can trigger optional one versus one shootouts. Roulette special cards can send players to jail, grant escape, or award jackpots. Private/public rooms for 2–8 crews, quick matchmaking, bots/autofill, spectators, reconnection, auctions, utilities, four houses plus hotels, teams and private team chat, multi-asset trading, rescue gifts, personal turn clocks, profiles/friends/invitations/history/earned cosmetics, elimination and rematches. Default winner takes all; optional round caps. Expanded 40-square maps and Oppa Stoppa’s fair 1–10% cash spin fund the Community Plot. Existing saved rooms retain their original 28-square board. In-game currency only. Work in ~/Desktop/hw-monopoly. Deploy on Railway.
+Rent debt can trigger optional one versus one shootouts. Roulette special cards can send players to jail, grant escape, or award jackpots. Private/public rooms for 2–8 crews, quick matchmaking, bots/autofill, spectators, reconnection, auctions, utilities, four houses plus hotels, teams and private team chat, multi-asset trading with off-turn negotiation and editable counteroffers, board-side chat and optional exit for eliminated crews, rescue gifts, personal turn clocks, profiles/friends/invitations/history/earned cosmetics, elimination and rematches. Default winner takes all; optional round caps. Expanded 40-square maps and Oppa Stoppa’s fair 1–10% cash spin fund the Community Plot. Existing saved rooms retain their original 28-square board. In-game currency only. Work in ~/Desktop/hw-monopoly. Deploy on Railway.
 
 ## Brand Commitments
 
