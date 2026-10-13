@@ -1,3 +1,5 @@
+import FPSDuel from "./FPSDuel.jsx";
+import { HoodFigure, StreetBuilding } from "./StreetPieces.jsx";
 import { EntryPage, MapStudio } from "./LoginMaps.jsx";
 import React, { useState, useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
@@ -199,6 +201,7 @@ function Board({ game, selected, setSelected, rolling, highlight }) {
         {BOARD.map((t) => {
           const pos = coordinates(t.id, BOARD.length),
             q = game?.props[t.id],
+            owner = game?.players.find((p) => p.id === q?.owner),
             players =
               game?.players.filter(
                 (p) =>
@@ -206,10 +209,15 @@ function Board({ game, selected, setSelected, rolling, highlight }) {
                   (walking?.id === p.id ? walking.pos : p.pos) === t.id,
               ) || [],
             corner = t.id % (BOARD.length / 4) === 0;
+          const tokenPlayers = players
+            .slice()
+            .sort(
+              (a, b) => Number(b.id === game?.me) - Number(a.id === game?.me),
+            );
           return (
             <button
               key={t.id}
-              className={`tile ${corner ? "corner" : ""} ${selected === t.id ? "selected" : ""} ${q?.mortgaged ? "mortgaged" : ""} ${q?.owner === highlight ? "highlighted" : ""} ${live && current?.pos === t.id ? "occupied" : ""}`}
+              className={`tile ${corner ? "corner" : ""} ${selected === t.id ? "selected" : ""} ${q ? "owned" : ""} ${q?.level ? "built" : ""} ${q?.mortgaged ? "mortgaged" : ""} ${q?.owner === highlight ? "highlighted" : ""} ${live && current?.pos === t.id ? "occupied" : ""}`}
               style={{
                 gridRow: pos.row,
                 gridColumn: pos.col,
@@ -223,13 +231,16 @@ function Board({ game, selected, setSelected, rolling, highlight }) {
               onClick={() => setSelected(t.id)}
               aria-label={`${t.name}${t.price ? ", " + money(t.price) : ""}${q ? ", owned by " + game.players.find((p) => p.id === q.owner)?.name : ""}`}
             >
-              {t.group !== undefined && (
-                <div className="district-stripe">
-                  {q?.level > 0 &&
-                    Array.from({ length: q.level }, (_, i) => (
-                      <Building2 key={i} size={10} />
-                    ))}
-                </div>
+              {t.group !== undefined && <div className="district-stripe"></div>}
+              {q?.level > 0 && (
+                <span
+                  className="building-pieces"
+                  title={q.level === 5 ? "Hotel" : `${q.level} houses`}
+                  aria-label={q.level === 5 ? "Hotel" : `${q.level} houses`}
+                >
+                  <StreetBuilding hotel={q.level === 5} />
+                  <b>{q.level === 5 ? "HOTEL" : `×${q.level}`}</b>
+                </span>
               )}
               {t.type !== "property" && (
                 <Icon name={t.type} size={corner ? 24 : 19} />
@@ -254,12 +265,27 @@ function Board({ game, selected, setSelected, rolling, highlight }) {
                                 ? "GO TO JAIL"
                                 : "COMMUNITY POT"}
               </span>
-              {q && <span className="owner-dot" />}
+              {q && (
+                <span
+                  className="owner-badge"
+                  title={`Owned by ${owner?.name}${q.mortgaged ? " · mortgaged" : ""}`}
+                >
+                  <span>
+                    {q.mortgaged
+                      ? "MORTGAGED"
+                      : owner?.id === game.me
+                        ? "YOU OWN"
+                        : "OWNED"}
+                  </span>
+                  <b>{owner?.name}</b>
+                </span>
+              )}
               {players.length > 0 && (
                 <div
                   className={`tokens ${players.length > 4 ? "crowded" : ""}`}
+                  aria-label={tokenPlayers.map((p) => p.name).join(", ")}
                 >
-                  {players.map((p) => (
+                  {tokenPlayers.map((p) => (
                     <span
                       className="token"
                       key={p.id}
@@ -270,15 +296,36 @@ function Board({ game, selected, setSelected, rolling, highlight }) {
                       }}
                       title={p.name}
                     >
-                      <Icon
-                        name={
-                          COSMETICS.find((x) => x.id === p.appearance)?.icon ||
-                          CREWS[p.crew].symbol
+                      <HoodFigure
+                        color={
+                          COSMETICS.find((x) => x.id === p.appearance)?.color ||
+                          CREWS[p.crew].color
                         }
-                        size={12}
+                        variant={p.crew}
                       />
+                      {p.appearance && p.appearance !== "crew" && (
+                        <span className="token-emblem">
+                          <Icon
+                            name={
+                              COSMETICS.find((x) => x.id === p.appearance)?.icon
+                            }
+                            size={10}
+                          />
+                        </span>
+                      )}
                     </span>
                   ))}
+                  {players.length > 1 && (
+                    <span
+                      className="token-stack-count"
+                      title={tokenPlayers
+                        .slice(1)
+                        .map((p) => p.name)
+                        .join(", ")}
+                    >
+                      +{players.length - 1}
+                    </span>
+                  )}
                 </div>
               )}
             </button>
@@ -430,6 +477,8 @@ function Roulette({ game, act, disabled }) {
   );
 }
 function Duel({ game, act, disabled }) {
+  if (game.duel.mode === "fps")
+    return <FPSDuel game={game} act={act} disabled={disabled} />;
   const d = game.duel,
     a = game.players.find((p) => p.id === d.attacker),
     b = game.players.find((p) => p.id === d.defender),
@@ -829,6 +878,42 @@ function App() {
             <X size={17} />
           </button>
         </div>
+        {game?.players.some((p) => p.pos === t.id && !p.out) && (
+          <div className="property-residents" aria-label="Crews on this block">
+            {game.players
+              .filter((p) => p.pos === t.id && !p.out)
+              .map((p) => (
+                <span key={p.id}>
+                  <HoodFigure color={CREWS[p.crew].color} variant={p.crew} />
+                  <b>{p.id === me?.id ? "You" : p.name}</b>
+                </span>
+              ))}
+          </div>
+        )}
+        {owner && (
+          <div
+            className="property-owner-summary"
+            style={{ "--crew": CREWS[owner.crew].color }}
+          >
+            <HoodFigure color={CREWS[owner.crew].color} variant={owner.crew} />
+            <div>
+              <strong>
+                {owner.id === me?.id ? "Your block" : `Owned by ${owner.name}`}
+              </strong>
+              <span>
+                {CREWS[owner.crew].name}
+                {q.mortgaged
+                  ? " · MORTGAGED · no rent"
+                  : q.level === 5
+                    ? " · Hotel"
+                    : q.level
+                      ? ` · ${q.level} houses`
+                      : " · No buildings"}
+              </span>
+            </div>
+            {q.level > 0 && <StreetBuilding hotel={q.level === 5} />}
+          </div>
+        )}
         <p>
           {t.group !== undefined
             ? districts[t.group].name
@@ -1494,6 +1579,12 @@ function App() {
               <HelpCircle size={14} /> House rules
             </button>
           </div>
+          {game && (
+            <p className="piece-legend">
+              <StreetBuilding /> House × count <StreetBuilding hotel /> Hotel ·
+              Crew badges show who owns each block. Tap a tile for details.
+            </p>
+          )}
           {showLog && (
             <section className="activity-log" aria-label="Street activity">
               <div className="section-heading">
@@ -2199,7 +2290,11 @@ function App() {
         )}
       {game?.status === "playing" &&
         ["duel", "duel-result"].includes(game.phase) && (
-          <Duel game={game} act={act} disabled={disabled} />
+          <Duel
+            game={game}
+            act={act}
+            disabled={game.duel?.mode === "fps" ? !connected : disabled}
+          />
         )}
     </>
   );

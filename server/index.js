@@ -40,7 +40,7 @@ try {
       migrate(g);
       shiftFPS(
         g.duel,
-        Math.max(0, Date.now() - (saved.savedAt || g.updatedAt)),
+        Math.max(0, Date.now() - (g.pausedAt || saved.savedAt || g.updatedAt)),
       );
       g.spectators = [];
       g.pausedAt = Date.now();
@@ -377,7 +377,8 @@ io.on("connection", (socket) => {
       }
       const fps =
         event === "action" &&
-        payload?.type?.startsWith("duel-") &&
+        typeof payload?.type === "string" &&
+        payload.type.startsWith("duel-") &&
         rooms.get(socket.data.code)?.duel?.mode === "fps" &&
         rooms.get(socket.data.code)?.duel?.fighters?.[socket.data.player];
       if (++count > (fps ? 80 : 30))

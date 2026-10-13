@@ -1360,11 +1360,13 @@ export function ExpandedRules({ close, game }) {
             <h3>Can’t pay? Settle it.</h3>
             <p>
               Sell businesses, mortgage turf, trade, or ask for a rescue gift.
-              Unaffordable player rent unlocks a 1v1 shootout: fire beats flank,
-              flank beats guard, guard beats fire. First to two wins; five-round
-              ties use a coin toss. Win wipes the rent. Lose eliminates your
-              crew and transfers turf and cash. City debts cannot trigger a
-              shootout.
+              Unaffordable player rent unlocks a first-person alley duel. Aim,
+              fire, dodge, duck, and reload a six-shot magazine. Body hits deal
+              25 damage; headshots deal 40. At 30 seconds, higher health wins;
+              an exact tie protects the landlord. Ready within 25 seconds or
+              concede. Win wipes rent; lose eliminates your crew and transfers
+              cash and turf to a living teammate, otherwise the landlord. City
+              debts cannot trigger a shootout.
             </p>
           </div>
         </article>

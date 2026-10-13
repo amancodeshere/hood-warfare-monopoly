@@ -181,3 +181,25 @@ test("forfeiting either FPS participant settles immediately without leaving a gh
   assert.equal(a.g.duel.winner, a.b.id);
   assert.notEqual(a.g.phase, "duel");
 });
+test("automated FPS crews finish with bounded health and magazines", () => {
+  const d = duel();
+  ready(d);
+  let pick = 0,
+    winner;
+  const rng = (n) => (pick++ * 7 + 3) % n;
+  for (let now = 4000; now <= 34000; now += 500) {
+    fpsTick(d, now);
+    winner = fpsWinner(d, now);
+    if (winner) break;
+    for (const id of ["a", "b"]) {
+      const next = fpsBot(d, id, rng, now);
+      if (next) fpsAction(d, id, next, now);
+      if (fpsWinner(d, now)) break;
+    }
+    for (const f of Object.values(d.fighters)) {
+      assert(f.hp >= 0 && f.hp <= 100);
+      assert(f.ammo >= 0 && f.ammo <= 6);
+    }
+  }
+  assert(["a", "b"].includes(winner || fpsWinner(d, 34000)));
+});

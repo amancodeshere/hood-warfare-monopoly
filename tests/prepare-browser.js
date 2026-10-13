@@ -7,14 +7,26 @@ if (!process.env.DATA_DIR?.includes("stb-playwright-"))
   throw new Error("Refusing to seed outside a browser test directory");
 const fixtures = [];
 const sessions = [];
-for (const kind of ["wheel", "duel", "stoppa", "auction"]) {
+for (const kind of [
+  "wheel",
+  "duel",
+  "stoppa",
+  "auction",
+  "fps",
+  "fps-mobile",
+]) {
   const a = player("Ace"),
     b = player("Rival"),
     c = player("Watcher"),
     g = room(
-      { wheel: "WHEEL1", duel: "DUEL01", stoppa: "STOP01", auction: "BID001" }[
-        kind
-      ],
+      {
+        wheel: "WHEEL1",
+        duel: "DUEL01",
+        stoppa: "STOP01",
+        auction: "BID001",
+        fps: "FPS001",
+        "fps-mobile": "FPM001",
+      }[kind],
       a,
     );
   g.players.push(b, c);
@@ -41,6 +53,7 @@ for (const kind of ["wheel", "duel", "stoppa", "auction"]) {
     a.cash = 0;
     land(g);
     action(g, a.id, { type: "shootout" });
+    if (kind === "duel") delete g.duel.mode; // Preserve a legacy tactic-duel fixture.
   }
   fixtures.push(g);
   sessions.push(
@@ -48,6 +61,38 @@ for (const kind of ["wheel", "duel", "stoppa", "auction"]) {
     [kind + "-rival", { code: g.code, id: b.id }],
   );
 }
+const maker = player("Big Stepper"),
+  pieces = room("PIECE1", maker);
+for (let i = 1; i < 8; i++)
+  pieces.players.push(
+    player(
+      [
+        "Gold Chain",
+        "Lowrider",
+        "Uncle",
+        "Auntie",
+        "Side Quest",
+        "Grove",
+        "Final Boss",
+      ][i - 1],
+    ),
+  );
+start(pieces, maker.id);
+pieces.players.forEach((p, i) => {
+  p.crew = i;
+  p.pos = i < 2 ? 1 : 0;
+});
+for (const id of [1, 3])
+  pieces.props[id] = { owner: maker.id, level: 4, mortgaged: false };
+for (const id of [6, 8, 9])
+  pieces.props[id] = {
+    owner: pieces.players[1].id,
+    level: 5,
+    mortgaged: false,
+  };
+pieces.props[11] = { owner: pieces.players[2].id, level: 0, mortgaged: true };
+fixtures.push(pieces);
+sessions.push(["pieces-ace", { code: pieces.code, id: maker.id }]);
 mkdirSync(process.env.DATA_DIR, { recursive: true });
 writeFileSync(
   resolve(process.env.DATA_DIR, "rooms.json"),

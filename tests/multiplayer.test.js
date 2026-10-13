@@ -88,6 +88,7 @@ test("real multiplayer: authority, room capacity, reconnect, origin checks, and 
     /Verify/,
   );
   assert.match((await send(a, "map-save", { definition: {} })).error, /Verify/);
+  assert((await send(a, "action", { type: {} })).error);
   const created = await send(a, "create", { name: "Ace", limit: 10 });
   assert(created.token.length === 64);
   const joined = await send(b, "join", { name: "Rival", code: created.code });
