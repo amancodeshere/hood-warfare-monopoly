@@ -350,7 +350,7 @@ components:
 
 **Creative North Star: "Street game cabinet"**
 
-This documents the implemented direction recorded in `index.html`: a street game table where land, luck, and duels meet. Dark asphalt surfaces surround a pale square board, painted district strips, condensed sporting type, lime controls, and an original isometric city. The cabinet carries the visual identity; the room and turn controls make the game playable. The expanded board, eight crews, and supporting settings, room, social, and profile panels continue this same world. Live first-person shootouts, original hooded crew figures, named ownership badges, and illustrated buildings bring the same street materials to combat and property play. The login front desk, six-city collection, and personal Map Studio extend the same street table: an authored city welcomes the player, painted district swatches distinguish maps, and compact editing rows make the board personal.
+This documents the implemented direction recorded in `index.html`: a street game table where land, luck, and duels meet. Dark asphalt surfaces surround a pale square board, painted district strips, condensed sporting type, lime controls, and an original isometric city. The cabinet carries the visual identity; the room and turn controls make the game playable. The expanded board, eight crews, and supporting settings, room, social, and profile panels continue this same world. Live first-person shootouts, original hooded crew figures, named ownership badges, and illustrated buildings bring the same street materials to combat and property play. The login front desk, six-city collection, and personal Map Studio extend the same street table: an authored city welcomes the player, painted district swatches distinguish maps, and compact editing rows make the board personal. Persistent board-side chat, readable trade reviews, and an optional eliminated-crew exit extend this same cabinet with direct operational controls.
 
 The interface is dense around the board and more spacious around consequential actions. Friendly crew symbols and muted city colors give the original setting character without making players decode decoration. This is a record of the built system under the user's creative liberty. No approved visual comparisons, reference images, or image-generation assets were supplied.
 
@@ -363,10 +363,11 @@ The interface is dense around the board and more spacious around consequential a
 - Responsive controls-first play and explicit keyboard focus.
 - Original vector street figures and first-person alley art, with health, ammunition, ownership, and building states expressed in words.
 - A city-led entry, painted map collection, and practical editing surface within the incumbent identity.
+- Board-side conversation, explicit give/receive trade reviews, and a visible optional exit for eliminated crews.
 
 ## Colors
 
-The palette combines desaturated street materials with clear painted accents. Frontmatter values are extracted from `src/style.css` and `shared/board.js`; the CSS remains the implementation source of truth. The five root CSS custom properties are `--lime`, `--muted`, `--line`, `--panel`, and `--ink`. Other listed colors are repeated literal assignments or functional board states. The sidecar's eight-step OKLCH ramps are synthesized previews for the design panel, not additional implemented colors.
+The palette combines desaturated street materials with clear painted accents. Frontmatter values are extracted from `src/style.css` and `shared/board.js`; the CSS remains the implementation source of truth. The root CSS custom properties are `--lime`, `--muted`, `--line`, `--panel`, `--ink`, `--secondary-text`, and `--secondary-border`. The latter two bind the existing secondary text and border colors to trade summaries and the eliminated-crew exit. Other listed colors are repeated literal assignments or functional board states. The sidecar's eight-step OKLCH ramps are synthesized previews for the design panel, not additional implemented colors.
 
 ### Primary
 
@@ -480,7 +481,7 @@ Text fields and selects use a dark inset surface, an olive 1px stroke, a small r
 
 ### Navigation
 
-Desktop navigation uses understated Barlow text and a lime underline for the active location. The action panel's four button tabs — The move, My turf, Trade, Chat — use the same active underline and lime text. Profile and chat-channel controls reuse this understated active-state treatment. The turf count is a compact rectangular badge. Header navigation hides on mobile while panel controls remain available. Current panel tabs are regular buttons, not an ARIA tab widget; keyboard activation follows native button behavior.
+Desktop navigation uses understated Barlow text and a lime underline for the active location. The action panel's The move, My turf, and Trade buttons use the same active underline and lime text, alongside a Chat shortcut. Profile and chat-channel controls reuse this understated active-state treatment. The turf count is a compact rectangular badge. Header navigation hides on mobile while panel controls remain available. Current panel controls are regular buttons, not an ARIA tab widget; keyboard activation follows native button behavior. Chat is a shortcut to the persistent board-side composer: it scrolls the chat into view and focuses the input while preserving the current action panel.
 
 ### Crew Cards / Badges
 
@@ -510,7 +511,13 @@ The HUD stays inside the arena; controls wrap below it. Cover raises an opaque f
 
 Settings pair visible field labels with dark native selects and lime-accented checkboxes. Rule switches carry a bold rule name and smaller consequence text separated by horizontal dividers. Disabled settings and exchange fieldsets use opacity 0.75. Public rooms and social lists use divided rows, readable names and metadata, and lime text actions. Profile statistics use prominent numbers; appearance choices pair a symbol with its name, unlock state, and an olive equipped-row fill. Disclosure rows and textareas share the same border and type vocabulary.
 
-Chat has named channels, an active lime underline, a bounded message history, clickable sender names, and a labelled composer. Trade uses participant selection, fieldset legends, native asset checkboxes, paired amount fields, and a visible offer summary. These supporting panels retain dark surfaces and compact controls while expanding explanatory text beyond board metadata.
+Chat remains under the board during room and game states, independent of the selected action panel. It has Everyone and, when teams are enabled for the player, private Team channels, an active lime underline, clickable sender names, and a labelled composer with a named send button. The message history is a polite log with contained scrolling: the board-side instance uses a 120px minimum and 240px maximum height. A 24px upper gap and a line-colored divider separate conversation from the board. Composer text uses 16px Barlow with normal casing and tracking. Eliminated seated crews can stay to chat; spectators have a read-only composer.
+
+Trade uses participant selection, fieldset legends, native asset checkboxes, and paired cash and escape-card fields. Active crews can negotiate off-turn during roll, end, rent, and buy phases; current events must finish before sending or accepting a trade. Incoming, outgoing, and draft reviews use stacked “You give” and “You receive” sections with secondary-colored dividers, 16px asset names and headings, 14px supporting details, and wrapping long property names. Reviews use the current room map’s property names, list price, explicit mortgage/no-rent status, cash, escape cards, and projected cash after acceptance. Mortgages remain with the property. Asset choices explain when district buildings must be sold first. Incoming actions wrap and have a 44px minimum height.
+
+Counteroffer drafts reverse the original exchange and remain editable. The original stays open until the counteroffer is sent; sending replaces it without moving assets. A changed or expired offer disables a stale draft, and responses target the specific offer ID. These states keep the existing dark surface, lime heading, and native-control language while making the consequences readable.
+
+During play, an eliminated crew receives “Your crew is out” at the top of the action sidebar with a primary “Leave game session” button and explicit copy that watching is optional. The exit section uses a secondary border below it, a 30px condensed heading, and 16px supporting copy at 1.5 line height. Auction, roulette, Stoppa, and duel overlays are suppressed for eliminated seats so the exit remains available.
 
 ### Auctions / Oppa Stoppa
 
@@ -550,6 +557,7 @@ The city is original source-authored SVG in `src/City.jsx`: isometric building f
 - **Do** retain visible health, ammunition, timer, live control labels, and ready/result copy in the shootout.
 - **Do** extend account and map surfaces with the same Barlow families, asphalt/olive layers, visible labels, and authored city geometry.
 - **Do** pair map selection, verification, and locks with explicit text or icons and preserve the sticky editor action surface on narrow screens.
+- **Do** keep board-side chat available, give and receive summaries readable, and the eliminated-crew exit visible above play controls.
 
 ### Don't:
 

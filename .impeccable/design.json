@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-13T17:04:22.948279+00:00",
+  "generatedAt": "2026-10-13T23:45:01.489660+00:00",
   "title": "Design System: Spin the Block",
   "extensions": {
     "colorMeta": {
@@ -1592,7 +1592,7 @@
       "name": "Action navigation",
       "kind": "nav",
       "refersTo": "action-panel",
-      "description": "Four native button tabs for turn, turf, trade, and chat.",
+      "description": "Three action-panel buttons and a native Chat shortcut that scrolls to and focuses the persistent board-side composer.",
       "html": "<nav class=\"ds-tabs\" aria-label=\"Game panel\"><button class=\"ds-tab ds-current\">The move</button><button class=\"ds-tab\">My turf <span>2</span></button><button class=\"ds-tab\">Trade</button><button class=\"ds-tab\">Chat</button></nav>",
       "css": ".ds-tabs{display:flex;gap:15px;border-bottom:1px solid #42513a}.ds-tab{position:relative;display:flex;align-items:center;gap:4px;padding:0 0 13px;background:none;border:0;color:#b5c3aa;font-family:\"Barlow\",sans-serif;font-size:11px;white-space:nowrap;cursor:pointer}.ds-current{color:var(--lime,#c6ed72)}.ds-current:after{content:\"\";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--lime,#c6ed72)}.ds-tab span{padding:1px 4px;border-radius:3px;background:#37482e;color:#d4e3c4;font-size:8px}.ds-tab:hover{filter:brightness(1.1)}.ds-tab:focus-visible{outline:2px solid var(--lime,#c6ed72);outline-offset:4px;}"
     },
@@ -1667,11 +1667,18 @@
       "description": "Native health meters, visible HP and time, and wrapping labelled live actions accompany the SVG alley.",
       "html": "<section class=\"ds-shootout\"><div class=\"ds-hud\"><div><strong>You</strong><meter min=\"0\" max=\"100\" value=\"75\" aria-label=\"Your health\"></meter><span>75 HP</span></div><b class=\"ds-clock\">30</b><div><strong>Sunset</strong><meter min=\"0\" max=\"100\" value=\"50\" aria-label=\"Opponent health\"></meter><span>50 HP</span></div></div><div class=\"ds-actions\"><button>Dodge left</button><button>Duck</button><button>Dodge right</button><button>Reload</button><button>Fire</button></div><p>30 seconds; higher health wins. An exact tie protects the landlord.</p></section>",
       "css": ".ds-shootout{max-width:560px;background:#253025;color:#edf0e6;padding:20px;font-family:\"Barlow\",sans-serif}.ds-hud{display:grid;grid-template-columns:1fr 76px 1fr;gap:18px;align-items:center}.ds-hud>div{display:grid;gap:5px}.ds-hud strong{font-size:14px;color:#c6ed72}.ds-hud>div:last-child strong{color:#ecaa7c}.ds-hud meter{width:100%;height:14px;accent-color:#c6ed72}.ds-hud meter::-webkit-meter-bar{background:#192019;border:1px solid #465043;border-radius:0}.ds-hud meter::-webkit-meter-optimum-value{background:#c6ed72}.ds-hud span{font-size:10px}.ds-clock{text-align:center;font-family:\"Barlow Condensed\",sans-serif;font-size:32px}.ds-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}.ds-actions button{flex:1;min-height:44px;padding:12px 8px;background:#192019;color:#d6e0cb;border:1px solid #52634b;font-family:\"Barlow\",sans-serif;font-size:12px;white-space:nowrap}.ds-actions button:last-child{background:#c6ed72;color:#192019;font-weight:700}.ds-actions button:hover{filter:brightness(1.08)}.ds-actions button:focus-visible{outline:2px solid var(--lime,#c6ed72);outline-offset:4px}.ds-shootout p{font-size:11px;line-height:1.6;color:#c0cfb3}"
+    },
+    {
+      "name": "Trade review",
+      "kind": "custom",
+      "description": "Stacked give/receive assets with list price, mortgage consequence, cash, escape cards, and projected cash; reused for drafts and incoming/outgoing offers.",
+      "html": "<div class=\"ds-deal\"><section><h4>You give</h4><ul><li>Auntie’s Bodega<small>$60 list price · mortgaged; no rent</small></li><li>$100 cash</li></ul></section><section><h4>You receive</h4><ul><li>1 escape card</li></ul></section><p>Your cash after this deal: $1,400. Mortgages stay with the property.</p></div>",
+      "css": ".ds-deal{display:grid;grid-template-columns:1fr;gap:14px;margin:14px 0 20px;color:#edf0e6;font-family:\"Barlow\",sans-serif}.ds-deal section{border-top:1px solid var(--secondary-border,#52634b);padding-top:10px;min-width:0}.ds-deal h4{font-size:16px;color:var(--lime,#c6ed72);margin:0 0 8px}.ds-deal ul{list-style:none;margin:0;padding:0}.ds-deal li{font-size:16px;margin:8px 0;overflow-wrap:anywhere}.ds-deal small{display:block;margin-top:4px;font-size:14px;line-height:1.4;color:var(--secondary-text,#d6e0cb)}.ds-deal p{font-size:14px;line-height:1.5;color:var(--secondary-text,#d6e0cb)}"
     }
   ],
   "narrative": {
     "northStar": "Street game cabinet",
-    "overview": "This documents the implemented direction recorded in `index.html`: a street game table where land, luck, and duels meet. Dark asphalt surfaces surround a pale square board, painted district strips, condensed sporting type, lime controls, and an original isometric city. The cabinet carries the visual identity; the room and turn controls make the game playable. The expanded board, eight crews, and supporting settings, room, social, and profile panels continue this same world. Live first-person shootouts, original hooded crew figures, named ownership badges, and illustrated buildings bring the same street materials to combat and property play. The login front desk, six-city collection, and personal Map Studio extend the same street table: an authored city welcomes the player, painted district swatches distinguish maps, and compact editing rows make the board personal.\n\nThe interface is dense around the board and more spacious around consequential actions. Friendly crew symbols and muted city colors give the original setting character without making players decode decoration. This is a record of the built system under the user's creative liberty. No approved visual comparisons, reference images, or image-generation assets were supplied.",
+    "overview": "This documents the implemented direction recorded in `index.html`: a street game table where land, luck, and duels meet. Dark asphalt surfaces surround a pale square board, painted district strips, condensed sporting type, lime controls, and an original isometric city. The cabinet carries the visual identity; the room and turn controls make the game playable. The expanded board, eight crews, and supporting settings, room, social, and profile panels continue this same world. Live first-person shootouts, original hooded crew figures, named ownership badges, and illustrated buildings bring the same street materials to combat and property play. The login front desk, six-city collection, and personal Map Studio extend the same street table: an authored city welcomes the player, painted district swatches distinguish maps, and compact editing rows make the board personal. Persistent board-side chat, readable trade reviews, and an optional eliminated-crew exit extend this same cabinet with direct operational controls.\n\nThe interface is dense around the board and more spacious around consequential actions. Friendly crew symbols and muted city colors give the original setting character without making players decode decoration. This is a record of the built system under the user's creative liberty. No approved visual comparisons, reference images, or image-generation assets were supplied.",
     "keyCharacteristics": [
       "Asphalt and olive surfaces with pale, readable board pieces.",
       "Condensed display type paired with direct, compact interface text.",
@@ -1679,7 +1686,8 @@
       "An authored vector city inside a real, interactive perimeter board.",
       "Responsive controls-first play and explicit keyboard focus.",
       "Original vector street figures and first-person alley art, with health, ammunition, ownership, and building states expressed in words.",
-      "A city-led entry, painted map collection, and practical editing surface within the incumbent identity."
+      "A city-led entry, painted map collection, and practical editing surface within the incumbent identity.",
+      "Board-side conversation, explicit give/receive trade reviews, and a visible optional exit for eliminated crews."
     ],
     "rules": [
       {
@@ -1698,7 +1706,8 @@
       "Do keep owner names, mortgage words, building counts, and full resident lists alongside the illustrated board pieces.",
       "Do retain visible health, ammunition, timer, live control labels, and ready/result copy in the shootout.",
       "Do extend account and map surfaces with the same Barlow families, asphalt/olive layers, visible labels, and authored city geometry.",
-      "Do pair map selection, verification, and locks with explicit text or icons and preserve the sticky editor action surface on narrow screens."
+      "Do pair map selection, verification, and locks with explicit text or icons and preserve the sticky editor action surface on narrow screens.",
+      "Do keep board-side chat available, give and receive summaries readable, and the eliminated-crew exit visible above play controls."
     ],
     "donts": [
       "Don't reuse the district strip to imply ownership; the bottom owner bar has that job.",
