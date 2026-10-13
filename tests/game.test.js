@@ -12,11 +12,15 @@ import {
   active,
   defaultAction,
 } from "../server/game.js";
-import { BOARD, coordinates } from "../shared/board.js";
+import { BOARD, coordinates } from "../shared/legacy-board.js";
 function fixture(n = 3) {
   const p = player("Ace"),
     g = room("ABC123", p);
   for (let i = 1; i < n; i++) g.players.push(player("Crew " + i));
+  g.schemaVersion = 1;
+  g.board = BOARD;
+  g.settings.auctions = false;
+  g.settings.doubles = false;
   start(g, p.id);
   return { g, p, b: g.players[1] };
 }

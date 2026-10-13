@@ -18,14 +18,25 @@ export const CREWS = [
     symbol: "flame",
   },
   { name: "Harbor Union", short: "HARBOR", color: "#83c9d3", symbol: "anchor" },
+  { name: "Night Owls", short: "OWLS", color: "#e5d58c", symbol: "key" },
+  {
+    name: "Northside Motion",
+    short: "MOTION",
+    color: "#d791ae",
+    symbol: "crosshair",
+  },
+  { name: "Lowrider League", short: "RIDERS", color: "#97c7a3", symbol: "car" },
+  { name: "After Hours", short: "AFTER", color: "#94a7ed", symbol: "sparkles" },
 ];
 export const DISTRICTS = [
-  { name: "The Low End", color: "#a3ba86" },
-  { name: "Eastside", color: "#95bdd2" },
-  { name: "Old Town", color: "#d8a580" },
-  { name: "The Heights", color: "#b3a0cc" },
-  { name: "Downtown", color: "#d399b2" },
-  { name: "Millionaire Row", color: "#d9c784" },
+  { name: "The Bodega Belt", color: "#a3ba86" },
+  { name: "Caught Lackin", color: "#95bdd2" },
+  { name: "The Trenches", color: "#d8a580" },
+  { name: "Hit a Lick", color: "#b3a0cc" },
+  { name: "Drip District", color: "#d399b2" },
+  { name: "Big Steppers", color: "#d9c784" },
+  { name: "Motion Mansion", color: "#86bfa4" },
+  { name: "Final Boss Row", color: "#c4ad80" },
 ];
 const p = (name, group, price, rent) => ({
   name,
@@ -37,34 +48,92 @@ const p = (name, group, price, rent) => ({
 });
 export const BOARD = [
   { name: "Home Base", type: "start" },
-  p("Corner Store", 0, 100, 24),
-  p("Grove Street", 0, 120, 30),
+  p("Auntie’s Bodega", 0, 60, 12),
   { name: "Street Luck", type: "card" },
-  p("Barbershop", 0, 140, 36),
-  { name: "Night Bus", type: "transit", price: 180, rent: 45 },
-  p("East Market", 1, 160, 42),
+  p("Broke Boy Blvd", 0, 80, 16),
+  { name: "Flex Tax", type: "tax" },
+  { name: "Spin the Bus", type: "transit", price: 200, rent: 25 },
+  p("No Cap Cuts", 1, 100, 22),
+  { name: "Oppa Stoppa", type: "stoppa" },
+  p("Caught Lackin Lane", 1, 120, 26),
+  p("Backdoor Alley", 1, 140, 30),
   { name: "County Jail", type: "jail" },
-  p("Studio 808", 1, 180, 48),
-  p("Sneaker Spot", 1, 200, 54),
-  { name: "Roulette", type: "roulette" },
-  p("Old Town Deli", 2, 220, 60),
-  p("Neon Arcade", 2, 240, 66),
-  { name: "City Tax", type: "tax" },
-  { name: "Free Parking", type: "parking" },
-  p("Rooftop Club", 3, 260, 72),
-  p("Skyline Towers", 3, 280, 78),
+  p("The Trenches", 2, 160, 34),
+  { name: "The Power Plug", type: "utility", price: 150, rent: 4 },
+  p("Trap House Towers", 2, 180, 38),
+  p("Rent Due Lil Bro", 2, 200, 42),
+  { name: "Slide Thru Station", type: "transit", price: 200, rent: 25 },
+  p("Cookout Corner", 3, 220, 46),
   { name: "Street Luck", type: "card" },
-  p("Highrise Hotel", 3, 300, 84),
-  { name: "Metro Line", type: "transit", price: 180, rent: 45 },
-  p("Fashion District", 4, 320, 90),
+  p("Hit a Lick Heights", 3, 240, 50),
+  p("Chain Snatch City", 3, 260, 54),
+  { name: "Community Plot", type: "parking" },
+  p("Studio 808", 4, 280, 58),
+  { name: "Oppa Stoppa", type: "stoppa" },
+  p("Main Character Mall", 4, 300, 62),
+  p("Drip Check Drive", 4, 320, 66),
+  { name: "Lowrider Line", type: "transit", price: 200, rent: 25 },
+  p("No Snitch Studios", 5, 340, 70),
+  p("Side Quest Square", 5, 360, 74),
+  { name: "Street Roulette", type: "roulette" },
+  p("Big Stepper Block", 5, 380, 78),
   { name: "Police Raid", type: "raid" },
-  p("Downtown Loft", 4, 340, 96),
-  p("Penthouse", 4, 360, 102),
-  { name: "Roulette", type: "roulette" },
-  p("Diamond Avenue", 5, 380, 108),
-  p("Empire Plaza", 5, 400, 114),
-  { name: "City Tax", type: "tax" },
+  p("Get Money Gardens", 6, 400, 82),
+  p("Don’t Fold Flats", 6, 420, 86),
+  { name: "The Water Plug", type: "utility", price: 150, rent: 4 },
+  p("Motion Mansion", 6, 440, 90),
+  { name: "Escape Route Express", type: "transit", price: 200, rent: 25 },
+  { name: "Oppa Stoppa", type: "stoppa" },
+  p("Rich Auntie Row", 7, 460, 96),
+  { name: "Street Roulette", type: "roulette" },
+  p("Final Boss Estate", 7, 500, 110),
 ].map((t, id) => ({ ...t, id }));
+export const MAPS = [
+  {
+    id: "trenches",
+    name: "The Trenches",
+    description: "40 blocks. Three Oppa Stoppas. No quiet corners.",
+  },
+  {
+    id: "night-shift",
+    name: "Night Shift",
+    description: "After-hours stores, arcade luck, and lowrider routes.",
+  },
+];
+const NIGHT_NAMES = [
+  "Midnight Bodega",
+  "Last Slice Lane",
+  "After Hours Cuts",
+  "Seen at 3AM",
+  "Backseat Boulevard",
+  "Night Shift Flats",
+  "Trap Nap Towers",
+  "Rent at Midnight",
+  "Late Plate Corner",
+  "Sneaky Link Heights",
+  "Chain Reaction City",
+  "Basement Beats",
+  "Parking Lot Mall",
+  "Drip After Dark",
+  "No Sleep Studios",
+  "Side Mission Square",
+  "Night Owl Block",
+  "Neon Money Gardens",
+  "Don’t Snooze Flats",
+  "Moonlight Mansion",
+  "Rich Uncle Row",
+  "Afterparty Estate",
+];
+export function makeBoard(map = "trenches") {
+  let i = 0;
+  return BOARD.map((t) => ({
+    ...t,
+    name:
+      map === "night-shift" && t.type === "property"
+        ? NIGHT_NAMES[i++]
+        : t.name,
+  }));
+}
 export const CARDS = [
   {
     id: "jackpot",
@@ -182,9 +251,11 @@ export const ROULETTE = [
   },
 ];
 export const money = (n) => "$" + Math.round(n).toLocaleString("en-US");
-export function coordinates(id) {
-  if (id <= 7) return { row: 8, col: 8 - id };
-  if (id <= 14) return { row: 15 - id, col: 1 };
-  if (id <= 21) return { row: 1, col: id - 13 };
-  return { row: id - 20, col: 8 };
+export function coordinates(id, length = BOARD.length) {
+  const side = length / 4,
+    size = side + 1;
+  if (id <= side) return { row: size, col: size - id };
+  if (id <= side * 2) return { row: side * 2 + 1 - id, col: 1 };
+  if (id <= side * 3) return { row: 1, col: id - side * 2 + 1 };
+  return { row: id - side * 3 + 1, col: size };
 }

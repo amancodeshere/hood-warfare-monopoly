@@ -1,5 +1,41 @@
 import { randomInt, randomUUID } from "node:crypto";
-import { BOARD, CARDS, ROULETTE } from "../shared/board.js";
+import {
+  BOARD as DEFAULT_BOARD,
+  CARDS,
+  ROULETTE,
+  makeBoard,
+} from "../shared/board.js";
+import { BOARD as LEGACY_BOARD } from "../shared/legacy-board.js";
+import { DEFAULT_SETTINGS } from "../shared/settings.js";
+import { extendedAction } from "./features.js";
+export const board = (g) => g.board || DEFAULT_BOARD;
+export const allied = (g, a, b) =>
+  a === b ||
+  (!!g.settings?.teams &&
+    g.players.find((p) => p.id === a)?.team != null &&
+    g.players.find((p) => p.id === a)?.team ===
+      g.players.find((p) => p.id === b)?.team);
+export function migrate(g) {
+  if (!g.schemaVersion) {
+    g.schemaVersion = 1;
+    g.board = LEGACY_BOARD;
+    g.settings = {
+      ...DEFAULT_SETTINGS,
+      auctions: false,
+      doubles: false,
+      autoFill: false,
+    };
+  }
+  g.settings = { ...DEFAULT_SETTINGS, ...g.settings };
+  g.chat ||= [];
+  g.spectators ||= [];
+  g.players.forEach((p) => {
+    p.reserve ??= 60;
+    p.afk ??= 0;
+    p.team ??= null;
+  });
+  return g;
+}
 export const secureRandom = (n) => randomInt(n);
 export const assert = (ok, message) => {
   if (!ok) throw new Error(message);
@@ -16,6 +52,9 @@ export function player(name, bot = false) {
     escapes: 0,
     out: false,
     connected: bot,
+    team: null,
+    reserve: 60,
+    afk: 0,
   };
 }
 export function room(code, p) {
@@ -27,7 +66,14 @@ export function room(code, p) {
     phase: "roll",
     turn: 0,
     round: 1,
-    limit: 20,
+    limit: null,
+    schemaVersion: 2,
+    board: makeBoard(),
+    settings: { ...DEFAULT_SETTINGS },
+    chat: [],
+    spectators: [],
+    doubleCount: 0,
+    extraRoll: false,
     deadline: 0,
     props: {},
     log: [],
@@ -43,7 +89,7 @@ export function room(code, p) {
 }
 export const active = (g) => g.players[g.turn];
 export const holdings = (g, id) =>
-  BOARD.filter((t) => g.props[t.id]?.owner === id);
+  board(g).filter((t) => g.props[t.id]?.owner === id);
 export const worth = (g, p) =>
   p.cash +
   holdings(g, p.id).reduce(
@@ -59,40 +105,109 @@ export function log(g, text, kind = "info") {
 }
 export function phase(g, value) {
   g.phase = value;
-  g.deadline = Date.now() + (value === "duel" ? 25000 : 90000);
+  if (value === "rent" && !g.debtExtended) {
+    g.turnDeadline = (g.turnDeadline || Date.now()) + 90000;
+    g.debtExtended = true;
+  }
+  g.deadline =
+    value === "duel"
+      ? Date.now() + 25000
+      : value === "auction"
+        ? Date.now() + 20000
+        : g.turnDeadline || Date.now() + (g.settings?.turnSeconds || 90) * 1000;
 }
 export function fullSet(g, t, id) {
+  const BOARD = board(g);
   return (
     t.group !== undefined &&
     BOARD.filter((x) => x.group === t.group).every(
-      (x) => g.props[x.id]?.owner === id && !g.props[x.id].mortgaged,
+      (x) =>
+        g.props[x.id] &&
+        allied(g, g.props[x.id].owner, id) &&
+        !g.props[x.id].mortgaged,
     )
   );
 }
 export function rent(g, t) {
+  const BOARD = board(g);
   const q = g.props[t.id];
-  if (!q || q.mortgaged) return 0;
+  if (
+    !q ||
+    q.mortgaged ||
+    (g.settings?.prisonRent === false &&
+      g.players.find((p) => p.id === q.owner)?.jail)
+  )
+    return 0;
+  if (t.type === "utility")
+    return (
+      (g.dice[0] + g.dice[1]) *
+      (BOARD.filter(
+        (x) =>
+          x.type === "utility" &&
+          g.props[x.id] &&
+          allied(g, g.props[x.id].owner, q.owner) &&
+          !g.props[x.id].mortgaged,
+      ).length >= 2
+        ? 10
+        : 4)
+    );
   if (t.type === "transit")
     return (
-      45 *
-      holdings(g, q.owner).filter(
-        (x) => x.type === "transit" && !g.props[x.id].mortgaged,
-      ).length
+      (g.schemaVersion === 1 ? 45 : 25) *
+      (g.schemaVersion === 1
+        ? holdings(g, q.owner).filter(
+            (x) => x.type === "transit" && !g.props[x.id].mortgaged,
+          ).length
+        : 2 **
+          (BOARD.filter(
+            (x) =>
+              x.type === "transit" &&
+              g.props[x.id] &&
+              allied(g, g.props[x.id].owner, q.owner) &&
+              !g.props[x.id].mortgaged,
+          ).length -
+            1))
     );
   return (
-    t.rent * (q.level ? [1, 3, 6, 10][q.level] : fullSet(g, t, q.owner) ? 2 : 1)
+    t.rent *
+    (q.level
+      ? [1, 3, 6, 10, 16, 25][q.level]
+      : fullSet(g, t, q.owner) && g.settings?.doubleRent !== false
+        ? 2
+        : 1)
   );
 }
 export function start(g, id) {
   assert(g.status === "lobby" && g.host === id, "Only the host can start.");
   assert(g.players.length >= 2, "Add a friend or a bot first.");
-  g.players.forEach((p, i) => (p.crew = i));
+  if (g.settings.teams)
+    assert(
+      new Set(g.players.map((p) => p.team ?? p.id)).size >= 2,
+      "Create at least two opposing teams.",
+    );
+  if (g.settings.randomOrder) {
+    for (let i = g.players.length - 1; i > 0; i--) {
+      const j = secureRandom(i + 1);
+      [g.players[i], g.players[j]] = [g.players[j], g.players[i]];
+    }
+  }
+  g.players.forEach((p, i) => {
+    p.crew = i;
+    p.cash = g.settings.startingCash;
+  });
   g.status = "playing";
+  prepareTurn(g);
   phase(g, "roll");
-  log(g, "The block is open. Every crew starts with $1,500.", "good");
+  log(
+    g,
+    `The block is open. Every crew starts with $${g.settings.startingCash}.`,
+    "good",
+  );
 }
 function jail(g, p) {
-  p.pos = 7;
+  p.pos = board(g).findIndex((t) => t.type === "jail");
+  g.extraRoll = false;
+  g.doubleCount = 0;
   p.jail = 2;
   log(g, `${p.name} was sent to County Jail.`, "bad");
 }
@@ -110,6 +225,7 @@ function charge(g, p, amount, owner = null) {
   }
 }
 export function land(g, rng = secureRandom) {
+  const BOARD = board(g);
   const p = active(g),
     t = BOARD[p.pos];
   g.pending = null;
@@ -117,7 +233,7 @@ export function land(g, rng = secureRandom) {
     const q = g.props[t.id];
     if (!q) {
       phase(g, "buy");
-    } else if (q.owner !== p.id && rent(g, t) > 0) {
+    } else if (!allied(g, q.owner, p.id) && rent(g, t) > 0) {
       const amount = rent(g, t);
       g.pending = { amount, owner: q.owner, tile: t.id };
       phase(g, "rent");
@@ -126,12 +242,13 @@ export function land(g, rng = secureRandom) {
     g.pending = { card: structuredClone(CARDS[rng(CARDS.length)]) };
     phase(g, "card");
   } else if (t.type === "roulette") phase(g, "roulette");
+  else if (t.type === "stoppa") phase(g, "stoppa");
   else if (t.type === "tax") charge(g, p, 100);
   else if (t.type === "raid") {
     jail(g, p);
     phase(g, "end");
   } else if (t.type === "parking") {
-    if (g.pot) {
+    if (g.pot && g.settings?.communityCash !== false) {
       log(g, `${p.name} scooped the $${g.pot} community pot.`, "good");
       p.cash += g.pot;
       g.pot = 0;
@@ -161,11 +278,29 @@ function cardEffect(g, c) {
       ),
     );
 }
-function victory(g) {
+export function victory(g) {
   const alive = g.players.filter((p) => !p.out);
-  if (alive.length <= 1 || g.round > g.limit) {
+  const sides = new Set(
+    alive.map((p) =>
+      g.settings?.teams && p.team != null ? "team:" + p.team : p.id,
+    ),
+  );
+  if (
+    sides.size <= 1 ||
+    (g.limit !== null && g.limit !== undefined && g.round > g.limit)
+  ) {
     g.status = "finished";
-    g.winner = [...alive].sort((a, b) => worth(g, b) - worth(g, a))[0]?.id;
+    const sideWorth = (p) =>
+      g.settings?.teams && p.team != null
+        ? alive
+            .filter((x) => x.team === p.team)
+            .reduce((n, x) => n + worth(g, x), 0)
+        : worth(g, p);
+    g.winner = [...alive].sort((a, b) => sideWorth(b) - sideWorth(a))[0]?.id;
+    g.winners = g.players
+      .filter((p) => allied(g, p.id, g.winner))
+      .map((p) => p.id);
+    g.finishedAt = Date.now();
     g.trade = null;
     phase(g, "finished");
     log(
@@ -177,24 +312,59 @@ function victory(g) {
   }
   return false;
 }
-function eliminate(g, p, creditor) {
+export function eliminate(g, p, creditor) {
+  const wasActive = active(g).id === p.id;
+  const interrupted = {
+    phase: g.phase,
+    pending: g.pending,
+    deadline: g.deadline,
+  };
+  const teammate = g.players.find(
+    (x) => !x.out && x.id !== p.id && allied(g, x.id, p.id),
+  );
+  const heir = teammate || creditor;
+  if (!wasActive && interrupted.pending?.owner === p.id) {
+    if (heir) interrupted.pending = { ...interrupted.pending, owner: heir.id };
+    else {
+      interrupted.pending = null;
+      interrupted.phase = "end";
+    }
+  }
   p.out = true;
   for (const t of holdings(g, p.id)) {
-    if (creditor) g.props[t.id].owner = creditor.id;
+    if (heir) g.props[t.id].owner = heir.id;
     else delete g.props[t.id];
   }
-  if (creditor) creditor.cash += p.cash;
+  if (heir) heir.cash += p.cash;
   p.cash = 0;
   g.pending = null;
   g.trade = null;
   log(
     g,
-    `${p.name} is out${creditor ? `. ${creditor.name} inherits their turf` : ". The turf returns to the market"}.`,
+    `${p.name} is out${heir ? `. ${heir.name} inherits their turf` : ". The turf returns to the market"}.`,
     "bad",
   );
-  if (!victory(g)) phase(g, "end");
+  if (!victory(g)) {
+    if (wasActive) phase(g, "end");
+    else {
+      g.phase = interrupted.phase;
+      g.pending = interrupted.pending;
+      g.deadline = interrupted.deadline;
+    }
+  }
 }
-function next(g) {
+export function next(g) {
+  if (g.extraRoll && !active(g).out && !active(g).jail) {
+    g.extraRoll = false;
+    g.pending = null;
+    g.trade = null;
+    phase(g, "roll");
+    log(g, `${active(g).name} rolled doubles. Run it back!`, "good");
+    return;
+  }
+  finishClock(g);
+  g.extraRoll = false;
+  g.doubleCount = 0;
   g.trade = null;
   g.pending = null;
   g.duel = null;
@@ -203,6 +373,7 @@ function next(g) {
     if (g.turn === 0) g.round++;
   } while (g.players[g.turn].out);
   if (victory(g)) return;
+  prepareTurn(g);
   phase(g, active(g).jail ? "jail" : "roll");
 }
 export function resolveDuel(g, rng = secureRandom) {
@@ -238,7 +409,8 @@ export function resolveDuel(g, rng = secureRandom) {
     if (g.status !== "finished") phase(g, "duel-result");
   } else phase(g, "duel");
 }
-export function action(g, id, a, rng = secureRandom) {
+export function action(g, id, a, rng = secureRandom, options = {}) {
+  const BOARD = board(g);
   assert(g.status === "playing", "This match is not active.");
   assert(a && typeof a.type === "string", "Invalid action.");
   const p = g.players.find((x) => x.id === id);
@@ -250,6 +422,7 @@ export function action(g, id, a, rng = secureRandom) {
           ["end", "duel-result"].includes(g.phase))),
     "You are not an active player.",
   );
+  if (extendedAction(g, id, a, rng, options)) return;
   if (a.type === "duel-choice") {
     assert(
       g.phase === "duel" && [g.duel.attacker, g.duel.defender].includes(id),
@@ -295,6 +468,14 @@ export function action(g, id, a, rng = secureRandom) {
   if (a.type === "roll") {
     assert(g.phase === "roll", "You cannot roll right now.");
     g.dice = [rng(6) + 1, rng(6) + 1];
+    const doubles = g.settings?.doubles && g.dice[0] === g.dice[1];
+    g.doubleCount = doubles ? g.doubleCount + 1 : 0;
+    g.extraRoll = !!doubles;
+    if (g.doubleCount >= 3) {
+      jail(g, p);
+      phase(g, "end");
+      return;
+    }
     const old = p.pos;
     p.pos = (p.pos + g.dice[0] + g.dice[1]) % BOARD.length;
     if (p.pos < old) {
@@ -316,7 +497,16 @@ export function action(g, id, a, rng = secureRandom) {
     phase(g, "end");
   } else if (a.type === "skip") {
     assert(g.phase === "buy", "Nothing to pass on.");
-    phase(g, "end");
+    if (g.settings?.auctions) {
+      g.auction = {
+        tile: p.pos,
+        highBid: 0,
+        highBidder: null,
+        passed: [],
+        startedAt: Date.now(),
+      };
+      phase(g, "auction");
+    } else phase(g, "end");
   } else if (a.type === "pay") {
     assert(g.phase === "rent" && g.pending, "No debt to pay.");
     const d = g.pending;
@@ -408,34 +598,47 @@ export function action(g, id, a, rng = secureRandom) {
         t.type === "property" && fullSet(g, t, id),
         "Own the entire district with no mortgages to build.",
       );
-      assert(q.level < 3 && p.cash >= t.build, "You cannot build here yet.");
-      const min = Math.min(
-        ...holdings(g, id)
-          .filter((x) => x.group === t.group)
-          .map((x) => g.props[x.id].level),
+      assert(
+        q.level < (g.schemaVersion === 1 ? 3 : 5) && p.cash >= t.build,
+        "You cannot build here yet.",
       );
-      assert(q.level === min, "Build evenly across your district.");
+      const min = Math.min(
+        ...BOARD.filter((x) => x.group === t.group && g.props[x.id]).map(
+          (x) => g.props[x.id].level,
+        ),
+      );
+      assert(
+        !g.settings?.evenBuild || q.level === min,
+        "Build evenly across your district.",
+      );
       p.cash -= t.build;
       q.level++;
     }
     if (a.type === "sell") {
       assert(q.level > 0, "No business to sell.");
       const max = Math.max(
-        ...holdings(g, id)
-          .filter((x) => x.group === t.group)
-          .map((x) => g.props[x.id].level),
+        ...BOARD.filter((x) => x.group === t.group && g.props[x.id]).map(
+          (x) => g.props[x.id].level,
+        ),
       );
-      assert(q.level === max, "Sell evenly across your district.");
+      assert(
+        !g.settings?.evenBuild || q.level === max,
+        "Sell evenly across your district.",
+      );
       q.level--;
       p.cash += Math.floor(t.build / 2);
     }
     if (a.type === "mortgage") {
+      assert(
+        g.settings?.mortgage !== false,
+        "Mortgages are disabled in this room.",
+      );
       assert(!q.mortgaged && !q.level, "Sell businesses before mortgaging.");
       assert(
         t.group === undefined ||
-          !holdings(g, id)
-            .filter((x) => x.group === t.group)
-            .some((x) => g.props[x.id].level),
+          !BOARD.filter((x) => x.group === t.group && g.props[x.id]).some(
+            (x) => g.props[x.id].level,
+          ),
         "Sell all district businesses first.",
       );
       q.mortgaged = true;
@@ -484,7 +687,15 @@ export function action(g, id, a, rng = secureRandom) {
   } else throw new Error("Unknown action.");
 }
 export function defaultAction(g, id) {
+  const BOARD = board(g);
   const p = g.players.find((x) => x.id === id);
+  if (g.phase === "auction") {
+    const au = g.auction,
+      t = BOARD[au.tile];
+    return p.cash > au.highBid + 210 && au.highBid < t.price * 1.2
+      ? { type: "auction-bid", amount: au.highBid + 10 }
+      : { type: "auction-pass" };
+  }
   if (g.phase === "duel")
     return {
       type: "duel-choice",
@@ -507,7 +718,8 @@ export function defaultAction(g, id) {
                 (x) => x.group === t.group && g.props[x.id].level,
               )),
         );
-        if (t) return { type: "mortgage", tile: t.id };
+        if (t && g.settings?.mortgage !== false)
+          return { type: "mortgage", tile: t.id };
         const built = holdings(g, id)
           .sort((a, b) => g.props[b.id].level - g.props[a.id].level)
           .find((t) => g.props[t.id].level > 0);
@@ -516,6 +728,10 @@ export function defaultAction(g, id) {
       }
     case "card":
       return { type: "card" };
+    case "stoppa":
+      return { type: "stoppa-spin" };
+    case "stoppa-result":
+      return { type: "stoppa-collect" };
     case "roulette":
       return { type: "spin" };
     case "roulette-result":
@@ -534,13 +750,13 @@ export function defaultAction(g, id) {
           (t) =>
             t.type === "property" &&
             fullSet(g, t, id) &&
-            g.props[t.id].level < 3 &&
+            g.props[t.id].level < (g.schemaVersion === 1 ? 3 : 5) &&
             p.cash - t.build > 350 &&
             g.props[t.id].level ===
               Math.min(
-                ...holdings(g, id)
-                  .filter((x) => x.group === t.group)
-                  .map((x) => g.props[x.id].level),
+                ...BOARD.filter(
+                  (x) => x.group === t.group && g.props[x.id],
+                ).map((x) => g.props[x.id].level),
               ),
         );
         if (t) return { type: "upgrade", tile: t.id };
@@ -549,12 +765,54 @@ export function defaultAction(g, id) {
     }
   }
 }
-export function view(g, id) {
+export function view(g, id, hidden = []) {
   const v = structuredClone(g);
   if (v.duel) {
     v.duel.locked = Object.keys(v.duel.choices);
     delete v.duel.choices;
   }
+  const me = g.players.find((p) => p.id === id);
+  v.chat = (g.chat || []).filter(
+    (m) =>
+      !hidden.includes(m.profileId) &&
+      (!m.team || (me?.team != null && m.team === String(me.team))),
+  );
+  delete v.reports;
   v.me = id;
   return v;
+}
+
+export function prepareTurn(g) {
+  g.turnStarted = Date.now();
+  g.debtExtended = false;
+  g.timeDonors = [];
+  g.autoTurn = false;
+  g.timeoutCounted = false;
+  g.turnDeadline =
+    Date.now() +
+    ((g.settings?.turnSeconds || 90) + (active(g).reserve || 0)) * 1000;
+}
+function finishClock(g) {
+  const p = active(g);
+  const used = Math.max(
+    0,
+    (Date.now() - g.turnStarted) / 1000 - (g.settings?.turnSeconds || 90),
+  );
+  p.reserve = Math.floor(
+    Math.min(180, Math.max(0, (p.reserve || 0) - used) + (g.autoTurn ? 0 : 15)),
+  );
+  if (!g.autoTurn) p.afk = 0;
+}
+export function finishAuction(g) {
+  const a = g.auction;
+  if (!a) return;
+  const p = g.players.find((p) => p.id === a.highBidder);
+  if (p && !p.out && p.cash >= a.highBid && !g.props[a.tile]) {
+    p.cash -= a.highBid;
+    g.props[a.tile] = { owner: p.id, level: 0, mortgaged: false };
+    log(g, `${p.name} won ${board(g)[a.tile].name} for $${a.highBid}.`, "good");
+  } else log(g, `No bids. ${board(g)[a.tile].name} stays on the market.`);
+  g.auction = null;
+  g.turnDeadline = Math.max(g.turnDeadline || 0, Date.now() + 15000);
+  phase(g, "end");
 }

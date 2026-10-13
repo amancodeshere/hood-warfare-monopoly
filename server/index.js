@@ -17,10 +17,18 @@ import {
   view,
   assert,
   log,
+  board,
+  migrate,
+  finishAuction,
+  eliminate,
 } from "./game.js";
+import { settings, matchLimit } from "../shared/settings.js";
+import { makeBoard } from "../shared/board.js";
+import { profileStore } from "./profiles.js";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const dataDir = process.env.DATA_DIR || resolve(root, "data");
 mkdirSync(dataDir, { recursive: true, mode: 0o700 });
+const profiles = profileStore(dataDir);
 const file = resolve(dataDir, "rooms.json"),
   rooms = new Map(),
   sessions = new Map();
@@ -28,8 +36,11 @@ try {
   const saved = JSON.parse(readFileSync(file, "utf8"));
   for (const g of saved.rooms || []) {
     if (Date.now() - g.updatedAt < 24 * 3600000) {
+      migrate(g);
+      g.spectators = [];
       g.players.forEach((p) => (p.connected = p.bot));
-      g.deadline = Date.now() + 90000;
+      g.turnDeadline = Date.now() + 90000;
+      g.deadline = g.turnDeadline;
       rooms.set(g.code, g);
     }
   }
@@ -115,14 +126,34 @@ const io = new Server(http, {
     }
   },
 });
+function profileUpdates() {
+  const online = new Set(
+    [...io.sockets.sockets.values()].map((s) => s.data.profile),
+  );
+  for (const s of io.sockets.sockets.values()) {
+    const p = profiles.profile(s.data.profile);
+    if (p)
+      s.emit("profile", {
+        profile: profiles.safe(p),
+        ...profiles.friends(p.id, online),
+      });
+  }
+}
 function publish(g) {
+  const recording = g.status === "finished" && !g.statsRecorded;
+  profiles.finish(g);
   g.revision++;
   g.updatedAt = Date.now();
   for (const s of io.sockets.sockets.values())
-    if (s.data.code === g.code) s.emit("state", view(g, s.data.player));
+    if (s.data.code === g.code) {
+      const p = profiles.profile(s.data.profile);
+      const hidden = [...(p?.muted || []), ...(p?.blocks || [])];
+      s.emit("state", view(g, s.data.player, hidden));
+    }
+  if (recording) profileUpdates();
   save();
 }
-// Control characters are intentionally removed from player-supplied names.
+// React renders all player content as text; control characters are stripped here.
 const cleanName = (n) =>
   String(n || "")
     .split("")
@@ -130,32 +161,156 @@ const cleanName = (n) =>
     .join("")
     .trim()
     .slice(0, 20) || "New crew";
-function attach(socket, g, p, token) {
-  if (socket.data.code) socket.leave(socket.data.code);
-  socket.data.code = g.code;
-  socket.data.player = p.id;
-  socket.data.token = token;
+function attach(socket, g, p, token, spectator = false) {
+  if (socket.data.code && socket.data.code !== g.code) {
+    const old = rooms.get(socket.data.code);
+    if (socket.data.spectator && old)
+      old.spectators = old.spectators.filter(
+        (x) => x.id !== socket.data.player,
+      );
+    socket.leave(socket.data.code);
+  }
+  Object.assign(socket.data, { code: g.code, player: p.id, token, spectator });
   socket.join(g.code);
   p.connected = true;
 }
-function session(socket) {
+function session(socket, allowWatch = false) {
   const g = rooms.get(socket.data.code);
   assert(
-    g && g.players.some((p) => p.id === socket.data.player),
+    g &&
+      (g.players.some((p) => p.id === socket.data.player) ||
+        (allowWatch && socket.data.spectator)),
     "Your room expired. Create a new one.",
   );
   return g;
 }
-function tokenFor(code, id) {
+function tokenFor(code, id, spectator = false) {
   const token = randomBytes(32).toString("hex");
-  sessions.set(token, { code, id });
+  sessions.set(token, { code, id, spectator });
   return token;
+}
+const botNames = [
+  "Remy",
+  "Jax",
+  "Nova",
+  "Lil Receipt",
+  "Unc",
+  "Big Bag",
+  "Miss Motion",
+];
+function addBot(g) {
+  assert(g.players.length < g.settings.maxPlayers, "The room is full.");
+  const b = player(
+    botNames.find((n) => !g.players.some((p) => p.name === n)) || "Bot",
+    true,
+  );
+  b.crew = g.players.length;
+  g.players.push(b);
+}
+function fillBots(g) {
+  while (g.players.length < g.settings.maxPlayers) addBot(g);
+}
+function teams(g) {
+  if (g.settings.teams)
+    g.players.forEach((p, i) => {
+      p.team ??= String((i % 2) + 1);
+    });
+}
+function getProfile(socket, name) {
+  if (!profiles.profile(socket.data.profile)) {
+    const a = profiles.authorize(null, cleanName(name));
+    socket.data.profile = a.profile.id;
+    socket.emit("profile-token", a);
+    profileUpdates();
+  }
+  return profiles.profile(socket.data.profile);
+}
+function availableRoom(socket, g) {
+  const p = profiles.profile(socket.data.profile);
+  return (
+    (!g.settings.registeredOnly || !!p?.passwordHash) &&
+    !g.players.some((x) => x.profileId && profiles.blocked(p?.id, x.profileId))
+  );
+}
+function maySwitch(socket) {
+  const old = rooms.get(socket.data.code);
+  assert(
+    !old ||
+      socket.data.spectator ||
+      old.status === "finished" ||
+      old.players.find((p) => p.id === socket.data.player)?.out,
+    "Leave your current room first.",
+  );
+}
+function createRoom(socket, d) {
+  assert(rooms.size < 1500, "The streets are busy. Try again soon.");
+  maySwitch(socket);
+  const profile = getProfile(socket, d.name);
+  const opts = settings(d.settings);
+  assert(
+    !opts.registeredOnly || profile.passwordHash,
+    "Create an account before requiring registered seats.",
+  );
+  let code;
+  do {
+    code = randomBytes(4).toString("hex").slice(0, 6).toUpperCase();
+  } while (rooms.has(code));
+  const p = player(cleanName(d.name || profile.name));
+  Object.assign(p, { profileId: profile.id, appearance: profile.appearance });
+  const g = room(code, p);
+  g.settings = opts;
+  g.limit = matchLimit(d.limit);
+  g.board = makeBoard(opts.map);
+  rooms.set(code, g);
+  const token = tokenFor(code, p.id);
+  attach(socket, g, p, token);
+  if (d.solo) {
+    fillBots(g);
+    teams(g);
+    start(g, p.id);
+  }
+  publish(g);
+  return { token, code, id: p.id };
+}
+function joinRoom(socket, d) {
+  assert(typeof d.code === "string", "Enter a room code.");
+  const g = rooms.get(d.code.trim().toUpperCase());
+  assert(g, "That room does not exist or has expired.");
+  assert(
+    g.status === "lobby",
+    "This match has started. Spectate or resume your saved seat.",
+  );
+  assert(g.players.length < g.settings.maxPlayers, "That room is full.");
+  getProfile(socket, d.name);
+  assert(
+    availableRoom(socket, g),
+    "This room requires an account or is unavailable for your profile.",
+  );
+  maySwitch(socket);
+  assert(
+    !g.players.some((p) => p.profileId === socket.data.profile),
+    "Your profile already has a seat in this room. Use Reconnect.",
+  );
+  const profile = profiles.profile(socket.data.profile),
+    p = player(cleanName(d.name || profile.name));
+  Object.assign(p, {
+    crew: g.players.length,
+    profileId: profile.id,
+    appearance: profile.appearance,
+  });
+  g.players.push(p);
+  const token = tokenFor(g.code, p.id);
+  attach(socket, g, p, token);
+  log(g, `${p.name} joined the crew.`);
+  publish(g);
+  return { token, code: g.code, id: p.id };
 }
 io.on("connection", (socket) => {
   let count = 0,
-    window = Date.now();
+    window = Date.now(),
+    chatAt = [];
   function handle(event, fn) {
-    socket.on(event, (payload = {}, ack = () => {}) => {
+    socket.on(event, async (payload = {}, ack = () => {}) => {
       if (Date.now() - window > 10000) {
         window = Date.now();
         count = 0;
@@ -166,7 +321,7 @@ io.on("connection", (socket) => {
           ack({ error: "Too many actions. Wait a moment." })
         );
       try {
-        const result = fn(payload);
+        const result = await fn(payload);
         if (typeof ack === "function") ack({ ok: true, ...result });
       } catch (e) {
         if (typeof ack === "function")
@@ -174,65 +329,115 @@ io.on("connection", (socket) => {
       }
     });
   }
-  handle("create", (d) => {
-    assert(rooms.size < 1500, "The streets are busy. Try again soon.");
-    if (socket.data.code) {
-      const old = rooms.get(socket.data.code);
+  handle("profile-auth", (d) => {
+    const a = profiles.authorize(d.token, d.name);
+    socket.data.profile = a.profile.id;
+    profileUpdates();
+    return a;
+  });
+  for (const type of ["register", "login"])
+    handle("profile-" + type, async (d) => {
       assert(
-        !old ||
-          old.status === "finished" ||
-          old.players.find((p) => p.id === socket.data.player)?.out,
-        "Leave your current room before making a new one.",
+        !socket.data.code,
+        "Leave your room before signing in or registering.",
+      );
+      const ip = socket.handshake.address;
+      const a =
+        type === "register"
+          ? await profiles.register(getProfile(socket, d.name).id, d, ip)
+          : await profiles.login(d, ip);
+      socket.data.profile = a.profile.id;
+      profileUpdates();
+      return a;
+    });
+  handle("profile-change", (d) => {
+    getProfile(socket);
+    if (d.type === "invite") {
+      const g = session(socket, true);
+      assert(
+        g.code === d.code && g.status === "lobby",
+        "Invite friends from an open lobby.",
       );
     }
-    let code;
-    do {
-      code = randomBytes(4).toString("hex").slice(0, 6).toUpperCase();
-    } while (rooms.has(code));
-    const p = player(cleanName(d.name)),
-      g = room(code, p);
-    g.limit = [10, 20, 30].includes(d.limit) ? d.limit : 20;
-    rooms.set(code, g);
-    const token = tokenFor(code, p.id);
-    attach(socket, g, p, token);
-    if (d.solo) {
-      for (let i = 1; i < 4; i++) {
-        const b = player(["", "Remy", "Jax", "Nova"][i], true);
-        b.crew = i;
-        g.players.push(b);
-      }
-      start(g, p.id);
+    const profile = profiles.change(socket.data.profile, d);
+    for (const g of rooms.values()) {
+      let changed = false;
+      for (const p of g.players)
+        if (p.profileId === profile.id) {
+          p.appearance = profile.appearance;
+          if (g.status === "lobby") p.name = profile.name;
+          changed = true;
+        }
+      if (changed) publish(g);
     }
-    publish(g);
-    return { token, code, id: p.id };
+    profileUpdates();
+    return { profile };
   });
-  handle("join", (d) => {
-    assert(typeof d.code === "string", "Enter a room code.");
-    const g = rooms.get(d.code.trim().toUpperCase());
-    assert(g, "That room does not exist or has expired.");
-    assert(
-      g.status === "lobby",
-      "This match has started. Rejoin with your original browser.",
+  handle("profile-find", (d) => {
+    const p = profiles.find(d.query);
+    assert(p, "No player found. Try their friend code or username.");
+    return { profile: profiles.safe(p, socket.data.profile) };
+  });
+  handle("leaderboard", () => ({ players: profiles.leaderboard() }));
+  handle("rooms", () => ({
+    rooms: [...rooms.values()]
+      .filter(
+        (g) =>
+          g.settings.visibility === "public" &&
+          g.status !== "finished" &&
+          availableRoom(socket, g),
+      )
+      .map((g) => ({
+        code: g.code,
+        players: g.players.length,
+        maxPlayers: g.settings.maxPlayers,
+        status: g.status,
+        map: g.settings.map,
+        teams: g.settings.teams,
+        registeredOnly: g.settings.registeredOnly,
+        limit: g.limit,
+      })),
+  }));
+  handle("create", (d) => createRoom(socket, d));
+  handle("join", (d) => joinRoom(socket, d));
+  handle("quick-play", (d) => {
+    getProfile(socket, d.name);
+    const g = [...rooms.values()].find(
+      (g) =>
+        g.settings.visibility === "public" &&
+        g.status === "lobby" &&
+        g.players.length < g.settings.maxPlayers &&
+        availableRoom(socket, g),
     );
-    assert(g.players.length < 4, "That room is full.");
-    const old = rooms.get(socket.data.code);
-    assert(
-      !old ||
-        old.code === g.code ||
-        old.status === "finished" ||
-        old.players.find((p) => p.id === socket.data.player)?.out,
-      "Leave your current room first.",
+    return g
+      ? joinRoom(socket, { ...d, code: g.code })
+      : createRoom(socket, {
+          ...d,
+          settings: { ...d.settings, visibility: "public" },
+        });
+  });
+  handle("spectate", (d) => {
+    maySwitch(socket);
+    const g = rooms.get(
+      String(d.code || "")
+        .trim()
+        .toUpperCase(),
     );
+    assert(g, "Room not found.");
+    getProfile(socket, d.name);
     assert(
-      !g.players.some((p) => p.id === socket.data.player),
-      "You are already in this room.",
+      availableRoom(socket, g),
+      "This room is unavailable for your profile.",
     );
-    const p = player(cleanName(d.name));
-    p.crew = g.players.length;
-    g.players.push(p);
-    const token = tokenFor(g.code, p.id);
-    attach(socket, g, p, token);
-    log(g, `${p.name} joined the crew.`);
+    assert(g.spectators.length < 32, "The spectator bench is full.");
+    const p = {
+      id: randomBytes(16).toString("hex"),
+      name: cleanName(d.name),
+      profileId: socket.data.profile,
+    };
+    g.spectators.push(p);
+    const token = tokenFor(g.code, p.id, true);
+    attach(socket, g, p, token, true);
     publish(g);
     return { token, code: g.code, id: p.id };
   });
@@ -240,37 +445,164 @@ io.on("connection", (socket) => {
     assert(typeof d.token === "string", "Missing seat token.");
     const s = sessions.get(d.token);
     assert(s, "Your saved seat has expired.");
-    const g = rooms.get(s.code),
-      p = g?.players.find((x) => x.id === s.id);
+    const g = rooms.get(s.code);
+    let p = g?.players.find((x) => x.id === s.id);
+    if (s.spectator && g) {
+      p = g.spectators.find((x) => x.id === s.id) || {
+        id: s.id,
+        name: "Spectator",
+      };
+      if (!g.spectators.includes(p)) g.spectators.push(p);
+    }
     assert(g && p, "Your room has expired.");
-    attach(socket, g, p, d.token);
+    attach(socket, g, p, d.token, s.spectator);
     publish(g);
     return { code: g.code, id: p.id, token: d.token };
+  });
+  handle("team", (d) => {
+    const g = session(socket);
+    assert(
+      g.status === "lobby" && g.settings.teams,
+      "Choose teams in the lobby.",
+    );
+    const p = g.players.find((p) => p.id === (d.id || socket.data.player));
+    assert(
+      p &&
+        (p.id === socket.data.player ||
+          (p.bot && g.host === socket.data.player)),
+      "Choose your own team or a bot you host.",
+    );
+    assert(["1", "2", "3", "4"].includes(String(d.team)), "Choose a team.");
+    p.team = String(d.team);
+    publish(g);
+    return {};
   });
   handle("lobby", (d) => {
     const g = session(socket);
     assert(
-      g.status === "lobby" && g.host === socket.data.player,
+      g.host === socket.data.player,
       "Only the host can change the lobby.",
     );
-    if (d.type === "add-bot") {
-      assert(g.players.length < 4, "The room is full.");
-      const b = player(
-        ["Remy", "Jax", "Nova"][g.players.filter((p) => p.bot).length % 3],
-        true,
+    if (d.type === "rematch") {
+      assert(g.status === "finished", "Finish the match before a rematch.");
+      const old = g.players,
+        opts = g.settings,
+        limit = g.limit,
+        revision = g.revision,
+        code = g.code,
+        host = g.host;
+      Object.assign(
+        g,
+        room(
+          code,
+          old.find((p) => p.id === host),
+        ),
+        {
+          settings: opts,
+          limit,
+          board: makeBoard(opts.map),
+          revision,
+          players: old.map((p) => ({
+            ...player(p.name, p.bot),
+            id: p.id,
+            profileId: p.profileId,
+            appearance: p.appearance,
+            team: p.team,
+            connected: p.connected,
+          })),
+        },
       );
-      g.players.push(b);
-    } else if (d.type === "remove-bot") {
-      const i = g.players.findIndex((p) => p.id === d.id && p.bot);
-      assert(i >= 0, "Only bot seats can be removed.");
-      g.players.splice(i, 1);
-    } else if (d.type === "settings") {
-      assert([10, 20, 30].includes(d.limit), "Choose a valid match length.");
-      g.limit = d.limit;
-    } else if (d.type === "start") start(g, socket.data.player);
-    else throw new Error("Invalid lobby action.");
+    } else {
+      assert(
+        g.status === "lobby",
+        "Settings are locked once the match starts.",
+      );
+      if (d.type === "add-bot") addBot(g);
+      else if (d.type === "fill-bots") fillBots(g);
+      else if (d.type === "remove-bot") {
+        const i = g.players.findIndex((p) => p.id === d.id && p.bot);
+        assert(i >= 0, "Only bot seats can be removed.");
+        g.players.splice(i, 1);
+      } else if (d.type === "settings") {
+        const next = settings(d.settings, g.settings);
+        assert(
+          next.maxPlayers >= g.players.length,
+          "Remove bot seats before reducing capacity.",
+        );
+        assert(
+          !next.registeredOnly ||
+            g.players.every(
+              (p) => p.bot || profiles.profile(p.profileId)?.passwordHash,
+            ),
+          "Every human seat needs an account for this rule.",
+        );
+        g.settings = next;
+        if ("limit" in d) g.limit = matchLimit(d.limit);
+        g.board = makeBoard(next.map);
+      } else if (d.type === "start") {
+        if (g.settings.autoFill) fillBots(g);
+        teams(g);
+        start(g, socket.data.player);
+      } else throw new Error("Invalid lobby action.");
+    }
     g.players.forEach((p, i) => (p.crew = i));
     publish(g);
+    return {};
+  });
+  handle("chat", (d) => {
+    const g = session(socket),
+      p = g.players.find((x) => x.id === socket.data.player);
+    const body = String(d.text || "")
+      .split("")
+      .map((c) => (c.charCodeAt(0) < 32 ? " " : c))
+      .join("")
+      .trim();
+    assert(
+      body.length > 0 && body.length <= 280,
+      "Write a message of 1–280 characters.",
+    );
+    chatAt = chatAt.filter((t) => Date.now() - t < 10000);
+    assert(chatAt.length < 5, "Slow down. Five chat messages per ten seconds.");
+    chatAt.push(Date.now());
+    assert(
+      !d.team || (g.settings.teams && p.team != null),
+      "Join a team to use team chat.",
+    );
+    g.chat.push({
+      id: randomBytes(12).toString("hex"),
+      player: p.id,
+      profileId: p.profileId,
+      name: p.name,
+      text: body,
+      team: d.team ? String(p.team) : null,
+      time: Date.now(),
+    });
+    g.chat = g.chat.slice(-100);
+    publish(g);
+    return {};
+  });
+  handle("report", (d) => {
+    const g = session(socket, true),
+      p = g.players.find((x) => x.id === d.id);
+    assert(p && !p.bot, "Choose a human player.");
+    assert(
+      typeof d.reason === "string" &&
+        d.reason.trim().length >= 5 &&
+        d.reason.length <= 300,
+      "Describe the issue in 5–300 characters.",
+    );
+    assert(
+      !g.reports?.some((r) => r.from === socket.data.player && r.to === p.id),
+      "Your report is already saved for this player.",
+    );
+    g.reports ||= [];
+    g.reports.push({
+      from: socket.data.player,
+      to: p.id,
+      reason: d.reason.trim(),
+      time: Date.now(),
+    });
+    save();
     return {};
   });
   handle("action", (d) => {
@@ -280,35 +612,43 @@ io.on("connection", (socket) => {
     return {};
   });
   handle("leave", () => {
-    const g = session(socket);
+    const g = session(socket, true);
     assert(
-      g.status !== "playing",
-      "Use Reconnect to return to a running match. Your seat stays reserved.",
+      socket.data.spectator ||
+        g.status !== "playing" ||
+        g.players.find((p) => p.id === socket.data.player)?.out,
+      "Forfeit your seat before leaving an active match.",
     );
     const id = socket.data.player;
-    if (g.status === "lobby") {
+    if (socket.data.spectator)
+      g.spectators = g.spectators.filter((p) => p.id !== id);
+    else if (g.status === "lobby") {
       g.players = g.players.filter((p) => p.id !== id);
       g.players.forEach((p, i) => (p.crew = i));
       if (g.host === id) g.host = g.players.find((p) => !p.bot)?.id;
-      if (!g.host) {
-        rooms.delete(g.code);
-      } else publish(g);
+      if (!g.host) rooms.delete(g.code);
     }
+    if (rooms.has(g.code)) publish(g);
     sessions.delete(socket.data.token);
     socket.leave(g.code);
-    socket.data = {};
+    const profile = socket.data.profile;
+    socket.data = { profile };
     save();
     return {};
   });
   socket.on("disconnect", () => {
     const g = rooms.get(socket.data.code);
-    if (!g) return;
-    const p = g.players.find((x) => x.id === socket.data.player);
-    if (p)
-      p.connected =
-        p.bot ||
-        [...io.sockets.sockets.values()].some((s) => s.data.player === p.id);
-    publish(g);
+    if (g) {
+      const p = g.players.find((x) => x.id === socket.data.player);
+      if (p)
+        p.connected =
+          p.bot ||
+          [...io.sockets.sockets.values()].some((s) => s.data.player === p.id);
+      if (socket.data.spectator)
+        g.spectators = g.spectators.filter((p) => p.id !== socket.data.player);
+      publish(g);
+    }
+    profileUpdates();
   });
 });
 const botDue = new Map();
@@ -322,6 +662,11 @@ const interval = setInterval(() => {
     }
     if (g.status !== "playing" || !g.players.some((p) => !p.bot && p.connected))
       continue;
+    if (g.phase === "auction" && Date.now() > g.deadline) {
+      finishAuction(g);
+      publish(g);
+      continue;
+    }
     const actors =
       g.phase === "duel"
         ? g.players.filter(
@@ -329,19 +674,57 @@ const interval = setInterval(() => {
               [g.duel.attacker, g.duel.defender].includes(p.id) &&
               !g.duel.choices[p.id],
           )
-        : [active(g)];
+        : g.phase === "auction"
+          ? g.players.filter(
+              (p) =>
+                p.bot &&
+                !p.out &&
+                !g.auction.passed.includes(p.id) &&
+                g.auction.highBidder !== p.id,
+            )
+          : [active(g)];
     for (const p of actors) {
-      const key = g.code + ":" + p.id;
-      const state = g.phase + ":" + g.turn + ":" + g.duel?.history.length;
+      const key = g.code + ":" + p.id,
+        state =
+          g.phase +
+          ":" +
+          g.turn +
+          ":" +
+          g.duel?.history.length +
+          ":" +
+          g.auction?.highBid;
       if (botDue.get(key)?.state !== state)
         botDue.set(key, { state, at: Date.now() + 1400 });
-      const timed = Date.now() > g.deadline;
-      const eliminated = p.out && ["end", "duel-result"].includes(g.phase);
+      const timed = Date.now() > g.deadline,
+        eliminated = p.out && ["end", "duel-result"].includes(g.phase);
       if ((p.bot && Date.now() >= botDue.get(key).at) || timed || eliminated) {
         try {
-          action(g, p.id, defaultAction(g, p.id));
+          let a = defaultAction(g, p.id);
+          if (!p.bot && timed && !["duel", "auction"].includes(g.phase)) {
+            g.autoTurn = true;
+            if (!g.timeoutCounted) {
+              g.timeoutCounted = true;
+              p.afk = (p.afk || 0) + 1;
+            }
+            if (p.afk >= 2 && !p.out && !["duel-result"].includes(g.phase)) {
+              eliminate(
+                g,
+                p,
+                g.phase === "rent"
+                  ? g.players.find((x) => x.id === g.pending?.owner)
+                  : null,
+              );
+              publish(g);
+              break;
+            }
+            if (g.phase === "buy") a = { type: "skip" };
+            if (g.phase === "rent" && p.cash < g.pending.amount)
+              a = { type: "surrender" };
+          }
+          action(g, p.id, a);
           publish(g);
           botDue.delete(key);
+          if (g.phase !== "auction" && g.phase !== "duel") break;
         } catch (e) {
           console.error("Automatic turn failed:", g.code, g.phase, e.message);
           g.deadline = Date.now() + 15000;
@@ -350,12 +733,18 @@ const interval = setInterval(() => {
     }
     if (g.trade && g.players.find((p) => p.id === g.trade.to)?.bot) {
       try {
-        const tr = g.trade;
-        const { BOARD } = awaitBoard;
-        action(g, tr.to, {
-          type: "trade-respond",
-          accept: BOARD[tr.give].price + tr.cash >= BOARD[tr.take].price,
-        });
+        const tr = g.trade,
+          t = board(g),
+          value = (ids) =>
+            ids.reduce(
+              (n, id) => n + t[id].price * (g.props[id].mortgaged ? 0.5 : 1),
+              0,
+            );
+        const accept = tr.giveTiles
+          ? value(tr.giveTiles) + tr.cash + tr.giveEscapes * 100 >=
+            value(tr.takeTiles) + tr.requestCash + tr.takeEscapes * 100
+          : t[tr.give].price + tr.cash >= t[tr.take].price;
+        action(g, tr.to, { type: "trade-respond", accept });
         publish(g);
       } catch {
         g.trade = null;
@@ -364,7 +753,6 @@ const interval = setInterval(() => {
     }
   }
 }, 500);
-import * as awaitBoard from "../shared/board.js";
 const port = Number(process.env.PORT) || 3000;
 http.listen(port, "0.0.0.0", () =>
   console.log(`Spin the Block listening on ${port}`),
