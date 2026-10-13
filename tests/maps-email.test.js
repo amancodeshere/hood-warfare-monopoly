@@ -146,3 +146,49 @@ test("all six city boards retain their economy and essential spaces", (t) => {
       }
   }
 });
+
+test("email transport uses the configured sender and keeps provider failures private", async (t) => {
+  const { sendVerification, emailAvailable } =
+    await import("../server/email.js");
+  const previous = {
+    key: process.env.RESEND_API_KEY,
+    from: process.env.EMAIL_FROM,
+    fetch: globalThis.fetch,
+  };
+  t.after(() => {
+    if (previous.key === undefined) delete process.env.RESEND_API_KEY;
+    else process.env.RESEND_API_KEY = previous.key;
+    if (previous.from === undefined) delete process.env.EMAIL_FROM;
+    else process.env.EMAIL_FROM = previous.from;
+    globalThis.fetch = previous.fetch;
+  });
+  delete process.env.RESEND_API_KEY;
+  delete process.env.EMAIL_FROM;
+  assert.equal(emailAvailable(), false);
+  await assert.rejects(
+    sendVerification({ email: "a@example.com", code: "123456" }),
+    /not available/,
+  );
+  process.env.RESEND_API_KEY = "test-only-key";
+  process.env.EMAIL_FROM = "Spin the Block <play@example.com>";
+  let request;
+  globalThis.fetch = async (url, options) => {
+    request = { url, options };
+    return { ok: true };
+  };
+  await sendVerification({ email: "a@example.com", code: "123456" });
+  assert.equal(request.url, "https://api.resend.com/emails");
+  assert.equal(request.options.headers.Authorization, "Bearer test-only-key");
+  const body = JSON.parse(request.options.body);
+  assert.equal(body.from, process.env.EMAIL_FROM);
+  assert.deepEqual(body.to, ["a@example.com"]);
+  assert(body.text.includes("123456"));
+  globalThis.fetch = async () => {
+    throw new Error("secret provider internals");
+  };
+  await assert.rejects(
+    sendVerification({ email: "a@example.com", code: "123456" }),
+    (e) =>
+      e.message.includes("Could not send") && !e.message.includes("internals"),
+  );
+});

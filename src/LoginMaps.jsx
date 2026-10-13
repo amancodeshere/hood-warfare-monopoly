@@ -135,7 +135,6 @@ export function EntryPage({ profile, emit, authenticated, enter, disabled }) {
           <City />
         </div>
         <div className="entry-headline">
-          <span className="eyebrow">THE CITY HAS YOUR NAME ON IT</span>
           <h1>
             Small block.
             <br />
@@ -151,7 +150,6 @@ export function EntryPage({ profile, emit, authenticated, enter, disabled }) {
         </div>
       </section>
       <section className="entry-desk" aria-label="Join Spin the Block">
-        <span className="eyebrow">YOUR SEAT AT THE TABLE</span>
         <h2>
           {profile?.registered
             ? "Welcome back, " + profile.name + "."
@@ -280,7 +278,6 @@ export function MapPicker({
     <section className="map-collection">
       <div className="map-collection-heading">
         <div>
-          <span className="eyebrow">PICK YOUR PROBLEMS</span>
           <h3>Choose a city</h3>
         </div>
         {editable && (

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-13T15:27:24.671016+00:00",
+  "generatedAt": "2026-10-13T16:29:26.642695+00:00",
   "title": "Design System: Spin the Block",
   "extensions": {
     "colorMeta": {
@@ -899,6 +899,314 @@
           "oklch(83.57% 0.0893 34.97)",
           "oklch(95.00% 0.0893 34.97)"
         ]
+      },
+      "entry-asphalt": {
+        "role": "neutral",
+        "displayName": "Entry Asphalt",
+        "tonalRamp": [
+          "oklch(15.00% 0.0162 168.49)",
+          "oklch(26.43% 0.0162 168.49)",
+          "oklch(37.86% 0.0162 168.49)",
+          "oklch(49.29% 0.0162 168.49)",
+          "oklch(60.71% 0.0162 168.49)",
+          "oklch(72.14% 0.0162 168.49)",
+          "oklch(83.57% 0.0162 168.49)",
+          "oklch(95.00% 0.0162 168.49)"
+        ]
+      },
+      "entry-world": {
+        "role": "neutral",
+        "displayName": "Entry World",
+        "tonalRamp": [
+          "oklch(15.00% 0.0241 159.29)",
+          "oklch(26.43% 0.0241 159.29)",
+          "oklch(37.86% 0.0241 159.29)",
+          "oklch(49.29% 0.0241 159.29)",
+          "oklch(60.71% 0.0241 159.29)",
+          "oklch(72.14% 0.0241 159.29)",
+          "oklch(83.57% 0.0241 159.29)",
+          "oklch(95.00% 0.0241 159.29)"
+        ]
+      },
+      "entry-glow": {
+        "role": "neutral",
+        "displayName": "Entry Glow",
+        "tonalRamp": [
+          "oklch(15.00% 0.0388 139.44)",
+          "oklch(26.43% 0.0388 139.44)",
+          "oklch(37.86% 0.0388 139.44)",
+          "oklch(49.29% 0.0388 139.44)",
+          "oklch(60.71% 0.0388 139.44)",
+          "oklch(72.14% 0.0388 139.44)",
+          "oklch(83.57% 0.0388 139.44)",
+          "oklch(95.00% 0.0388 139.44)"
+        ]
+      },
+      "entry-paper": {
+        "role": "neutral",
+        "displayName": "Entry Paper",
+        "tonalRamp": [
+          "oklch(15.00% 0.0217 95.29)",
+          "oklch(26.43% 0.0217 95.29)",
+          "oklch(37.86% 0.0217 95.29)",
+          "oklch(49.29% 0.0217 95.29)",
+          "oklch(60.71% 0.0217 95.29)",
+          "oklch(72.14% 0.0217 95.29)",
+          "oklch(83.57% 0.0217 95.29)",
+          "oklch(95.00% 0.0217 95.29)"
+        ]
+      },
+      "entry-border": {
+        "role": "neutral",
+        "displayName": "Entry Border",
+        "tonalRamp": [
+          "oklch(15.00% 0.0412 127.21)",
+          "oklch(26.43% 0.0412 127.21)",
+          "oklch(37.86% 0.0412 127.21)",
+          "oklch(49.29% 0.0412 127.21)",
+          "oklch(60.71% 0.0412 127.21)",
+          "oklch(72.14% 0.0412 127.21)",
+          "oklch(83.57% 0.0412 127.21)",
+          "oklch(95.00% 0.0412 127.21)"
+        ]
+      },
+      "entry-tagline": {
+        "role": "neutral",
+        "displayName": "Entry Tagline",
+        "tonalRamp": [
+          "oklch(15.00% 0.0462 118.54)",
+          "oklch(26.43% 0.0462 118.54)",
+          "oklch(37.86% 0.0462 118.54)",
+          "oklch(49.29% 0.0462 118.54)",
+          "oklch(60.71% 0.0462 118.54)",
+          "oklch(72.14% 0.0462 118.54)",
+          "oklch(83.57% 0.0462 118.54)",
+          "oklch(95.00% 0.0462 118.54)"
+        ]
+      },
+      "entry-copy": {
+        "role": "neutral",
+        "displayName": "Entry Copy",
+        "tonalRamp": [
+          "oklch(15.00% 0.0271 123.50)",
+          "oklch(26.43% 0.0271 123.50)",
+          "oklch(37.86% 0.0271 123.50)",
+          "oklch(49.29% 0.0271 123.50)",
+          "oklch(60.71% 0.0271 123.50)",
+          "oklch(72.14% 0.0271 123.50)",
+          "oklch(83.57% 0.0271 123.50)",
+          "oklch(95.00% 0.0271 123.50)"
+        ]
+      },
+      "entry-muted": {
+        "role": "neutral",
+        "displayName": "Entry Muted",
+        "tonalRamp": [
+          "oklch(15.00% 0.0372 121.20)",
+          "oklch(26.43% 0.0372 121.20)",
+          "oklch(37.86% 0.0372 121.20)",
+          "oklch(49.29% 0.0372 121.20)",
+          "oklch(60.71% 0.0372 121.20)",
+          "oklch(72.14% 0.0372 121.20)",
+          "oklch(83.57% 0.0372 121.20)",
+          "oklch(95.00% 0.0372 121.20)"
+        ]
+      },
+      "entry-support": {
+        "role": "neutral",
+        "displayName": "Entry Support",
+        "tonalRamp": [
+          "oklch(15.00% 0.0289 124.87)",
+          "oklch(26.43% 0.0289 124.87)",
+          "oklch(37.86% 0.0289 124.87)",
+          "oklch(49.29% 0.0289 124.87)",
+          "oklch(60.71% 0.0289 124.87)",
+          "oklch(72.14% 0.0289 124.87)",
+          "oklch(83.57% 0.0289 124.87)",
+          "oklch(95.00% 0.0289 124.87)"
+        ]
+      },
+      "entry-field": {
+        "role": "neutral",
+        "displayName": "Entry Field",
+        "tonalRamp": [
+          "oklch(15.00% 0.0221 155.54)",
+          "oklch(26.43% 0.0221 155.54)",
+          "oklch(37.86% 0.0221 155.54)",
+          "oklch(49.29% 0.0221 155.54)",
+          "oklch(60.71% 0.0221 155.54)",
+          "oklch(72.14% 0.0221 155.54)",
+          "oklch(83.57% 0.0221 155.54)",
+          "oklch(95.00% 0.0221 155.54)"
+        ]
+      },
+      "entry-field-border": {
+        "role": "neutral",
+        "displayName": "Entry Field Border",
+        "tonalRamp": [
+          "oklch(15.00% 0.0403 129.46)",
+          "oklch(26.43% 0.0403 129.46)",
+          "oklch(37.86% 0.0403 129.46)",
+          "oklch(49.29% 0.0403 129.46)",
+          "oklch(60.71% 0.0403 129.46)",
+          "oklch(72.14% 0.0403 129.46)",
+          "oklch(83.57% 0.0403 129.46)",
+          "oklch(95.00% 0.0403 129.46)"
+        ]
+      },
+      "entry-divider": {
+        "role": "neutral",
+        "displayName": "Entry Divider",
+        "tonalRamp": [
+          "oklch(15.00% 0.0352 131.28)",
+          "oklch(26.43% 0.0352 131.28)",
+          "oklch(37.86% 0.0352 131.28)",
+          "oklch(49.29% 0.0352 131.28)",
+          "oklch(60.71% 0.0352 131.28)",
+          "oklch(72.14% 0.0352 131.28)",
+          "oklch(83.57% 0.0352 131.28)",
+          "oklch(95.00% 0.0352 131.28)"
+        ]
+      },
+      "verified-text": {
+        "role": "neutral",
+        "displayName": "Verified Text",
+        "tonalRamp": [
+          "oklch(15.00% 0.0766 122.83)",
+          "oklch(26.43% 0.0766 122.83)",
+          "oklch(37.86% 0.0766 122.83)",
+          "oklch(49.29% 0.0766 122.83)",
+          "oklch(60.71% 0.0766 122.83)",
+          "oklch(72.14% 0.0766 122.83)",
+          "oklch(83.57% 0.0766 122.83)",
+          "oklch(95.00% 0.0766 122.83)"
+        ]
+      },
+      "map-card": {
+        "role": "neutral",
+        "displayName": "Map Card",
+        "tonalRamp": [
+          "oklch(15.00% 0.0221 150.23)",
+          "oklch(26.43% 0.0221 150.23)",
+          "oklch(37.86% 0.0221 150.23)",
+          "oklch(49.29% 0.0221 150.23)",
+          "oklch(60.71% 0.0221 150.23)",
+          "oklch(72.14% 0.0221 150.23)",
+          "oklch(83.57% 0.0221 150.23)",
+          "oklch(95.00% 0.0221 150.23)"
+        ]
+      },
+      "map-card-border": {
+        "role": "neutral",
+        "displayName": "Map Card Border",
+        "tonalRamp": [
+          "oklch(15.00% 0.0393 126.24)",
+          "oklch(26.43% 0.0393 126.24)",
+          "oklch(37.86% 0.0393 126.24)",
+          "oklch(49.29% 0.0393 126.24)",
+          "oklch(60.71% 0.0393 126.24)",
+          "oklch(72.14% 0.0393 126.24)",
+          "oklch(83.57% 0.0393 126.24)",
+          "oklch(95.00% 0.0393 126.24)"
+        ]
+      },
+      "map-card-copy": {
+        "role": "neutral",
+        "displayName": "Map Card Copy",
+        "tonalRamp": [
+          "oklch(15.00% 0.0298 122.09)",
+          "oklch(26.43% 0.0298 122.09)",
+          "oklch(37.86% 0.0298 122.09)",
+          "oklch(49.29% 0.0298 122.09)",
+          "oklch(60.71% 0.0298 122.09)",
+          "oklch(72.14% 0.0298 122.09)",
+          "oklch(83.57% 0.0298 122.09)",
+          "oklch(95.00% 0.0298 122.09)"
+        ]
+      },
+      "map-swatch": {
+        "role": "neutral",
+        "displayName": "Map Swatch",
+        "tonalRamp": [
+          "oklch(15.00% 0.0171 155.75)",
+          "oklch(26.43% 0.0171 155.75)",
+          "oklch(37.86% 0.0171 155.75)",
+          "oklch(49.29% 0.0171 155.75)",
+          "oklch(60.71% 0.0171 155.75)",
+          "oklch(72.14% 0.0171 155.75)",
+          "oklch(83.57% 0.0171 155.75)",
+          "oklch(95.00% 0.0171 155.75)"
+        ]
+      },
+      "studio-preview": {
+        "role": "neutral",
+        "displayName": "Studio Preview",
+        "tonalRamp": [
+          "oklch(15.00% 0.0212 158.95)",
+          "oklch(26.43% 0.0212 158.95)",
+          "oklch(37.86% 0.0212 158.95)",
+          "oklch(49.29% 0.0212 158.95)",
+          "oklch(60.71% 0.0212 158.95)",
+          "oklch(72.14% 0.0212 158.95)",
+          "oklch(83.57% 0.0212 158.95)",
+          "oklch(95.00% 0.0212 158.95)"
+        ]
+      },
+      "studio-row": {
+        "role": "neutral",
+        "displayName": "Studio Row",
+        "tonalRamp": [
+          "oklch(15.00% 0.0233 147.42)",
+          "oklch(26.43% 0.0233 147.42)",
+          "oklch(37.86% 0.0233 147.42)",
+          "oklch(49.29% 0.0233 147.42)",
+          "oklch(60.71% 0.0233 147.42)",
+          "oklch(72.14% 0.0233 147.42)",
+          "oklch(83.57% 0.0233 147.42)",
+          "oklch(95.00% 0.0233 147.42)"
+        ]
+      },
+      "studio-meta": {
+        "role": "neutral",
+        "displayName": "Studio Meta",
+        "tonalRamp": [
+          "oklch(15.00% 0.0342 122.20)",
+          "oklch(26.43% 0.0342 122.20)",
+          "oklch(37.86% 0.0342 122.20)",
+          "oklch(49.29% 0.0342 122.20)",
+          "oklch(60.71% 0.0342 122.20)",
+          "oklch(72.14% 0.0342 122.20)",
+          "oklch(83.57% 0.0342 122.20)",
+          "oklch(95.00% 0.0342 122.20)"
+        ]
+      },
+      "studio-footer": {
+        "role": "neutral",
+        "displayName": "Studio Footer",
+        "tonalRamp": [
+          "oklch(15.00% 0.0211 153.30)",
+          "oklch(26.43% 0.0211 153.30)",
+          "oklch(37.86% 0.0211 153.30)",
+          "oklch(49.29% 0.0211 153.30)",
+          "oklch(60.71% 0.0211 153.30)",
+          "oklch(72.14% 0.0211 153.30)",
+          "oklch(83.57% 0.0211 153.30)",
+          "oklch(95.00% 0.0211 153.30)"
+        ]
+      },
+      "studio-essential": {
+        "role": "neutral",
+        "displayName": "Studio Essential",
+        "tonalRamp": [
+          "oklch(15.00% 0.0222 106.91)",
+          "oklch(26.43% 0.0222 106.91)",
+          "oklch(37.86% 0.0222 106.91)",
+          "oklch(49.29% 0.0222 106.91)",
+          "oklch(60.71% 0.0222 106.91)",
+          "oklch(72.14% 0.0222 106.91)",
+          "oklch(83.57% 0.0222 106.91)",
+          "oklch(95.00% 0.0222 106.91)"
+        ]
       }
     },
     "typographyMeta": {
@@ -961,6 +1269,66 @@
       "auction-bid": {
         "displayName": "Auction Bid",
         "purpose": "Current leading auction bid."
+      },
+      "entry-display": {
+        "displayName": "Entry Display",
+        "purpose": "Observed account or map surface role; preserves Barlow hierarchy."
+      },
+      "entry-display-mobile": {
+        "displayName": "Entry Display Mobile",
+        "purpose": "Observed account or map surface role; preserves Barlow hierarchy."
+      },
+      "entry-brand": {
+        "displayName": "Entry Brand",
+        "purpose": "Observed account or map surface role; preserves Barlow hierarchy."
+      },
+      "entry-brand-mobile": {
+        "displayName": "Entry Brand Mobile",
+        "purpose": "Observed account or map surface role; preserves Barlow hierarchy."
+      },
+      "entry-desk-title": {
+        "displayName": "Entry Desk Title",
+        "purpose": "Observed account or map surface role; preserves Barlow hierarchy."
+      },
+      "entry-desk-title-mobile": {
+        "displayName": "Entry Desk Title Mobile",
+        "purpose": "Observed account or map surface role; preserves Barlow hierarchy."
+      },
+      "entry-copy": {
+        "displayName": "Entry Copy",
+        "purpose": "Observed account or map surface role; preserves Barlow hierarchy."
+      },
+      "verification-title": {
+        "displayName": "Verification Title",
+        "purpose": "Observed account or map surface role; preserves Barlow hierarchy."
+      },
+      "map-heading": {
+        "displayName": "Map Heading",
+        "purpose": "Observed account or map surface role; preserves Barlow hierarchy."
+      },
+      "map-title": {
+        "displayName": "Map Title",
+        "purpose": "Observed account or map surface role; preserves Barlow hierarchy."
+      },
+      "map-title-mobile": {
+        "displayName": "Map Title Mobile",
+        "purpose": "Observed account or map surface role; preserves Barlow hierarchy."
+      },
+      "map-description": {
+        "displayName": "Map Description",
+        "purpose": "Observed account or map surface role; preserves Barlow hierarchy."
+      },
+      "entry-divider": {
+        "displayName": "Entry Divider",
+        "purpose": "Observed account or map surface role; preserves Barlow hierarchy."
+      },
+      "entry-tagline-mobile": {
+        "displayName": "Entry Tagline Mobile",
+        "purpose": "Observed account or map surface role; preserves Barlow hierarchy."
+      },
+      "studio-title": {
+        "displayName": "Studio Title",
+        "purpose": "Observed account or map surface role; preserves Barlow hierarchy."
       }
     },
     "shadows": [
@@ -1003,6 +1371,11 @@
         "name": "overlay-error",
         "value": "0 6px 24px #101a0c80",
         "purpose": "Error feedback above an active dialog"
+      },
+      {
+        "name": "map-selected-inset",
+        "value": "inset 0 0 0 1px #d9c784",
+        "purpose": "Selected city card, paired with gold border and check."
       }
     ],
     "motion": [
@@ -1068,6 +1441,14 @@
       {
         "name": "controls-first-mobile",
         "value": "720px"
+      },
+      {
+        "name": "entry-stack",
+        "value": "640px"
+      },
+      {
+        "name": "entry-compact",
+        "value": "900px"
       }
     ]
   },
@@ -1076,8 +1457,8 @@
       "name": "Primary action",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "The cabinet’s main room or turn action.",
-      "html": "<button class=\"ds-button ds-primary\">Create a private room <span aria-hidden=\"true\">→</span></button>",
+      "description": "The cabinet\u2019s main room or turn action.",
+      "html": "<button class=\"ds-button ds-primary\">Create a private room <span aria-hidden=\"true\">\u2192</span></button>",
       "css": ".ds-button{display:flex;align-items:center;justify-content:space-between;gap:9px;width:100%;min-height:45px;padding:12px 13px;font-family:\"Barlow\",sans-serif;font-size:12px;font-weight:600;border-radius:5px;cursor:pointer;transition:background .15s ease,color .15s ease,opacity .15s ease}.ds-button:disabled{opacity:.42;cursor:not-allowed}.ds-button:focus-visible{outline:2px solid var(--lime,#c6ed72);outline-offset:4px;}@media(prefers-reduced-motion:reduce){.ds-button{transition:none}}.ds-primary{background:var(--lime,#c6ed72);border:1px solid var(--lime,#c6ed72);color:#1c2b19}.ds-primary:hover:not(:disabled){background:#d8f899}"
     },
     {
@@ -1085,7 +1466,7 @@
       "kind": "button",
       "refersTo": "button-secondary",
       "description": "A supporting or alternate game action.",
-      "html": "<button class=\"ds-button ds-secondary\">Keep my cash <span aria-hidden=\"true\">→</span></button>",
+      "html": "<button class=\"ds-button ds-secondary\">Keep my cash <span aria-hidden=\"true\">\u2192</span></button>",
       "css": ".ds-button{display:flex;align-items:center;justify-content:space-between;gap:9px;width:100%;min-height:45px;padding:12px 13px;font-family:\"Barlow\",sans-serif;font-size:12px;font-weight:600;border-radius:5px;cursor:pointer;transition:background .15s ease,color .15s ease,opacity .15s ease}.ds-button:disabled{opacity:.42;cursor:not-allowed}.ds-button:focus-visible{outline:2px solid var(--lime,#c6ed72);outline-offset:4px;}@media(prefers-reduced-motion:reduce){.ds-button{transition:none}}.ds-secondary{background:transparent;border:1px solid #52634b;color:#d6e0cb}.ds-secondary:hover:not(:disabled){background:#354630}"
     },
     {
@@ -1093,7 +1474,7 @@
       "kind": "button",
       "refersTo": "button-danger",
       "description": "A consequential action paired with explanatory copy.",
-      "html": "<button class=\"ds-button ds-danger\">Challenge to a shootout <span aria-hidden=\"true\">→</span></button>",
+      "html": "<button class=\"ds-button ds-danger\">Challenge to a shootout <span aria-hidden=\"true\">\u2192</span></button>",
       "css": ".ds-button{display:flex;align-items:center;justify-content:space-between;gap:9px;width:100%;min-height:45px;padding:12px 13px;font-family:\"Barlow\",sans-serif;font-size:12px;font-weight:600;border-radius:5px;cursor:pointer;transition:background .15s ease,color .15s ease,opacity .15s ease}.ds-button:disabled{opacity:.42;cursor:not-allowed}.ds-button:focus-visible{outline:2px solid var(--lime,#c6ed72);outline-offset:4px;}@media(prefers-reduced-motion:reduce){.ds-button{transition:none}}.ds-danger{background:#ecaa7c;border:1px solid #ecaa7c;color:#30251e}.ds-danger:hover:not(:disabled){filter:brightness(1.1)}"
     },
     {
@@ -1124,7 +1505,7 @@
       "name": "Active crew card",
       "kind": "card",
       "refersTo": "crew-card",
-      "description": "The current player’s roster surface and cash balance.",
+      "description": "The current player\u2019s roster surface and cash balance.",
       "html": "<article class=\"ds-crew-card\"><div class=\"ds-crew-name\">Your crew<small>Grove Collective</small></div><strong>$1,500</strong><span class=\"ds-in-play\">IN PLAY</span></article>",
       "css": ".ds-crew-card{position:relative;padding:15px 13px 13px;background:#253024;border:1px solid var(--lime,#c6ed72);border-radius:7px;color:#edf0e6;font-family:\"Barlow\",sans-serif}.ds-crew-name{font-size:13px;font-weight:600;line-height:1.1}.ds-crew-name small{display:block;margin-top:5px;color:#a8b29f;font-size:10px;font-weight:400}.ds-crew-card strong{display:block;margin-top:13px;font-size:18px;font-weight:600;letter-spacing:-.02em}.ds-in-play{position:absolute;right:11px;bottom:11px;color:var(--lime,#c6ed72);font-size:8px;letter-spacing:.1em}"
     },
@@ -1133,7 +1514,7 @@
       "kind": "custom",
       "refersTo": "board-tile-selected",
       "description": "A district-coded board button with explicit selected state; readable-map mobile names stay at 9px while overview names hide.",
-      "html": "<button class=\"ds-tile\" aria-label=\"Auntie’s Bodega, $60\"><span class=\"ds-stripe\"></span><span class=\"ds-tile-name\">Auntie’s Bodega</span><span class=\"ds-price\">$60</span></button>",
+      "html": "<button class=\"ds-tile\" aria-label=\"Auntie\u2019s Bodega, $60\"><span class=\"ds-stripe\"></span><span class=\"ds-tile-name\">Auntie\u2019s Bodega</span><span class=\"ds-price\">$60</span></button>",
       "css": ".ds-tile{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;width:88px;height:88px;padding:15px 3px 5px;background:#e1e6cc;border:1px solid #5a6854;border-radius:2px;color:#263326;font-family:\"Barlow\",sans-serif;outline:2px solid var(--lime,#c6ed72);outline-offset:0;cursor:pointer;transition:background .15s ease}.ds-stripe{position:absolute;left:0;right:0;top:0;height:14%;background:#a3ba86}.ds-tile-name{max-width:95%;font-size:12px;font-weight:700;line-height:1.15;text-align:center}.ds-price{font-size:10px;font-weight:500;line-height:1.05}.ds-tile:hover{background:#e0e3cf}.ds-tile:focus-visible{outline:2px solid var(--lime,#c6ed72);outline-offset:4px;}@media(prefers-reduced-motion:reduce){.ds-tile{transition:none}}"
     },
     {
@@ -1149,19 +1530,44 @@
       "kind": "custom",
       "refersTo": "modal",
       "description": "The shared dark, bordered, scrollable surface for rules, settings, rooms, auctions, Stoppa, social, and profiles; 490px default and 610px wide.",
-      "html": "<section class=\"ds-modal\" aria-label=\"Street rules\"><h2>Street rules</h2><p>Claim your blocks. Collect the rent. Keep your crew in play.</p><button class=\"ds-button ds-primary\">Let’s play <span aria-hidden=\"true\">→</span></button></section>",
+      "html": "<section class=\"ds-modal\" aria-label=\"Street rules\"><h2>Street rules</h2><p>Claim your blocks. Collect the rent. Keep your crew in play.</p><button class=\"ds-button ds-primary\">Let\u2019s play <span aria-hidden=\"true\">\u2192</span></button></section>",
       "css": ".ds-button{display:flex;align-items:center;justify-content:space-between;gap:9px;width:100%;min-height:45px;padding:12px 13px;font-family:\"Barlow\",sans-serif;font-size:12px;font-weight:600;border-radius:5px;cursor:pointer;transition:background .15s ease,color .15s ease,opacity .15s ease}.ds-button:disabled{opacity:.42;cursor:not-allowed}.ds-button:focus-visible{outline:2px solid var(--lime,#c6ed72);outline-offset:4px;}@media(prefers-reduced-motion:reduce){.ds-button{transition:none}}.ds-modal{max-width:490px;padding:28px;background:#253025;border:1px solid #637d51;border-radius:10px;color:#edf0e6;box-shadow:0 24px 80px #0009;font-family:\"Barlow\",sans-serif}.ds-modal h2{margin:0 0 20px;font-family:\"Barlow Condensed\",sans-serif;font-size:42px;font-weight:700;line-height:1.02;letter-spacing:-.015em}.ds-modal p{margin:0 0 20px;color:#c0d0b3;font-size:12px;line-height:1.6}.ds-primary{background:var(--lime,#c6ed72);border:1px solid var(--lime,#c6ed72);color:#1c2b19}.ds-primary:hover:not(:disabled){background:#d8f899}.ds-modal{max-height:90dvh;overflow:auto;overscroll-behavior:contain}.ds-modal.ds-wide{max-width:610px}.ds-modal label{display:block;font-size:14px;color:#d7dfce}.ds-modal p{line-height:1.5}"
+    },
+    {
+      "name": "City choice",
+      "kind": "card",
+      "refersTo": "map-choice",
+      "description": "Painted district silhouette, readable name, gold selected stroke and native pressed state.",
+      "html": "<button class=\"ds-map\" aria-pressed=\"true\"><span class=\"ds-roofs\"></span><strong>The Trenches \u2713</strong><small>40 blocks. Three Oppa Stoppas. No quiet corners.</small></button>",
+      "css": ".ds-map{background:#253027;color:#ece8d8;border:1px solid #566048;padding:12px;text-align:left;cursor:pointer}.ds-map[aria-pressed=\"true\"]{border-color:#d9c784;box-shadow:inset 0 0 0 1px #d9c784}.ds-map strong{display:block;font-family:\"Barlow Condensed\",sans-serif;font-size:21px;line-height:1.15;margin:10px 0 5px}.ds-map small{display:block;font-family:Barlow,sans-serif;font-size:11px;line-height:1.5;color:#bec5b0}.ds-roofs{display:block;height:48px;background:linear-gradient(90deg,#a3ba86 0 12.5%,#95bdd2 12.5% 25%,#d8a580 25% 37.5%,#b3a0cc 37.5% 50%,#d399b2 50% 62.5%,#d9c784 62.5% 75%,#86bfa4 75% 87.5%,#c4ad80 87.5%);clip-path:polygon(0 35%,12.5% 0,25% 35%,37.5% 0,50% 35%,62.5% 0,75% 35%,87.5% 0,100% 35%,100% 100%,0 100%)}.ds-map:hover{filter:brightness(1.08)}.ds-map:focus-visible{outline:2px solid var(--lime,#c6ed72);outline-offset:4px}"
+    },
+    {
+      "name": "Entry username field",
+      "kind": "input",
+      "refersTo": "entry-field",
+      "description": "Visible account label and dark inset native input.",
+      "html": "<label class=\"ds-account-label\">Username<input class=\"ds-account-input\" autocomplete=\"username\" /></label>",
+      "css": ".ds-account-label{display:block;font-family:Barlow,sans-serif;font-size:12px;font-weight:700;color:#ece8d8}.ds-account-input{display:block;width:100%;margin-top:7px;background:#202c24;border:1px solid #546048;color:#ece8d8;border-radius:6px;min-height:45px;padding:13px 12px;font-family:Barlow,sans-serif;font-size:14px}.ds-account-input:focus-visible{outline:2px solid var(--lime,#c6ed72);outline-offset:2px}"
+    },
+    {
+      "name": "Studio block row",
+      "kind": "custom",
+      "refersTo": "studio-row",
+      "description": "District-colored index and editable block name with fixed-space metadata.",
+      "html": "<div class=\"ds-block\"><span>01</span><input aria-label=\"Block 1 name\" value=\"Auntie\u2019s Bodega\" /><small>property</small></div>",
+      "css": ".ds-block{display:flex;gap:6px;align-items:center;padding:8px;border:1px solid #45503c;background:#263127;font-family:Barlow,sans-serif}.ds-block span{background:#a3ba86;color:#192019;padding:4px;font-size:11px;font-weight:700}.ds-block input{flex:1;min-width:0;width:100%;font:12px Barlow,sans-serif;padding:8px;background:#171e19;border:1px solid #465043;border-radius:6px;color:#f0f2e8;min-height:45px}.ds-block small{width:50px;font-size:10px;color:#b7bfa7}.ds-block input:focus-visible{outline:2px solid var(--lime,#c6ed72);outline-offset:2px}"
     }
   ],
   "narrative": {
     "northStar": "Street game cabinet",
-    "overview": "This documents the implemented direction recorded in `index.html`: a street game table where land, luck, and duels meet. Dark asphalt surfaces surround a pale square board, painted district strips, condensed sporting type, lime controls, and an original isometric city. The cabinet carries the visual identity; the room and turn controls make the game playable. The expanded board, eight crews, and supporting settings, room, social, and profile panels continue this same world.\n\nThe interface is dense around the board and more spacious around consequential actions. Friendly crew symbols and muted city colors give the original setting character without making players decode decoration. This is a record of the built system under the user's creative liberty. No approved visual comparisons, reference images, or image-generation assets were supplied.",
+    "overview": "This documents the implemented direction recorded in `index.html`: a street game table where land, luck, and duels meet. Dark asphalt surfaces surround a pale square board, painted district strips, condensed sporting type, lime controls, and an original isometric city. The cabinet carries the visual identity; the room and turn controls make the game playable. The expanded board, eight crews, and supporting settings, room, social, and profile panels continue this same world. The login front desk, six-city collection, and personal Map Studio extend the same street table: an authored city welcomes the player, painted district swatches distinguish maps, and compact editing rows make the board personal.\n\nThe interface is dense around the board and more spacious around consequential actions. Friendly crew symbols and muted city colors give the original setting character without making players decode decoration. This is a record of the built system under the user's creative liberty. No approved visual comparisons, reference images, or image-generation assets were supplied.",
     "keyCharacteristics": [
       "Asphalt and olive surfaces with pale, readable board pieces.",
       "Condensed display type paired with direct, compact interface text.",
       "Lime action and focus treatments; crew and district colors carry game meaning.",
       "An authored vector city inside a real, interactive perimeter board.",
-      "Responsive controls-first play and explicit keyboard focus."
+      "Responsive controls-first play and explicit keyboard focus.",
+      "A city-led entry, painted map collection, and practical editing surface within the incumbent identity."
     ],
     "rules": [
       {
@@ -1171,19 +1577,22 @@
       }
     ],
     "dos": [
-      "**Do** preserve the square perimeter board and the original city at its center.",
-      "**Do** retain controls-first mobile presentation, contained readable-map scrolling, the full-map overview toggle, and focus the selected property detail.",
-      "**Do** pair district and crew colors with names, symbols, strips, or explicit text.",
-      "**Do** keep native keyboard activation, visible focus, dialog focus handling, and polite game announcements.",
-      "**Do** self-host the existing Barlow families and honor reduced motion.",
-      "**Do** state game consequences beside risky actions and outcomes."
+      "Do preserve the square perimeter board and the original city at its center.",
+      "Do retain controls-first mobile presentation, contained readable-map scrolling, the full-map overview toggle, and focus the selected property detail.",
+      "Do pair district and crew colors with names, symbols, strips, or explicit text.",
+      "Do keep native keyboard activation, visible focus, dialog focus handling, and polite game announcements.",
+      "Do self-host the existing Barlow families and honor reduced motion.",
+      "Do state game consequences beside risky actions and outcomes.",
+      "Do extend account and map surfaces with the same Barlow families, asphalt/olive layers, visible labels, and authored city geometry.",
+      "Do pair map selection, verification, and locks with explicit text or icons and preserve the sticky editor action surface on narrow screens."
     ],
     "donts": [
-      "**Don't** reuse the district strip to imply ownership; the bottom owner bar has that job.",
-      "**Don't** turn compact board metadata into primary instruction text.",
-      "**Don't** remove disabled, selected, mortgaged, occupied, or eliminated state distinctions.",
-      "**Don't** claim approved visual references or generated imagery that do not exist.",
-      "**Don't** replace the authored city or crew identities with copied franchise artwork."
+      "Don't reuse the district strip to imply ownership; the bottom owner bar has that job.",
+      "Don't turn compact board metadata into primary instruction text.",
+      "Don't remove disabled, selected, mortgaged, occupied, or eliminated state distinctions.",
+      "Don't claim approved visual references or generated imagery that do not exist.",
+      "Don't replace the authored city or crew identities with copied franchise artwork.",
+      "Don't promote editable district colors into shared interface colors or replace account instructions with tiny swatch metadata."
     ]
   }
 }

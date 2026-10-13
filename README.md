@@ -18,7 +18,7 @@ When player rent is unaffordable, raise cash or challenge the landlord to a simu
 
 Profiles work immediately as guests and can be registered with a username and password to use another device. Friends support requests, online presence, and lobby invitations. Completed games earn respect that unlocks token appearances without payments. Public games contribute to online ranks only when at least two distinct human profiles participate; solo wins are tracked separately. Private game history is visible only to its own participants. Mute hides chat, block prevents future matching and hides chat, and reports are retained with the room for operator review; there is no staffed moderation service.
 
-The turn clock combines free thinking time with a personal reserve, replenished after manual turns. Debt adds 90 seconds; each other crew can add a minute once per turn. Human timeouts do not mortgage assets or open auctions. Two idle turns eliminate the player. Your browser stores opaque seat/profile tokens for reconnection. Timers pause when all humans disconnect; rooms expire after 24 hours without activity. Registered accounts have no email/password recovery in this release. Keep the password and browser seat credential safe.
+The turn clock combines free thinking time with a personal reserve, replenished after manual turns. Debt adds 90 seconds; each other crew can add a minute once per turn. Human timeouts do not mortgage assets or open auctions. Two idle turns eliminate the player. Your browser stores opaque seat/profile tokens for reconnection. Timers pause when all humans disconnect; rooms expire after 24 hours without activity. Email verification unlocks extra maps; accounts have no password recovery in this release. Keep the password and browser seat credential safe.
 
 See [FEATURES.md](FEATURES.md) for the Richup comparison and operating boundaries.
 
@@ -71,3 +71,14 @@ Room snapshots and private seat tokens are written atomically to a persistent vo
 ## Assets and design
 
 Original code-authored SVG city, eight fictional crews, eight districts, and self-hosted Barlow fonts. No Hood Warfare game files or Monopoly artwork are included. DESIGN.md records the built interface. All currency and roulette stakes are fictional; there are no payments.
+
+### Email verification and custom maps
+
+The entry page supports guest play and username/password sign-in. Guests can host The Trenches and Night Shift, and join any host-selected city. Email-verified accounts can host Lackin’ by the Beach, Cold Streets, Neon Problems, and Cookout County, and save up to ten personal maps in Map Studio. The editor customizes all 40 names, eight district names/colors, and surprise-space event types; prices and essential spaces retain the base economy. Rooms capture their own board snapshot, so editing/deleting a saved map cannot change an existing table. Saved maps are private to their owner; room participants receive the selected board.
+
+Production email delivery needs these private Railway service variables:
+
+- `RESEND_API_KEY`: a sending API key from Resend.
+- `EMAIL_FROM`: an address on your verified Resend sending domain, for example `Spin the Block <play@your-domain.com>`.
+
+Configure these in Railway Variables, never in Git or chat. Resend domain verification must be completed before sending to real players. See [Resend’s sending API](https://resend.com/docs/api-reference/emails/send-email). Until configured, the UI explains that delivery is unavailable and leaves guest maps playable; verification is never faked. Codes expire after 15 minutes, allow five attempts, can be resent after a minute, and are consumed once. Only a salted digest is stored, and email addresses and saved maps are omitted from other players’ profile views. Verification unlocks map features; it is not a password-reset service. Existing username/password accounts can verify through Profile → Account.

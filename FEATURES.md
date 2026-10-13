@@ -35,3 +35,12 @@ This release does not provide payment commerce, email verification/recovery, upl
 ## Verification
 
 CI runs lint, Node engine/profile/multiplayer tests with coverage, production build, and nine Chromium browser tests. Game tests exercise legacy preservation, 40-space geometry, optional limits, cash conservation, auctions, team ownership/inheritance, fair trades, human timeouts, secret choices, and seeded full-match simulations. Integration tests exercise real sockets, origin rejection, private/public discovery, capacity, bot filling, team-chat secrecy, spectators, profile preferences, and restart recovery. Browser tests exercise desktop/mobile room play, roulette, shootouts, solo opponents, house settings, Oppa Stoppa, auctions, team chat, cosmetics, and account sign-in.
+
+## Accounts and cities
+
+- Dedicated sign-in entry with guest continuation and account creation.
+- Real email code verification with expiry, attempt limits, resend throttling, and private addresses; requires Resend sender configuration in Railway.
+- Six city themes with different block names, palettes, and surprise-space layouts; two guest maps and four verified account maps.
+- Verified Map Studio: up to ten saved maps, 40 square names, eight district names/colors, and card/roulette/Oppa Stoppa event placement.
+- Owner-only map editing and server-side selection permissions; guests can join custom cities.
+- Immutable room maps, including rematches, even after the source map is edited or deleted.

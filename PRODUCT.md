@@ -29,3 +29,7 @@ Street board game with creative liberty. Original crews and city. Working title:
 ## Product Principles
 
 Online reliability comes first. Every risk communicates its consequences. Turns stay moving. Delight through authored board art and meaningful choices.
+
+## Accounts and map authorship
+
+The login entry supports guest continuation and username/password accounts. Guests host two base cities and may join any selected city. Real email verification unlocks four extra city themes and up to ten personal saved maps. Map Studio edits square names, district names/colors, and surprise-space event types while keeping essential spaces and prices balanced. Room maps are snapshots, including rematches. Email delivery requires a verified Resend sender and private Railway credentials; unavailable delivery must be disclosed. Email verification is not password recovery.

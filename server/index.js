@@ -570,6 +570,7 @@ io.on("connection", (socket) => {
         teamNames = g.teamNames,
         host = g.host,
         city = {
+          schemaVersion: g.schemaVersion,
           board: structuredClone(g.board),
           districts: g.districts,
           mapName: g.mapName,

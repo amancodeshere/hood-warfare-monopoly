@@ -66,6 +66,28 @@ colors:
   overlay-error: "#592f2a"
   overlay-error-text: "#ffe4da"
   overlay-error-border: "#b57261"
+  entry-asphalt: "#17211d"
+  entry-world: "#1e2c24"
+  entry-glow: "#3a4a36"
+  entry-paper: "#ece8d8"
+  entry-border: "#556047"
+  entry-tagline: "#b5bd9c"
+  entry-copy: "#c4cbb8"
+  entry-muted: "#aeb69c"
+  entry-support: "#bac2ae"
+  entry-field: "#202c24"
+  entry-field-border: "#546048"
+  entry-divider: "#45503c"
+  verified-text: "#b7c992"
+  map-card: "#253027"
+  map-card-border: "#566048"
+  map-card-copy: "#bec5b0"
+  map-swatch: "#1a231d"
+  studio-preview: "#1c2821"
+  studio-row: "#263127"
+  studio-meta: "#b7bfa7"
+  studio-footer: "#202b23"
+  studio-essential: "#b6b6a6"
 typography:
   display:
     fontFamily: '"Barlow Condensed", sans-serif'
@@ -125,6 +147,80 @@ typography:
   auction-bid:
     fontFamily: '"Barlow Condensed", sans-serif'
     fontSize: "64px"
+  entry-display:
+    fontFamily: '"Barlow Condensed", sans-serif'
+    fontSize: "clamp(68px, 6.1vw, 88px)"
+    fontWeight: 800
+    lineHeight: "0.9"
+    letterSpacing: "-2px"
+  entry-display-mobile:
+    fontFamily: '"Barlow Condensed", sans-serif'
+    fontSize: "50px"
+    fontWeight: 800
+    lineHeight: "0.95"
+    letterSpacing: "-1px"
+  entry-brand:
+    fontFamily: '"Barlow Condensed", sans-serif'
+    fontSize: "29px"
+    fontWeight: 800
+    letterSpacing: "1px"
+  entry-brand-mobile:
+    fontFamily: '"Barlow Condensed", sans-serif'
+    fontSize: "23px"
+    fontWeight: 800
+    letterSpacing: "1px"
+  entry-desk-title:
+    fontFamily: '"Barlow Condensed", sans-serif'
+    fontSize: "48px"
+    fontWeight: 700
+    lineHeight: "1.05"
+  entry-desk-title-mobile:
+    fontFamily: '"Barlow Condensed", sans-serif'
+    fontSize: "38px"
+    fontWeight: 700
+    lineHeight: "1.05"
+  entry-copy:
+    fontFamily: '"Barlow", sans-serif'
+    fontSize: "17px"
+    fontWeight: 400
+    lineHeight: "1.6"
+  verification-title:
+    fontFamily: '"Barlow Condensed", sans-serif'
+    fontSize: "25px"
+    fontWeight: 700
+  map-heading:
+    fontFamily: '"Barlow Condensed", sans-serif'
+    fontSize: "28px"
+    fontWeight: 700
+  map-title:
+    fontFamily: '"Barlow Condensed", sans-serif'
+    fontSize: "21px"
+    fontWeight: 700
+    lineHeight: "1.15"
+  map-title-mobile:
+    fontFamily: '"Barlow Condensed", sans-serif'
+    fontSize: "18px"
+    fontWeight: 700
+    lineHeight: "1.15"
+  map-description:
+    fontFamily: '"Barlow", sans-serif'
+    fontSize: "11px"
+    fontWeight: 400
+    lineHeight: "1.5"
+  entry-divider:
+    fontFamily: '"Barlow", sans-serif'
+    fontSize: "10px"
+    fontWeight: 400
+    letterSpacing: "1.4px"
+  entry-tagline-mobile:
+    fontFamily: '"Barlow", sans-serif'
+    fontSize: "8px"
+    fontWeight: 400
+    letterSpacing: "2.7px"
+  studio-title:
+    fontFamily: '"Barlow Condensed", sans-serif'
+    fontSize: "24px"
+    fontWeight: 700
 rounded:
   tile: "2px"
   compact-chip: "3px"
@@ -136,6 +232,7 @@ rounded:
   board: "9px"
   modal: "10px"
   circle: "50%"
+  map-card: "0px"
 spacing:
   compact: "7px"
   small: "10px"
@@ -195,6 +292,20 @@ components:
     rounded: "{rounded.modal}"
     padding: "28px"
     width: "490px"
+  map-choice:
+    backgroundColor: "{colors.map-card}"
+    textColor: "{colors.entry-paper}"
+    typography: "{typography.map-title}"
+    rounded: "{rounded.map-card}"
+    padding: "12px"
+  studio-row:
+    backgroundColor: "{colors.studio-row}"
+    padding: "8px"
+  entry-field:
+    backgroundColor: "{colors.entry-field}"
+    textColor: "{colors.entry-paper}"
+    rounded: "{rounded.field}"
+    width: "100%"
 ---
 
 # Design System: Spin the Block
@@ -203,7 +314,7 @@ components:
 
 **Creative North Star: "Street game cabinet"**
 
-This documents the implemented direction recorded in `index.html`: a street game table where land, luck, and duels meet. Dark asphalt surfaces surround a pale square board, painted district strips, condensed sporting type, lime controls, and an original isometric city. The cabinet carries the visual identity; the room and turn controls make the game playable. The expanded board, eight crews, and supporting settings, room, social, and profile panels continue this same world.
+This documents the implemented direction recorded in `index.html`: a street game table where land, luck, and duels meet. Dark asphalt surfaces surround a pale square board, painted district strips, condensed sporting type, lime controls, and an original isometric city. The cabinet carries the visual identity; the room and turn controls make the game playable. The expanded board, eight crews, and supporting settings, room, social, and profile panels continue this same world. The login front desk, six-city collection, and personal Map Studio extend the same street table: an authored city welcomes the player, painted district swatches distinguish maps, and compact editing rows make the board personal.
 
 The interface is dense around the board and more spacious around consequential actions. Friendly crew symbols and muted city colors give the original setting character without making players decode decoration. This is a record of the built system under the user's creative liberty. No approved visual comparisons, reference images, or image-generation assets were supplied.
 
@@ -214,6 +325,7 @@ The interface is dense around the board and more spacious around consequential a
 - Lime action and focus treatments; crew and district colors carry game meaning.
 - An authored vector city inside a real, interactive perimeter board.
 - Responsive controls-first play and explicit keyboard focus.
+- A city-led entry, painted map collection, and practical editing surface within the incumbent identity.
 
 ## Colors
 
@@ -244,6 +356,8 @@ The palette combines desaturated street materials with clear painted accents. Fr
 - **Stoppa Rim / Sectors / Center / Number:** Muted green radial materials with light numeric labels and a lime pointer, preserving the cabinet’s game-object vocabulary.
 - **Overlay Error / Text / Border:** A warm, readable error surface above dialogs.
 
+The front desk intentionally extends the asphalt/olive family with Entry Asphalt, Entry World, and a restrained Entry Glow. Entry Paper warms the welcome lettering; Entry Copy, Support, Muted, and Tagline keep the supporting hierarchy within the same materials. Entry Field and its border are inset rather than floating. Entry Divider separates account choices. Map Card, Border, Copy, and Swatch frame painted city identities; selection reuses the existing Millionaire Row gold. Verified Text communicates a confirmed state alongside a check and explicit words. Studio Preview, Row, Meta, Footer, and Essential provide readable editing layers; Essential marks non-district spaces, while each property index uses its authored district color. These additions are deliberate surface roles, not a replacement palette. User-authored district colors are map data, not global UI tokens.
+
 **The Ownership Rule.** Keep district and crew identity separate: a property's upper strip shows its district, its bottom strip shows its owner, and its circular tokens show occupants.
 
 ## Typography
@@ -262,6 +376,10 @@ Both families are self-hosted through local `@fontsource` package imports in `sr
 - **Tile text:** Board names and prices deliberately scale with the board; readable expanded property details accompany tile selection. On mobile the readable map uses 9px names and 7px prices; the full-map overview hides both. Do not use tile-sized text for primary instructions or actions.
 - **Expanded panels:** Form labels and chat messages use 14px Barlow; supporting rows and labels use 12–13px. Event explanations and disclosure summaries use 15px; appearance names use 16px. Chat and trade section headings use 30px condensed type; auction bids use 64px, Stoppa center numbers 40px, and Stoppa outcome titles 32px. Profile codes use 24px Barlow and statistics 28px. These are authored contextual exceptions, not replacements for the base hierarchy.
 
+- **Entry and maps:** The front desk display uses the entry-display role and its explicit mobile variant; its final desktop clamp ends at 88px. Entry branding uses 29px desktop and 23px mobile condensed type. Account headings use 48px desktop and 38px mobile. Introductory copy uses 17px desktop and 12px mobile; account copy is 13px on mobile. Verification titles use 25px; collection headings use 28px; map names use 21px desktop and 18px mobile; map descriptions and studio metadata use 11px. Studio section titles and preview names use 24px. Entry divider copy uses 10px and the small mobile brand tagline uses 8px; both are supplementary to visible headings and controls. The entry action overrides the shared button size to 14px.
+
+The one-time detector reported early entry sizes (a 112px clamp endpoint and 58px mobile display) from declarations superseded by the final cascade. Those are not active design tokens. The removed entry and collection eyebrow spans are not part of the built hierarchy.
+
 ## Layout
 
 The main cabinet is centered at a maximum width of 1580px. Desktop uses three columns: a 210px crew rail, a flexible board of at least 400px, and a 276px action rail, separated by a 26px gutter. Page padding is 32px 30px 22px. At 1500px and wider, the rails become 220px and 300px, the board minimum becomes 500px, and the gap becomes 32px. At 1180px and below, the rails and gutters tighten.
@@ -276,9 +394,15 @@ Expanded dialogs use the same 490px default width and 610px wide variant, constr
 
 Selecting a tile on a viewport at or below 720px focuses its property-detail region and scrolls it into view. That region lives in the action rail and carries the expanded name, identity, economics, and management actions. Preserve this bridge between the compact board and readable controls.
 
+The entry uses a two-column city/front-desk composition (`1.25fr` and `0.8fr`, with a 360px desk minimum). The world has 44px/64px padding and an 820px minimum height; the desk is capped at 660px with fluid horizontal padding. Below 900px, world and desk insets tighten and map choices change from three columns to two. Below 640px, the entry stacks into a 365px city masthead above the account desk, with 24px horizontal insets. The city crops to the right so it shares the masthead with readable headline and copy; the desktop stamp disappears.
+
+The city picker stays two columns on mobile, with 8px gaps and 10px card padding instead of desktop 12px. Its heading and Studio action wrap when space is constrained. Map Studio inherits the 610px wide, viewport-constrained scrolling dialog. District and block grids use two columns with 8px gaps and become one column below 640px. Color inputs remain 42px wide. The preview is 190px tall, reducing to 150px on mobile; its SVG is deliberately cropped. Save/use/delete actions wrap inside a sticky bottom surface so long block lists retain their primary action. Verification forms wrap their input and button rather than widening the viewport.
+
 ## Elevation & Depth
 
 Depth combines dark tonal layers, fine green borders, and restrained object shadows. The board feels like a physical game surface; dice, tokens, and street cards sit above it. Modals use a dark translucent backdrop with 5px blur and a heavier shadow. Ordinary crew and action panels rely on surface and border changes instead of floating-card shadows.
+
+The entry city uses a static radial olive light within its flat world surface. Map choice cards remain flat; the selected card gains a gold border and matching 1px inset stroke, not a floating shadow. The editor footer uses an opaque tonal surface and top border to distinguish it from scrolling rows.
 
 ### Shadow Vocabulary
 
@@ -296,6 +420,8 @@ Depth combines dark tonal layers, fine green borders, and restrained object shad
 Use small radii for precise game surfaces and modest radii for larger containers: tiles are nearly square, controls are gently rounded, and the cabinet has a softer outer frame. The frontmatter captures observed radii, not a new abstract scale. Crew marks, tokens, dice pips, and the roulette and Stoppa wheels are circular. Auction participant chips and panel textareas use the compact 3px radius. The header mark is a pointed shield silhouette, the roulette pointer a clipped triangle, and duel score pips are skewed rectangles.
 
 District strips and ownership bars stay flush to tile edges. Street cards tilt by −2 degrees; the board brand tilts by −5 degrees. These fixed poses communicate printed game material without moving the surrounding control layout.
+
+Map choices and studio rows use straight-edged, fine-stroked geometry, in contrast to the gently rounded shared controls. A 48px-high map swatch divides into eight equal strips with alternating clipped roofline peaks. The entry city has a static three-degree counterclockwise pose. These are surface signatures, not new shapes for ordinary buttons or dialogs.
 
 ## Components
 
@@ -341,6 +467,18 @@ Auction dialogs center a large lime bid between horizontal rules, explain the bl
 
 Oppa Stoppa uses a 240px circular dial (220px on mobile) with ten numbered green sectors, a lime pointer, and a circular numeric center. It communicates a percentage cash loss through the event explanation and explicit outcome caption. The dial’s 12px rim and radial structure continue the existing roulette-object language.
 
+### Login / Verification
+
+The entry pairs a city masthead with a named account region. Guest continuation is the full-width lime action; account submission is the shared secondary treatment. Visible Username and Password labels, native autocomplete, active underline mode buttons, and shared focus rules carry the interaction. The illustrated city is an original SVG rather than a decorative image dependency. Error messages are explicit alerts. Verification uses a divided section, labelled email and six-digit-code fields, and inline form actions. Verified status combines check icon and text. When email delivery is unavailable, show the delivery setup notice and disabled Send code state; delivery remains pending provider configuration, and the interface must not claim that end-to-end email delivery is live.
+
+### City Collection
+
+Native pressed-state buttons show each city name, description, and eight-strip painted silhouette. A gold stroke plus inset rule and check marks the selected city. Locked choices display a named lock icon and route to the account/verification surface rather than relying on dimmed color alone. A disabled picker represents rules the player cannot edit. The collection uses six built-in cities; saved personal maps append using the same card language. Preserve city names and unlocked/locked explanation beside the swatches.
+
+### Map Studio
+
+The editor is a labelled wide dialog with the incumbent focus loop, Escape and focus return. A wrapping saved-map shelf marks the current map with a gold border. The cropped vector preview reflects district colors and base theme. District color/name pairs and numbered block rows use native labelled inputs; editable surprise spaces use native selects, and fixed spaces show their type in text. District-colored indices supplement block names; essential-space indices use the neutral Essential tone. Prices and essential spaces remain fixed. Save, use and delete actions share the existing button system in a sticky footer, and save/delete feedback uses a live status message. Saved changes apply to future tables; this constraint belongs beside the editor controls.
+
 ### Motion and Assets
 
 Control state transitions use 0.15s ease. Dice rattle lasts 0.6s ease-out; modal entry lasts 0.25s ease-out; waiting dots pulse over 1.4s with staggered delays. Token arrival uses a 0.14s ease-out settle; movement advances through board positions every 45ms. Oppa Stoppa turns over 1.75s with `cubic-bezier(0.16, 1, 0.3, 1)`. The wheel decelerates over 2.5s using `cubic-bezier(0.1, 0.8, 0.16, 1)`. The reduced-motion media query disables all CSS animations and transitions and uses automatic scrolling. The roulette result still waits for its existing 2.6-second result gate; the preference removes visual movement, not game timing.
@@ -357,6 +495,8 @@ The city is original source-authored SVG in `src/City.jsx`: isometric building f
 - **Do** keep native keyboard activation, visible focus, dialog focus handling, and polite game announcements.
 - **Do** self-host the existing Barlow families and honor reduced motion.
 - **Do** state game consequences beside risky actions and outcomes.
+- **Do** extend account and map surfaces with the same Barlow families, asphalt/olive layers, visible labels, and authored city geometry.
+- **Do** pair map selection, verification, and locks with explicit text or icons and preserve the sticky editor action surface on narrow screens.
 
 ### Don't:
 
@@ -365,3 +505,4 @@ The city is original source-authored SVG in `src/City.jsx`: isometric building f
 - **Don't** remove disabled, selected, mortgaged, occupied, or eliminated state distinctions.
 - **Don't** claim approved visual references or generated imagery that do not exist.
 - **Don't** replace the authored city or crew identities with copied franchise artwork.
+- **Don't** promote editable district colors into shared interface colors or replace account instructions with tiny swatch metadata.
