@@ -41,13 +41,27 @@ import {
   Flag,
 } from "lucide-react";
 import {
-  BOARD,
+  BOARD as DEFAULT_BOARD,
   CREWS,
   DISTRICTS,
   ROULETTE,
   money,
   coordinates,
 } from "../shared/board.js";
+import { Modal } from "./Modal.jsx";
+import {
+  SettingsPanel,
+  RoomsPanel,
+  ExchangePanel,
+  ChatPanel,
+  AccountPanel,
+  Auction,
+  Stoppa,
+  ExpandedRules,
+  PlayerPanel,
+} from "./Extras.jsx";
+import { DEFAULT_SETTINGS } from "../shared/settings.js";
+import { COSMETICS } from "../shared/cosmetics.js";
 import City from "./City.jsx";
 import "@fontsource/barlow/latin-400.css";
 import "@fontsource/barlow/latin-500.css";
@@ -72,6 +86,12 @@ const icons = {
   parking: Car,
   raid: Siren,
   property: Store,
+  stoppa: Shield,
+  utility: Sparkles,
+  key: KeyRound,
+  crosshair: Crosshair,
+  car: Car,
+  sparkles: Sparkles,
 };
 const stored = (k) => {
   try {
@@ -90,24 +110,27 @@ const persist = (k, v) => {
 };
 const propertyValue = (g, p) =>
   p.cash +
-  BOARD.filter((t) => g.props[t.id]?.owner === p.id).reduce(
-    (v, t) =>
-      v +
-      (g.props[t.id].mortgaged ? t.price / 2 : t.price) +
-      g.props[t.id].level * (t.build || 0),
-    0,
-  );
+  (g.board || DEFAULT_BOARD)
+    .filter((t) => g.props[t.id]?.owner === p.id)
+    .reduce(
+      (v, t) =>
+        v +
+        (g.props[t.id].mortgaged ? t.price / 2 : t.price) +
+        g.props[t.id].level * (t.build || 0),
+      0,
+    );
 function Icon({ name, ...props }) {
   const I = icons[name] || Circle;
   return <I size={18} strokeWidth={1.7} {...props} />;
 }
-function CrewMark({ crew = 0, size = "normal" }) {
+function CrewMark({ crew = 0, size = "normal", appearance }) {
+  const item = COSMETICS.find((x) => x.id === appearance);
   return (
     <span
       className={`crew-mark ${size}`}
-      style={{ "--crew": CREWS[crew].color }}
+      style={{ "--crew": item?.color || CREWS[crew].color }}
     >
-      <Icon name={CREWS[crew].symbol} />
+      <Icon name={item?.icon || CREWS[crew].symbol} />
     </span>
   );
 }
@@ -138,22 +161,49 @@ function Button({ children, secondary = false, danger = false, ...props }) {
     </button>
   );
 }
-function Board({ game, selected, setSelected, rolling }) {
+function Board({ game, selected, setSelected, rolling, highlight }) {
+  const BOARD = game?.board || DEFAULT_BOARD,
+    size = BOARD.length / 4 + 1;
+  const [walking, setWalking] = useState(null),
+    lastMove = useRef(game?.lastMove?.id);
+  useEffect(() => {
+    const m = game?.lastMove;
+    if (!m || lastMove.current === m.id) return;
+    lastMove.current = m.id;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let step = 0;
+    setWalking({ id: m.player, pos: m.from });
+    const timer = setInterval(() => {
+      step++;
+      if (step >= m.steps) {
+        setWalking(null);
+        clearInterval(timer);
+      } else setWalking({ id: m.player, pos: (m.from + step) % BOARD.length });
+    }, 45);
+    return () => {
+      clearInterval(timer);
+      setWalking(null);
+    };
+  }, [game?.lastMove, BOARD.length]);
   const live = game?.status === "playing",
     current = game?.players[game.turn];
   return (
     <div className={`board-shell ${live ? "in-play" : ""}`}>
-      <div className="board-grid">
+      <div className="board-grid" style={{ "--board-size": size }}>
         {BOARD.map((t) => {
-          const pos = coordinates(t.id),
+          const pos = coordinates(t.id, BOARD.length),
             q = game?.props[t.id],
             players =
-              game?.players.filter((p) => !p.out && p.pos === t.id) || [],
-            corner = t.id % 7 === 0;
+              game?.players.filter(
+                (p) =>
+                  !p.out &&
+                  (walking?.id === p.id ? walking.pos : p.pos) === t.id,
+              ) || [],
+            corner = t.id % (BOARD.length / 4) === 0;
           return (
             <button
               key={t.id}
-              className={`tile ${corner ? "corner" : ""} ${selected === t.id ? "selected" : ""} ${q?.mortgaged ? "mortgaged" : ""} ${live && current?.pos === t.id ? "occupied" : ""}`}
+              className={`tile ${corner ? "corner" : ""} ${selected === t.id ? "selected" : ""} ${q?.mortgaged ? "mortgaged" : ""} ${q?.owner === highlight ? "highlighted" : ""} ${live && current?.pos === t.id ? "occupied" : ""}`}
               style={{
                 gridRow: pos.row,
                 gridColumn: pos.col,
@@ -188,25 +238,39 @@ function Board({ game, selected, setSelected, rolling }) {
                       ? "$100"
                       : t.type === "roulette"
                         ? "SPIN TO WIN"
-                        : t.type === "card"
-                          ? "TAKE A CHANCE"
-                          : t.type === "jail"
-                            ? "JUST VISITING"
-                            : t.type === "raid"
-                              ? "GO TO JAIL"
-                              : "COMMUNITY POT"}
+                        : t.type === "stoppa"
+                          ? "LOSE 1–10%"
+                          : t.type === "card"
+                            ? "TAKE A CHANCE"
+                            : t.type === "jail"
+                              ? "JUST VISITING"
+                              : t.type === "raid"
+                                ? "GO TO JAIL"
+                                : "COMMUNITY POT"}
               </span>
               {q && <span className="owner-dot" />}
               {players.length > 0 && (
-                <div className="tokens">
+                <div
+                  className={`tokens ${players.length > 4 ? "crowded" : ""}`}
+                >
                   {players.map((p) => (
                     <span
                       className="token"
                       key={p.id}
-                      style={{ "--crew": CREWS[p.crew].color }}
+                      style={{
+                        "--crew":
+                          COSMETICS.find((x) => x.id === p.appearance)?.color ||
+                          CREWS[p.crew].color,
+                      }}
                       title={p.name}
                     >
-                      <Icon name={CREWS[p.crew].symbol} size={12} />
+                      <Icon
+                        name={
+                          COSMETICS.find((x) => x.id === p.appearance)?.icon ||
+                          CREWS[p.crew].symbol
+                        }
+                        size={12}
+                      />
                     </span>
                   ))}
                 </div>
@@ -214,14 +278,18 @@ function Board({ game, selected, setSelected, rolling }) {
             </button>
           );
         })}
-        <div className="board-center">
+        <div
+          className="board-center"
+          style={{ gridColumn: `2/${size}`, gridRow: `2/${size}` }}
+        >
           <div className="center-top">
             <span className="center-stamp">
               <Crosshair size={13} /> TURF. LUCK. RESPECT.
             </span>
             {game && (
               <span className="round-tag">
-                ROUND {Math.min(game.round, game.limit)} / {game.limit}
+                ROUND {game.round}
+                {game.limit ? ` / ${game.limit}` : " · ALL IN"}
               </span>
             )}
           </div>
@@ -252,9 +320,9 @@ function Board({ game, selected, setSelected, rolling }) {
             ) : (
               <>
                 <div className="board-sign">
-                  <span>28 BLOCKS</span>
+                  <span>{BOARD.length} BLOCKS</span>
                   <i />
-                  <span>4 CREWS</span>
+                  <span>2–8 CREWS</span>
                   <i />
                   <span>ONE CITY</span>
                 </div>
@@ -268,170 +336,6 @@ function Board({ game, selected, setSelected, rolling }) {
           <span className="board-coordinate coord-right">EST. 2026</span>
         </div>
       </div>
-    </div>
-  );
-}
-function Rules({ close }) {
-  return (
-    <Modal title="Know the block" close={close}>
-      <p className="rules-intro">
-        Build an empire. Play the odds. Settle the score.
-      </p>
-      <div className="rules-list">
-        <article>
-          <Dice5 />
-          <div>
-            <h3>Make your move</h3>
-            <p>
-              2–4 crews start with $1,500. Roll two dice, move around 28 spaces,
-              and collect $200 when you pass Home Base. Doubles move you
-              normally; turns do not repeat.
-            </p>
-          </div>
-        </article>
-        <article>
-          <Building2 />
-          <div>
-            <h3>Own your neighborhood</h3>
-            <p>
-              Buy vacant blocks or pass. Collect rent when rivals land on your
-              turf. Complete a district to double its base rent, then build up
-              to three businesses per block, evenly across the district.
-            </p>
-          </div>
-        </article>
-        <article>
-          <Crosshair />
-          <div>
-            <h3>Can’t pay? Settle it.</h3>
-            <p>
-              Mortgage blocks for half their price or sell businesses for half
-              their build cost. If you still cannot afford player rent,
-              challenge the landlord. Fire beats flank. Flank beats guard. Guard
-              beats fire. First to two wins; after five rounds, the high score
-              wins and ties use a coin toss.
-            </p>
-            <p>
-              Win: rent is wiped. Lose: you are eliminated and the landlord
-              inherits your turf and cash. City debts cannot trigger a duel. You
-              may also surrender when you cannot pay.
-            </p>
-          </div>
-        </article>
-        <article>
-          <CircleDollarSign />
-          <div>
-            <h3>Spin the street wheel</h3>
-            <p>
-              Roulette spaces grant a free spin. Jackpot $900 (1/12), jail
-              (2/12), payday $300 (3/12), escape card (2/12), bust −$150 (2/12),
-              or big bag $500 (2/12). Street Luck draws one of eight equally
-              likely cards. No real money.
-            </p>
-          </div>
-        </article>
-        <article>
-          <KeyRound />
-          <div>
-            <h3>Stay out of trouble</h3>
-            <p>
-              Jail lasts two of your turns. Pay $100 bail or use an escape card
-              at the start of a turn. City taxes and fines go into the community
-              pot; Free Parking collects it. Mortgaged properties collect no
-              rent; redeem them for 55% of the purchase price.
-            </p>
-          </div>
-        </article>
-        <article>
-          <Handshake />
-          <div>
-            <h3>Make a deal</h3>
-            <p>
-              Offer a block swap with an optional cash bonus on your turn,
-              before rolling or after resolving a tile. Blocks with businesses
-              cannot be traded. Offers expire when your turn ends.
-            </p>
-          </div>
-        </article>
-        <article>
-          <Crown />
-          <div>
-            <h3>Be the last crew standing</h3>
-            <p>
-              Last crew standing wins. At the round limit, the highest net worth
-              wins: cash + purchase value of turf + upgrade costs. Mortgaged
-              turf counts at half value. Equal scores favor the earlier seat.
-              Turns have a 90-second timer; duel tactics have 25 seconds. The
-              server takes a safe default action on timeout.
-            </p>
-          </div>
-        </article>
-      </div>
-      <Button onClick={close}>
-        Let’s play <ArrowRight size={16} />
-      </Button>
-    </Modal>
-  );
-}
-function Modal({ children, title, close, wide = false }) {
-  const ref = useRef(null);
-  const closeRef = useRef(close);
-  closeRef.current = close;
-  useEffect(() => {
-    const previous = document.activeElement;
-    ref.current?.focus();
-    function keys(e) {
-      if (e.key === "Escape" && closeRef.current) closeRef.current();
-      if (e.key === "Tab") {
-        const items = ref.current?.querySelectorAll(
-          'button:not(:disabled), input, select, [tabindex="0"]',
-        );
-        if (!items?.length) return;
-        const first = items[0],
-          last = items[items.length - 1];
-        if (
-          e.shiftKey &&
-          (document.activeElement === first ||
-            document.activeElement === ref.current)
-        ) {
-          e.preventDefault();
-          last.focus();
-        } else if (!e.shiftKey && document.activeElement === last) {
-          e.preventDefault();
-          first.focus();
-        }
-      }
-    }
-    document.addEventListener("keydown", keys);
-    return () => {
-      document.removeEventListener("keydown", keys);
-      previous?.focus();
-    };
-  }, []);
-  return (
-    <div className="modal-backdrop">
-      <section
-        className={`modal ${wide ? "wide" : ""}`}
-        role="dialog"
-        aria-modal="true"
-        aria-label={title}
-        ref={ref}
-        tabIndex={-1}
-      >
-        <div className="modal-heading">
-          <h2>{title}</h2>
-          {close && (
-            <button
-              className="icon-button"
-              onClick={close}
-              aria-label="Close dialog"
-            >
-              <X size={20} />
-            </button>
-          )}
-        </div>
-        {children}
-      </section>
     </div>
   );
 }
@@ -649,15 +553,22 @@ function App() {
       new URLSearchParams(location.search).get("room") || "",
     ),
     [tab, setTab] = useState("turn"),
-    [limit, setLimit] = useState(20),
+    [limit, setLimit] = useState(0),
     [muted, setMuted] = useState(stored("stb-sound") !== "on"),
     [now, setNow] = useState(Date.now()),
     [rolling, setRolling] = useState(false),
     [showLog, setShowLog] = useState(false),
-    [tradeTo, setTradeTo] = useState(""),
-    [give, setGive] = useState(""),
-    [take, setTake] = useState(""),
-    [tradeCash, setTradeCash] = useState("0");
+    [options, setOptions] = useState({ ...DEFAULT_SETTINGS }),
+    [soloBots, setSoloBots] = useState(3),
+    [settingsOpen, setSettingsOpen] = useState(false),
+    [roomsOpen, setRoomsOpen] = useState(false),
+    [accountOpen, setAccountOpen] = useState(false),
+    [profile, setProfile] = useState(null),
+    [social, setSocial] = useState({ friends: [], incoming: [], outgoing: [] }),
+    [playerOpen, setPlayerOpen] = useState(null),
+    [confirmForfeit, setConfirmForfeit] = useState(false),
+    [highlight, setHighlight] = useState(null),
+    [mapOverview, setMapOverview] = useState(false);
   const propertyFocus = useRef(null);
   useEffect(() => {
     if (selected !== null && window.innerWidth <= 720) {
@@ -676,6 +587,18 @@ function App() {
   useEffect(() => {
     function connect() {
       setConnected(true);
+      socket
+        .timeout(8000)
+        .emit(
+          "profile-auth",
+          { token: stored("stb-profile"), name: stored("stb-name") },
+          (err, r) => {
+            if (!err && r?.token) {
+              persist("stb-profile", r.token);
+              setProfile(r.profile);
+            }
+          },
+        );
       const token = stored("stb-seat");
       if (token)
         socket.timeout(8000).emit("resume", { token }, (err, r) => {
@@ -720,6 +643,20 @@ function App() {
       setGame(g);
       setError("");
     }
+    function profileState(r) {
+      setProfile(r.profile);
+      setSocial({
+        friends: r.friends || [],
+        incoming: r.incoming || [],
+        outgoing: r.outgoing || [],
+      });
+    }
+    function profileToken(r) {
+      persist("stb-profile", r.token);
+      setProfile(r.profile);
+    }
+    socket.on("profile", profileState);
+    socket.on("profile-token", profileToken);
     socket.on("connect", connect);
     socket.on("disconnect", disconnect);
     socket.on("state", state);
@@ -728,6 +665,8 @@ function App() {
     const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => {
       clearInterval(timer);
+      socket.off("profile", profileState);
+      socket.off("profile-token", profileToken);
       socket.off("connect", connect);
       socket.off("disconnect", disconnect);
       socket.off("state", state);
@@ -735,10 +674,12 @@ function App() {
       socket.disconnect();
     };
   }, []);
-  function emit(event, data) {
+  function emit(event, data, report = false) {
     if (!connected) {
       setError("Connection lost. Wait for reconnect, then try again.");
-      return Promise.resolve(null);
+      return Promise.resolve(
+        report ? { error: "Connection lost. Wait for reconnect." } : null,
+      );
     }
     setPending(true);
     setError("");
@@ -747,17 +688,26 @@ function App() {
         setPending(false);
         if (err) {
           setError("No response yet. Check your connection and try again.");
-          resolve(null);
+          resolve(
+            report
+              ? { error: "No response yet. Check your connection." }
+              : null,
+          );
         } else if (r?.error) {
           setError(r.error);
-          resolve(null);
+          resolve(report ? { error: r.error } : null);
         } else resolve(r);
       }),
     );
   }
   async function create(solo = false) {
     persist("stb-name", name || "You");
-    const r = await emit("create", { name: name || "You", solo, limit });
+    const r = await emit("create", {
+      name: name || profile?.name || "You",
+      solo,
+      limit,
+      settings: solo ? { ...options, maxPlayers: soloBots + 1 } : options,
+    });
     if (r) {
       persist("stb-seat", r.token);
       setCode(r.code);
@@ -797,17 +747,12 @@ function App() {
       notify(`Room code: ${game.code}`);
     }
   }
+  const BOARD = game?.board || DEFAULT_BOARD;
   const me = game?.players.find((p) => p.id === game.me),
     current = game?.players[game.turn],
     mine = me?.id === current?.id && !me?.out,
     disabled = pending || !connected,
     owned = game ? BOARD.filter((t) => game.props[t.id]?.owner === me?.id) : [],
-    tradePartner = game?.players.find((p) => p.id === tradeTo),
-    their = game
-      ? BOARD.filter(
-          (t) => game.props[t.id]?.owner === tradeTo && !game.props[t.id].level,
-        )
-      : [],
     winner = game?.players.find((p) => p.id === game.winner),
     time = game ? Math.max(0, Math.ceil((game.deadline - now) / 1000)) : 0;
   function propertyPanel(t) {
@@ -818,7 +763,12 @@ function App() {
       t.group !== undefined &&
       BOARD.filter((x) => x.group === t.group).every(
         (x) =>
-          game?.props[x.id]?.owner === me?.id && !game.props[x.id]?.mortgaged,
+          (game?.props[x.id]?.owner === me?.id ||
+            (game?.settings.teams &&
+              me?.team != null &&
+              game.players.find((p) => p.id === game.props[x.id]?.owner)
+                ?.team === me.team)) &&
+          !game.props[x.id]?.mortgaged,
       );
     return (
       <section
@@ -847,19 +797,23 @@ function App() {
             ? DISTRICTS[t.group].name
             : t.type === "transit"
               ? "City transit"
-              : t.type === "roulette"
-                ? "Six outcomes. One free spin."
-                : t.type === "card"
-                  ? "A surprise from the streets."
-                  : t.type === "start"
-                    ? "Collect $200 each time you pass."
-                    : t.type === "jail"
-                      ? "Two turns, $100 bail, or an escape card."
-                      : t.type === "raid"
-                        ? "Go straight to County Jail."
-                        : t.type === "parking"
-                          ? "Collect the community pot."
-                          : "Pay $100 into the community pot."}
+              : t.type === "stoppa"
+                ? "Spin away 1–10% of cash into the Community Plot."
+                : t.type === "utility"
+                  ? "Rent is 4× dice, or 10× when your side owns both plugs."
+                  : t.type === "roulette"
+                    ? "Six outcomes. One free spin."
+                    : t.type === "card"
+                      ? "A surprise from the streets."
+                      : t.type === "start"
+                        ? "Collect $200 each time you pass."
+                        : t.type === "jail"
+                          ? "Two turns, $100 bail, or an escape card."
+                          : t.type === "raid"
+                            ? "Go straight to County Jail."
+                            : t.type === "parking"
+                              ? "Collect the community pot."
+                              : "Pay $100 into the community pot."}
         </p>
         {t.price && (
           <>
@@ -869,7 +823,13 @@ function App() {
             </div>
             <div className="detail-stat">
               <span>Base rent</span>
-              <b>{money(t.rent)}</b>
+              <b>
+                {t.type === "utility"
+                  ? "4× / 10× dice"
+                  : t.type === "transit"
+                    ? "$25 / $50 / $100 / $200"
+                    : money(t.rent)}
+              </b>
             </div>
             {t.build && (
               <div className="detail-stat">
@@ -888,7 +848,9 @@ function App() {
                   {q.mortgaged
                     ? "Mortgaged"
                     : q.level
-                      ? `${q.level} businesses`
+                      ? q.level === 5
+                        ? "Hotel"
+                        : `${q.level} businesses`
                       : "Street level"}
                 </b>
               </div>
@@ -901,7 +863,7 @@ function App() {
                     disabled={
                       !manage ||
                       !full ||
-                      q.level >= 3 ||
+                      q.level >= (game.schemaVersion === 1 ? 3 : 5) ||
                       me.cash < t.build ||
                       disabled
                     }
@@ -924,6 +886,7 @@ function App() {
                     disabled={
                       !manage ||
                       disabled ||
+                      (!q.mortgaged && !game.settings.mortgage) ||
                       (q.mortgaged && me.cash < Math.ceil((t.price * 55) / 100))
                     }
                     onClick={() =>
@@ -964,7 +927,7 @@ function App() {
           <p>
             {me?.out
               ? "Your crew is out. Stay to watch the block change hands."
-              : `They’re ${game.phase === "duel" ? "settling a score" : game.phase === "roll" ? "getting ready to roll" : "at " + BOARD[current.pos].name}. Your seat is next in line.`}
+              : `They’re ${game.phase === "duel" ? "settling a score" : game.phase === "roll" ? "getting ready to roll" : "at " + BOARD[current.pos].name}. ${!me ? "You’re watching from the sidelines." : "Your seat is next in line."}`}
           </p>
           <div className="waiting-dots">
             <i />
@@ -1000,6 +963,26 @@ function App() {
             <p className="micro-note">Pass Home Base → collect $200</p>
           </>
         );
+      case "stoppa":
+      case "stoppa-result":
+        return (
+          <div className="turn-hero">
+            <Shield size={38} />
+            <h2>Caught lackin.</h2>
+            <p>
+              Oppa Stoppa is eyeing your pockets. Your lost cash feeds the
+              Community Plot.
+            </p>
+          </div>
+        );
+      case "auction":
+        return (
+          <div className="turn-hero">
+            <Landmark size={38} />
+            <h2>Bid for the block.</h2>
+            <p>Every crew gets a shot. Highest bid takes the turf.</p>
+          </div>
+        );
       case "buy":
         return (
           <>
@@ -1026,7 +1009,9 @@ function App() {
               disabled={disabled}
               onClick={() => act({ type: "skip" })}
             >
-              Pass on this block
+              {game.settings.auctions
+                ? "Put it up for auction"
+                : "Pass on this block"}
             </Button>
             {me.cash < t.price && (
               <p className="micro-note">
@@ -1146,6 +1131,13 @@ function App() {
             <Button
               secondary
               disabled={disabled}
+              onClick={() => act({ type: "jail-roll" })}
+            >
+              Roll for doubles <Dice5 size={18} />
+            </Button>
+            <Button
+              secondary
+              disabled={disabled}
               onClick={() => act({ type: "jail-wait" })}
             >
               Serve a turn
@@ -1218,6 +1210,13 @@ function App() {
           </button>
         </nav>
         <div className="top-actions">
+          <button
+            className="icon-button"
+            aria-label="Profile and friends"
+            onClick={() => setAccountOpen(true)}
+          >
+            <Users size={19} />
+          </button>
           <span className={`connection ${connected ? "" : "offline"}`}>
             {connected ? <Wifi size={13} /> : <WifiOff size={13} />}
             <span>{connected ? "CONNECTED" : "RECONNECTING"}</span>
@@ -1264,12 +1263,15 @@ function App() {
         <aside className="crew-sidebar">
           <div className="section-heading">
             <h2>Your competition</h2>
-            <span>{game ? game.players.length : 4} / 4</span>
+            <span>
+              {game ? game.players.length : 4} /{" "}
+              {game?.settings.maxPlayers || 8}
+            </span>
           </div>
           <div className="crew-list">
             {(
               game?.players ||
-              CREWS.map((c, i) => ({
+              CREWS.slice(0, 4).map((c, i) => ({
                 id: i,
                 name: [
                   "Your crew",
@@ -1284,17 +1286,32 @@ function App() {
             ).map((p) => (
               <article
                 key={p.id}
+                onMouseEnter={() => setHighlight(p.id)}
+                onMouseLeave={() => setHighlight(null)}
                 className={`crew-row ${p.out ? "eliminated" : ""} ${game?.status === "playing" && current.id === p.id ? "active" : ""}`}
                 style={{ "--crew": CREWS[p.crew].color }}
               >
                 <div className="crew-main">
-                  <CrewMark crew={p.crew} />
+                  <CrewMark crew={p.crew} appearance={p.appearance} />
                   <div>
                     <h3>
-                      {p.name}
+                      {p.profileId ? (
+                        <button
+                          className="player-name"
+                          onClick={() => setPlayerOpen(p)}
+                        >
+                          {p.name}
+                        </button>
+                      ) : (
+                        p.name
+                      )}
                       {p.id === game?.me && <span>YOU</span>}
                     </h3>
-                    <small>{CREWS[p.crew].name}</small>
+                    <small>
+                      {game?.settings.teams && p.team
+                        ? game.teamNames?.[p.team] || `Team ${p.team}`
+                        : CREWS[p.crew].name}
+                    </small>
                   </div>
                   {p.bot ? (
                     <span className="bot-tag">BOT</span>
@@ -1329,15 +1346,16 @@ function App() {
               </article>
             ))}
           </div>
-          {game?.status === "lobby" && game.players.length < 4 && (
-            <button
-              className="add-seat"
-              disabled={game.host !== game.me || disabled}
-              onClick={() => lobby({ type: "add-bot" })}
-            >
-              <Plus size={16} /> Add a bot to the crew
-            </button>
-          )}
+          {game?.status === "lobby" &&
+            game.players.length < game.settings.maxPlayers && (
+              <button
+                className="add-seat"
+                disabled={game.host !== game.me || disabled}
+                onClick={() => lobby({ type: "add-bot" })}
+              >
+                <Plus size={16} /> Add a bot to the crew
+              </button>
+            )}
           <div className="district-key">
             <h3>THE NEIGHBORHOODS</h3>
             {DISTRICTS.map((d) => (
@@ -1382,12 +1400,25 @@ function App() {
               <span>PRIVATE ROOMS · PLAY WITH FRIENDS</span>
             )}
           </div>
-          <Board
-            game={game}
-            selected={selected}
-            setSelected={setSelected}
-            rolling={rolling}
-          />
+          <div className="map-controls">
+            <span>{BOARD.length} blocks to explore</span>
+            <button onClick={() => setMapOverview(!mapOverview)}>
+              {mapOverview ? "Explore readable streets" : "See full map"}
+            </button>
+          </div>
+          <div className={`board-viewport ${mapOverview ? "overview" : ""}`}>
+            <Board
+              game={game}
+              selected={selected}
+              setSelected={setSelected}
+              rolling={rolling}
+              highlight={highlight}
+            />
+          </div>
+          <p className="board-scroll-hint">
+            Swipe to explore all {BOARD.length} blocks. Tap a square for its
+            details.
+          </p>
           <div className="table-footer">
             <span>
               <Shield size={14} />{" "}
@@ -1395,7 +1426,9 @@ function App() {
                 ? `Community pot: ${money(game.pot)}`
                 : "Original crews. No real-money stakes."}
             </span>
-            <button onClick={() => setRules(true)}>
+            <button
+              onClick={() => (game ? setSettingsOpen(true) : setRules(true))}
+            >
               <HelpCircle size={14} /> House rules
             </button>
           </div>
@@ -1461,6 +1494,7 @@ function App() {
                   value={limit}
                   onChange={(e) => setLimit(Number(e.target.value))}
                 >
+                  <option value={0}>Winner takes all · Default</option>
                   <option value={10}>Quick · 10 rounds</option>
                   <option value={20}>Classic · 20 rounds</option>
                   <option value={30}>Marathon · 30 rounds</option>
@@ -1469,6 +1503,33 @@ function App() {
               <Button disabled={disabled} onClick={() => create()}>
                 Create a private room <ArrowUpRight size={20} />
               </Button>
+              <div className="solo-options">
+                <label htmlFor="solo-bots">Bot opponents</label>
+                <select
+                  id="solo-bots"
+                  value={soloBots}
+                  onChange={(e) => setSoloBots(Number(e.target.value))}
+                >
+                  {[1, 2, 3, 4, 5, 6, 7].map((n) => (
+                    <option key={n} value={n}>
+                      {n} bot{n === 1 ? "" : "s"}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <Button
+                secondary
+                disabled={disabled}
+                onClick={() => create(true)}
+              >
+                Play solo vs bots <Dice5 size={18} />
+              </Button>
+              <div className="quick-links">
+                <button onClick={() => setSettingsOpen(true)}>
+                  Room settings
+                </button>
+                <button onClick={() => setRoomsOpen(true)}>Public rooms</button>
+              </div>
               <div className="join-divider">
                 <span>ALREADY GOT A CREW?</span>
               </div>
@@ -1493,19 +1554,12 @@ function App() {
                   </button>
                 </div>
               </form>
-              <button
-                className="solo-button"
-                disabled={disabled}
-                onClick={() => create(true)}
-              >
-                Practice against bots <ChevronRight size={15} />
-              </button>
               <div className="feature-note">
                 <Users size={18} />
                 <span>
-                  2–4 players · Private invite links
+                  2–8 players · Solo or online
                   <br />
-                  Bots fill the empty seats
+                  Bots fill the empty seats automatically
                 </span>
               </div>
             </>
@@ -1523,14 +1577,17 @@ function App() {
                 </p>
               </div>
               <button className="invite-box" onClick={copy}>
-                <span>YOUR PRIVATE ROOM</span>
+                <span>YOUR {game.settings.visibility.toUpperCase()} ROOM</span>
                 <strong>{game.code}</strong>
                 <span>
                   <Copy size={14} /> Copy invite link
                 </span>
               </button>
               <div className="lobby-seats">
-                {[0, 1, 2, 3].map((i) => (
+                {Array.from(
+                  { length: game.settings.maxPlayers },
+                  (_, i) => i,
+                ).map((i) => (
                   <div className={game.players[i] ? "filled" : ""} key={i}>
                     {game.players[i] ? (
                       <CrewMark crew={i} />
@@ -1542,39 +1599,111 @@ function App() {
               </div>
               <p className="lobby-count">
                 {game.players.length} crew{game.players.length === 1 ? "" : "s"}{" "}
-                on the block · {4 - game.players.length} open seat
-                {game.players.length === 3 ? "" : "s"}
+                on the block · {game.settings.maxPlayers - game.players.length}{" "}
+                open seat
+                {game.settings.maxPlayers - game.players.length === 1
+                  ? ""
+                  : "s"}
               </p>
               <div className="match-select">
                 <label htmlFor="room-length">Match length</label>
                 <select
                   id="room-length"
                   disabled={game.host !== game.me}
-                  value={game.limit}
+                  value={game.limit || 0}
                   onChange={(e) =>
                     lobby({ type: "settings", limit: Number(e.target.value) })
                   }
                 >
+                  <option value={0}>Winner takes all · Default</option>
                   <option value={10}>Quick · 10 rounds</option>
                   <option value={20}>Classic · 20 rounds</option>
                   <option value={30}>Marathon · 30 rounds</option>
                 </select>
               </div>
+              <Button secondary onClick={() => setSettingsOpen(true)}>
+                House rules & room settings
+              </Button>
+              {game.settings.teams && (
+                <div className="team-picker">
+                  <label htmlFor="team-choice">Your team</label>
+                  <select
+                    id="team-choice"
+                    disabled={!me || disabled}
+                    value={me?.team || "1"}
+                    onChange={(e) => emit("team", { team: e.target.value })}
+                  >
+                    {["1", "2", "3", "4"].map((n) => (
+                      <option key={n} value={n}>
+                        Team {n}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="micro-note">
+                    Unassigned seats split across teams 1 and 2. Set bot teams
+                    below.
+                  </p>
+                  {game.host === game.me && (
+                    <details>
+                      <summary>Name your teams</summary>
+                      {["1", "2", "3", "4"].map((n) => (
+                        <label key={n}>
+                          Team {n}
+                          <input
+                            maxLength={20}
+                            defaultValue={game.teamNames?.[n] || `Team ${n}`}
+                            onBlur={(e) => {
+                              if (e.target.value.trim())
+                                emit("team-name", {
+                                  team: n,
+                                  name: e.target.value,
+                                });
+                            }}
+                          />
+                        </label>
+                      ))}
+                    </details>
+                  )}
+                  {game.host === game.me &&
+                    game.players
+                      .filter((p) => p.bot)
+                      .map((p) => (
+                        <label key={p.id}>
+                          {p.name}
+                          <select
+                            value={p.team || String((p.crew % 2) + 1)}
+                            onChange={(e) =>
+                              emit("team", { id: p.id, team: e.target.value })
+                            }
+                          >
+                            {["1", "2", "3", "4"].map((n) => (
+                              <option key={n} value={n}>
+                                Team {n}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      ))}
+                </div>
+              )}
               {game.host === game.me ? (
                 <>
                   <Button
-                    disabled={disabled || game.players.length < 2}
+                    disabled={
+                      disabled ||
+                      (!game.settings.autoFill && game.players.length < 2)
+                    }
                     onClick={() => lobby({ type: "start" })}
                   >
                     Start the takeover <Dice5 size={20} />
                   </Button>
-                  {game.players.length < 4 && (
+                  {game.players.length < game.settings.maxPlayers && (
                     <Button
                       secondary
                       disabled={disabled}
-                      onClick={() => lobby({ type: "add-bot" })}
+                      onClick={() => lobby({ type: "fill-bots" })}
                     >
-                      <Plus size={18} /> Add a bot
+                      <Plus size={18} /> Fill seats with bots
                     </Button>
                   )}
                 </>
@@ -1585,8 +1714,10 @@ function App() {
               )}
               <p className="micro-note">
                 {game.players.length < 2
-                  ? "Add at least one friend or bot to start."
-                  : "Everyone starts with $1,500. May the best crew win."}
+                  ? game.settings.autoFill
+                    ? "Start now; bots fill every empty seat."
+                    : "Add at least one friend or bot to start."
+                  : `Everyone starts with ${money(game.settings.startingCash)}. ${game.limit ? `${game.limit} rounds.` : "Last crew or team standing takes all."}`}
               </p>
               <button
                 className="text-button"
@@ -1605,7 +1736,11 @@ function App() {
                   <br />
                   owns the block.
                 </h1>
-                <p>{winner && CREWS[winner.crew].name} takes the city.</p>
+                <p>
+                  {game.settings.teams && winner?.team
+                    ? `${game.teamNames?.[winner.team] || `Team ${winner.team}`} wins together.`
+                    : winner && `${CREWS[winner.crew].name} takes the city.`}
+                </p>
               </div>
               <div className="final-scores">
                 {[...game.players]
@@ -1624,7 +1759,15 @@ function App() {
               <p className="micro-note">
                 Final ranking by net worth. Cash, turf, and businesses.
               </p>
-              <Button disabled={disabled} onClick={leave}>
+              {game.host === game.me && (
+                <Button
+                  disabled={disabled}
+                  onClick={() => lobby({ type: "rematch" })}
+                >
+                  Rematch this crew <RotateCcw size={18} />
+                </Button>
+              )}
+              <Button secondary disabled={disabled} onClick={leave}>
                 Find your next block <RotateCcw size={18} />
               </Button>
             </>
@@ -1644,6 +1787,7 @@ function App() {
                   { id: "turn", label: "The move" },
                   { id: "turf", label: "My turf" },
                   { id: "trade", label: "Trade" },
+                  { id: "chat", label: "Chat" },
                 ].map((x) => (
                   <button
                     key={x.id}
@@ -1663,9 +1807,26 @@ function App() {
                     {game.players.find((p) => p.id === game.trade.from)?.name}
                   </h3>
                   <p>
-                    Get {BOARD[game.trade.give].name}
-                    {game.trade.cash ? " + " + money(game.trade.cash) : ""}.
-                    Give {BOARD[game.trade.take].name}.
+                    Get{" "}
+                    {(game.trade.giveTiles || [game.trade.give])
+                      .map((id) => BOARD[id]?.name)
+                      .filter(Boolean)
+                      .join(", ") || "cash/cards"}{" "}
+                    + {money(game.trade.cash || 0)}
+                    {game.trade.giveEscapes
+                      ? ` + ${game.trade.giveEscapes} escape card(s)`
+                      : ""}
+                    .<br />
+                    Give{" "}
+                    {(game.trade.takeTiles || [game.trade.take])
+                      .map((id) => BOARD[id]?.name)
+                      .filter(Boolean)
+                      .join(", ") || "cash/cards"}{" "}
+                    + {money(game.trade.requestCash || 0)}
+                    {game.trade.takeEscapes
+                      ? ` + ${game.trade.takeEscapes} escape card(s)`
+                      : ""}
+                    .
                   </p>
                   <div>
                     <Button
@@ -1737,135 +1898,46 @@ function App() {
                     <Building2 className="empty-turf" size={68} />
                   )}
                   <p className="micro-note">
-                    Your net worth: {money(propertyValue(game, me))}
+                    Your net worth:{" "}
+                    {me ? money(propertyValue(game, me)) : "Spectating"}
                     <br />
-                    Escape cards: {me.escapes}
+                    Escape cards: {me?.escapes || 0}
                   </p>
                 </>
+              ) : tab === "chat" ? (
+                <ChatPanel
+                  game={game}
+                  emit={emit}
+                  disabled={disabled || !me}
+                  onPlayer={setPlayerOpen}
+                />
               ) : (
-                <>
-                  <div className="turf-heading">
-                    <h2>
-                      Let’s make
-                      <br />a deal.
-                    </h2>
-                    <p>
-                      Swap blocks with a rival. Add a cash bonus to sweeten it.
-                    </p>
-                  </div>
-                  {game.trade?.from === game.me ? (
-                    <>
-                      <p className="waiting">
-                        Offer sent. Waiting for the other crew.
-                      </p>
-                      <Button
-                        secondary
-                        onClick={() => act({ type: "trade-cancel" })}
-                      >
-                        Cancel offer
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <label className="input-label" htmlFor="trade-crew">
-                        TRADE WITH
-                      </label>
-                      <select
-                        id="trade-crew"
-                        value={tradeTo}
-                        onChange={(e) => {
-                          setTradeTo(e.target.value);
-                          setTake("");
-                        }}
-                      >
-                        <option value="">Choose a crew</option>
-                        {game.players
-                          .filter((p) => p.id !== me.id && !p.out)
-                          .map((p) => (
-                            <option key={p.id} value={p.id}>
-                              {p.name}
-                            </option>
-                          ))}
-                      </select>
-                      <label className="input-label" htmlFor="trade-give">
-                        YOUR BLOCK
-                      </label>
-                      <select
-                        id="trade-give"
-                        value={give}
-                        onChange={(e) => setGive(e.target.value)}
-                      >
-                        <option value="">Choose a block</option>
-                        {owned
-                          .filter((t) => !game.props[t.id].level)
-                          .map((t) => (
-                            <option key={t.id} value={t.id}>
-                              {t.name}
-                            </option>
-                          ))}
-                      </select>
-                      <label className="input-label" htmlFor="trade-take">
-                        THEIR BLOCK
-                      </label>
-                      <select
-                        id="trade-take"
-                        value={take}
-                        onChange={(e) => setTake(e.target.value)}
-                      >
-                        <option value="">
-                          {tradePartner
-                            ? "Choose a block"
-                            : "Choose a crew first"}
-                        </option>
-                        {their.map((t) => (
-                          <option key={t.id} value={t.id}>
-                            {t.name}
-                          </option>
-                        ))}
-                      </select>
-                      <label className="input-label" htmlFor="trade-cash">
-                        ADD CASH
-                      </label>
-                      <input
-                        id="trade-cash"
-                        type="number"
-                        min="0"
-                        max={me.cash}
-                        step="10"
-                        value={tradeCash}
-                        onChange={(e) => setTradeCash(e.target.value)}
-                      />
-                      <Button
-                        disabled={
-                          disabled ||
-                          !mine ||
-                          !["roll", "end"].includes(game.phase) ||
-                          !tradeTo ||
-                          !give ||
-                          !take ||
-                          !!game.trade ||
-                          me.out
-                        }
-                        onClick={() =>
-                          act({
-                            type: "trade",
-                            to: tradeTo,
-                            give: Number(give),
-                            take: Number(take),
-                            cash: Number(tradeCash),
-                          })
-                        }
-                      >
-                        Send offer <Handshake size={18} />
-                      </Button>
-                      <p className="micro-note">
-                        Trade on your turn, before your roll or after resolving
-                        your tile. Offers expire when your turn ends.
-                      </p>
-                    </>
-                  )}
-                </>
+                <ExchangePanel game={game} act={act} disabled={disabled} />
               )}
+              {!mine &&
+                me &&
+                !me.out &&
+                !["auction", "duel", "duel-result"].includes(game.phase) && (
+                  <button
+                    className="text-button"
+                    disabled={disabled || game.timeDonors?.includes(me.id)}
+                    onClick={() => act({ type: "give-time" })}
+                  >
+                    Give {current.name} one more minute
+                  </button>
+                )}
+              <div className="match-tools">
+                <button onClick={() => setSettingsOpen(true)}>
+                  Room rules
+                </button>
+                {!me || me.out ? (
+                  <button onClick={leave}>Leave table</button>
+                ) : (
+                  <button onClick={() => setConfirmForfeit(true)}>
+                    Forfeit seat
+                  </button>
+                )}
+              </div>
             </>
           )}
           {error && (
@@ -1898,7 +1970,142 @@ function App() {
           {toast}
         </div>
       )}
-      {rules && <Rules close={() => setRules(false)} />}
+      {error &&
+        (settingsOpen ||
+          roomsOpen ||
+          accountOpen ||
+          playerOpen ||
+          confirmForfeit ||
+          (game?.status === "playing" &&
+            [
+              "auction",
+              "duel",
+              "duel-result",
+              "roulette",
+              "roulette-result",
+              "stoppa",
+              "stoppa-result",
+            ].includes(game.phase))) && (
+          <div className="overlay-error" role="alert">
+            {error}
+            <button
+              className="icon-button"
+              aria-label="Dismiss error"
+              onClick={() => setError("")}
+            >
+              <X size={16} />
+            </button>
+          </div>
+        )}
+      {rules && <ExpandedRules game={game} close={() => setRules(false)} />}
+      {settingsOpen && (
+        <SettingsPanel
+          game={game}
+          options={options}
+          limit={limit}
+          disabled={disabled}
+          close={() => setSettingsOpen(false)}
+          save={async (opts, len) => {
+            if (game) {
+              const r = await lobby({
+                type: "settings",
+                settings: opts,
+                limit: len,
+              });
+              if (r) setSettingsOpen(false);
+            } else {
+              setOptions(opts);
+              setLimit(len);
+              setSettingsOpen(false);
+            }
+          }}
+        />
+      )}
+      {roomsOpen && (
+        <RoomsPanel
+          emit={emit}
+          disabled={disabled}
+          close={() => setRoomsOpen(false)}
+          enter={async (code, watch = false, quick = false) => {
+            const r = await emit(
+              quick ? "quick-play" : watch ? "spectate" : "join",
+              { name: name || profile?.name || "You", code },
+            );
+            if (r) {
+              persist("stb-seat", r.token);
+              setCode(r.code);
+              history.replaceState({}, "", `?room=${r.code}`);
+              setRoomsOpen(false);
+              setSelected(null);
+            }
+          }}
+        />
+      )}
+      {accountOpen && (
+        <AccountPanel
+          profile={profile}
+          social={social}
+          game={game}
+          emit={emit}
+          disabled={disabled}
+          close={() => setAccountOpen(false)}
+          authenticated={(r) => {
+            persist("stb-profile", r.token);
+            setProfile(r.profile);
+            setName(r.profile.name);
+            persist("stb-name", r.profile.name);
+          }}
+          signoutToken={stored("stb-profile")}
+          inviteJoin={async (c) => {
+            setCode(c);
+            setAccountOpen(false);
+            notify("Invite ready. Use the Join room button.");
+          }}
+        />
+      )}
+      {playerOpen && (
+        <PlayerPanel
+          player={playerOpen}
+          game={game}
+          profile={profile}
+          emit={emit}
+          disabled={disabled}
+          close={() => setPlayerOpen(null)}
+          notify={notify}
+        />
+      )}
+      {confirmForfeit && (
+        <Modal
+          title="Leave your empire behind?"
+          close={() => setConfirmForfeit(false)}
+        >
+          <p>
+            Forfeiting eliminates your crew. Your teammate inherits your turf,
+            or it returns to the market. A rent creditor inherits it when you
+            owe them.
+          </p>
+          <Button
+            danger
+            disabled={disabled}
+            onClick={async () => {
+              const r = await act({ type: "forfeit" });
+              if (r) setConfirmForfeit(false);
+            }}
+          >
+            Forfeit my seat
+          </Button>
+          <Button secondary onClick={() => setConfirmForfeit(false)}>
+            Keep playing
+          </Button>
+        </Modal>
+      )}
+      {game?.status === "playing" &&
+        ["stoppa", "stoppa-result"].includes(game.phase) && (
+          <Stoppa game={game} act={act} disabled={disabled} />
+        )}
+      {game?.status === "playing" && game.phase === "auction" && (
+        <Auction game={game} act={act} disabled={disabled} now={now} />
+      )}
       {game?.status === "playing" &&
         ["roulette", "roulette-result"].includes(game.phase) && (
           <Roulette game={game} act={act} disabled={disabled} />

@@ -200,6 +200,8 @@ export function extendedAction(g, id, a, rng) {
     assert(
       Array.isArray(giveTiles) &&
         Array.isArray(takeTiles) &&
+        giveTiles.every((t) => Number.isInteger(t) && board(g)[t]?.price) &&
+        takeTiles.every((t) => Number.isInteger(t) && board(g)[t]?.price) &&
         giveTiles.length <= 40 &&
         takeTiles.length <= 40 &&
         new Set([...giveTiles, ...takeTiles]).size ===

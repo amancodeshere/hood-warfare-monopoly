@@ -103,6 +103,94 @@ test("real multiplayer: authority, room capacity, reconnect, origin checks, and 
   assert((await send(afterRestart, "resume", { token: created.token })).ok);
   assert.equal(afterRestart.game.players[0].pos, pos);
   assert.equal(afterRestart.game.status, "playing");
+  // Public discovery, team chat secrecy, spectator restrictions, social settings.
+  const host = await client(),
+    ally = await client(),
+    enemy = await client(),
+    watch = await client();
+  clients.push(host, ally, enemy, watch);
+  const hp = await send(host, "profile-auth", { name: "Host" }),
+    ap = await send(ally, "profile-auth", { name: "Ally" }),
+    _ep = await send(enemy, "profile-auth", { name: "Enemy" });
+  await send(host, "profile-change", {
+    type: "friend-request",
+    to: ap.profile.code,
+  });
+  assert(
+    (
+      await send(ally, "profile-change", {
+        type: "friend-accept",
+        to: hp.profile.id,
+      })
+    ).ok,
+  );
+  const pub = await send(host, "create", {
+    name: "Host",
+    settings: { maxPlayers: 8, visibility: "public", teams: true },
+    limit: 0,
+  });
+  assert.equal(host.game.limit, null);
+  assert.equal(host.game.board.length, 40);
+  assert(
+    (
+      await send(host, "profile-change", {
+        type: "invite",
+        to: ap.profile.id,
+        code: pub.code,
+      })
+    ).ok,
+  );
+  const list = await send(ally, "rooms");
+  assert(list.rooms.some((g) => g.code === pub.code));
+  assert(!list.rooms.some((g) => g.code === created.code));
+  assert((await send(ally, "join", { name: "Ally", code: pub.code })).ok);
+  assert((await send(enemy, "join", { name: "Enemy", code: pub.code })).ok);
+  await send(host, "team", { team: "1" });
+  await send(ally, "team", { team: "1" });
+  await send(enemy, "team", { team: "2" });
+  assert(
+    (await send(watch, "spectate", { code: pub.code, name: "Watcher" })).ok,
+  );
+  assert((await send(watch, "chat", { text: "Spectator spam" })).error);
+  assert((await send(host, "chat", { text: "Secret plan", team: true })).ok);
+  assert(ally.game.chat.some((m) => m.text === "Secret plan"));
+  assert(!enemy.game.chat.some((m) => m.text === "Secret plan"));
+  assert(!watch.game.chat.some((m) => m.text === "Secret plan"));
+  await send(host, "chat", { text: "Hello table" });
+  assert(watch.game.chat.some((m) => m.text === "Hello table"));
+  await send(enemy, "profile-change", { type: "mute", to: hp.profile.id });
+  assert(!enemy.game.chat.some((m) => m.text === "Hello table"));
+  await send(host, "lobby", { type: "start" });
+  assert.equal(host.game.players.length, 8);
+  assert((await send(watch, "action", { type: "roll" })).error);
+  const profileLookup = await send(watch, "profile-find", {
+    query: hp.profile.id,
+  });
+  assert(!JSON.stringify(profileLookup).includes(hp.token));
+  assert(
+    (await send(enemy, "profile-change", { type: "block", to: hp.profile.id }))
+      .ok,
+  );
+  assert(!(await send(enemy, "rooms")).rooms.some((g) => g.code === pub.code));
+  assert(
+    (
+      await send(watch, "report", {
+        id: host.game.players[0].id,
+        reason: "Integration test report",
+      })
+    ).ok,
+  );
+  await send(host, "action", { type: "roll" });
+  assert(!JSON.stringify(host.game).includes("Integration test report"));
+  // Single-player creation supports seven opponents and no implicit round cap.
+  const solo = await client();
+  clients.push(solo);
+  assert(
+    (await send(solo, "create", { solo: true, settings: { maxPlayers: 8 } }))
+      .ok,
+  );
+  assert.equal(solo.game.players.filter((p) => p.bot).length, 7);
+  assert.equal(solo.game.limit, null);
   const health = await fetch(url + "/api/health");
   assert.equal(health.status, 200);
   const blocked = io(url, {

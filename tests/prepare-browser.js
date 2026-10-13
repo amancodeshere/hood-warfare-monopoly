@@ -2,20 +2,39 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { player, room, start, land, action } from "../server/game.js";
+import { BOARD as LEGACY_BOARD } from "../shared/legacy-board.js";
 if (!process.env.DATA_DIR?.includes("stb-playwright-"))
   throw new Error("Refusing to seed outside a browser test directory");
 const fixtures = [];
 const sessions = [];
-for (const kind of ["wheel", "duel"]) {
+for (const kind of ["wheel", "duel", "stoppa", "auction"]) {
   const a = player("Ace"),
     b = player("Rival"),
     c = player("Watcher"),
-    g = room(kind === "wheel" ? "WHEEL1" : "DUEL01", a);
+    g = room(
+      { wheel: "WHEEL1", duel: "DUEL01", stoppa: "STOP01", auction: "BID001" }[
+        kind
+      ],
+      a,
+    );
   g.players.push(b, c);
+  if (["wheel", "duel"].includes(kind)) {
+    g.board = LEGACY_BOARD;
+    g.schemaVersion = 1;
+    g.settings.auctions = false;
+    g.settings.doubles = false;
+  }
   start(g, a.id);
   if (kind === "wheel") {
     a.pos = 10;
     land(g);
+  } else if (kind === "stoppa") {
+    a.pos = 7;
+    land(g);
+  } else if (kind === "auction") {
+    a.pos = 1;
+    land(g);
+    action(g, a.id, { type: "skip" });
   } else {
     g.props[1] = { owner: b.id, level: 0, mortgaged: false };
     a.pos = 1;

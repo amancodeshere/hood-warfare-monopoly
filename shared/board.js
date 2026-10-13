@@ -126,13 +126,24 @@ const NIGHT_NAMES = [
 ];
 export function makeBoard(map = "trenches") {
   let i = 0;
-  return BOARD.map((t) => ({
-    ...t,
-    name:
-      map === "night-shift" && t.type === "property"
-        ? NIGHT_NAMES[i++]
-        : t.name,
-  }));
+  return BOARD.map((t) => {
+    const tile = {
+      ...t,
+      name:
+        map === "night-shift" && t.type === "property"
+          ? NIGHT_NAMES[i++]
+          : t.name,
+    };
+    if (map === "night-shift" && t.id === 17) {
+      tile.type = "roulette";
+      tile.name = "After Hours Roulette";
+    }
+    if (map === "night-shift" && t.id === 28) {
+      tile.type = "card";
+      tile.name = "Night Shift Luck";
+    }
+    return tile;
+  });
 }
 export const CARDS = [
   {

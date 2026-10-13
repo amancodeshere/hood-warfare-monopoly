@@ -70,6 +70,7 @@ export function room(code, p) {
     schemaVersion: 2,
     board: makeBoard(),
     settings: { ...DEFAULT_SETTINGS },
+    teamNames: { 1: "Eastside", 2: "Sunset", 3: "Northside", 4: "After Hours" },
     chat: [],
     spectators: [],
     doubleCount: 0,
@@ -482,6 +483,12 @@ export function action(g, id, a, rng = secureRandom, options = {}) {
       p.cash += 200;
       log(g, `${p.name} passed Home Base. +$200.`, "good");
     }
+    g.lastMove = {
+      id: randomUUID(),
+      player: p.id,
+      from: old,
+      steps: g.dice[0] + g.dice[1],
+    };
     log(g, `${p.name} rolled ${g.dice[0] + g.dice[1]} → ${BOARD[p.pos].name}.`);
     land(g, rng);
   } else if (a.type === "buy") {
@@ -714,15 +721,23 @@ export function defaultAction(g, id) {
             !g.props[t.id].mortgaged &&
             !g.props[t.id].level &&
             (t.group === undefined ||
-              !holdings(g, id).some(
-                (x) => x.group === t.group && g.props[x.id].level,
-              )),
+              !BOARD.some((x) => x.group === t.group && g.props[x.id]?.level)),
         );
         if (t && g.settings?.mortgage !== false)
           return { type: "mortgage", tile: t.id };
         const built = holdings(g, id)
           .sort((a, b) => g.props[b.id].level - g.props[a.id].level)
-          .find((t) => g.props[t.id].level > 0);
+          .find(
+            (t) =>
+              g.props[t.id].level > 0 &&
+              (!g.settings.evenBuild ||
+                g.props[t.id].level ===
+                  Math.max(
+                    ...BOARD.filter((x) => x.group === t.group).map(
+                      (x) => g.props[x.id]?.level || 0,
+                    ),
+                  )),
+          );
         if (built) return { type: "sell", tile: built.id };
         return { type: g.pending.owner ? "shootout" : "surrender" };
       }
@@ -815,4 +830,32 @@ export function finishAuction(g) {
   g.auction = null;
   g.turnDeadline = Math.max(g.turnDeadline || 0, Date.now() + 15000);
   phase(g, "end");
+}
+
+export function timeoutAction(g, id) {
+  const p = g.players.find((p) => p.id === id);
+  if (["duel", "auction"].includes(g.phase)) return defaultAction(g, id);
+  g.autoTurn = true;
+  if (!g.timeoutCounted) {
+    g.timeoutCounted = true;
+    p.afk = (p.afk || 0) + 1;
+  }
+  if (p.afk >= 2 && !p.out && g.phase !== "duel-result") {
+    eliminate(
+      g,
+      p,
+      g.phase === "rent"
+        ? g.players.find((x) => x.id === g.pending?.owner)
+        : null,
+    );
+    return null;
+  }
+  if (g.phase === "buy") {
+    phase(g, "end");
+    log(g, `${p.name} timed out. The block stays unclaimed.`);
+    return null;
+  }
+  if (g.phase === "rent" && p.cash < g.pending.amount)
+    return { type: "surrender" };
+  return defaultAction(g, id);
 }

@@ -20,7 +20,7 @@ import {
   board,
   migrate,
   finishAuction,
-  eliminate,
+  timeoutAction,
 } from "./game.js";
 import { settings, matchLimit } from "../shared/settings.js";
 import { makeBoard } from "../shared/board.js";
@@ -38,6 +38,7 @@ try {
     if (Date.now() - g.updatedAt < 24 * 3600000) {
       migrate(g);
       g.spectators = [];
+      g.pausedAt = Date.now();
       g.players.forEach((p) => (p.connected = p.bot));
       g.turnDeadline = Date.now() + 90000;
       g.deadline = g.turnDeadline;
@@ -173,6 +174,14 @@ function attach(socket, g, p, token, spectator = false) {
   Object.assign(socket.data, { code: g.code, player: p.id, token, spectator });
   socket.join(g.code);
   p.connected = true;
+  profileUpdates();
+  if (!spectator && g.pausedAt && g.status === "playing") {
+    const delta = Date.now() - g.pausedAt;
+    g.deadline += delta;
+    g.turnDeadline = g.turnDeadline ? g.turnDeadline + delta : g.deadline;
+    g.turnStarted = (g.turnStarted || Date.now()) + delta;
+    g.pausedAt = null;
+  }
 }
 function session(socket, allowWatch = false) {
   const g = rooms.get(socket.data.code);
@@ -246,6 +255,8 @@ function createRoom(socket, d) {
   assert(rooms.size < 1500, "The streets are busy. Try again soon.");
   maySwitch(socket);
   const profile = getProfile(socket, d.name);
+  if (d.name)
+    profiles.change(profile.id, { type: "rename", name: cleanName(d.name) });
   const opts = settings(d.settings);
   assert(
     !opts.registeredOnly || profile.passwordHash,
@@ -291,6 +302,11 @@ function joinRoom(socket, d) {
     !g.players.some((p) => p.profileId === socket.data.profile),
     "Your profile already has a seat in this room. Use Reconnect.",
   );
+  if (d.name)
+    profiles.change(socket.data.profile, {
+      type: "rename",
+      name: cleanName(d.name),
+    });
   const profile = profiles.profile(socket.data.profile),
     p = player(cleanName(d.name || profile.name));
   Object.assign(p, {
@@ -459,6 +475,26 @@ io.on("connection", (socket) => {
     publish(g);
     return { code: g.code, id: p.id, token: d.token };
   });
+  handle("team-name", (d) => {
+    const g = session(socket);
+    assert(
+      g.status === "lobby" && g.host === socket.data.player && g.settings.teams,
+      "The host names teams before play.",
+    );
+    assert(["1", "2", "3", "4"].includes(String(d.team)), "Choose a team.");
+    g.teamNames ||= {};
+    g.teamNames[d.team] = cleanName(d.name);
+    publish(g);
+    return {};
+  });
+  handle("profile-logout", (d) => {
+    assert(!socket.data.code, "Leave your room before signing out.");
+    profiles.logout(d.token);
+    const r = profiles.authorize(null, "New crew");
+    socket.data.profile = r.profile.id;
+    profileUpdates();
+    return r;
+  });
   handle("team", (d) => {
     const g = session(socket);
     assert(
@@ -490,6 +526,7 @@ io.on("connection", (socket) => {
         limit = g.limit,
         revision = g.revision,
         code = g.code,
+        teamNames = g.teamNames,
         host = g.host;
       Object.assign(
         g,
@@ -596,6 +633,10 @@ io.on("connection", (socket) => {
       "Your report is already saved for this player.",
     );
     g.reports ||= [];
+    assert(
+      g.reports.length < 100,
+      "This room has reached its report limit. Mute or block the player.",
+    );
     g.reports.push({
       from: socket.data.player,
       to: p.id,
@@ -660,8 +701,11 @@ const interval = setInterval(() => {
       save();
       continue;
     }
-    if (g.status !== "playing" || !g.players.some((p) => !p.bot && p.connected))
+    if (g.status !== "playing") continue;
+    if (!g.players.some((p) => !p.bot && p.connected)) {
+      g.pausedAt ||= Date.now();
       continue;
+    }
     if (g.phase === "auction" && Date.now() > g.deadline) {
       finishAuction(g);
       publish(g);
@@ -700,28 +744,8 @@ const interval = setInterval(() => {
       if ((p.bot && Date.now() >= botDue.get(key).at) || timed || eliminated) {
         try {
           let a = defaultAction(g, p.id);
-          if (!p.bot && timed && !["duel", "auction"].includes(g.phase)) {
-            g.autoTurn = true;
-            if (!g.timeoutCounted) {
-              g.timeoutCounted = true;
-              p.afk = (p.afk || 0) + 1;
-            }
-            if (p.afk >= 2 && !p.out && !["duel-result"].includes(g.phase)) {
-              eliminate(
-                g,
-                p,
-                g.phase === "rent"
-                  ? g.players.find((x) => x.id === g.pending?.owner)
-                  : null,
-              );
-              publish(g);
-              break;
-            }
-            if (g.phase === "buy") a = { type: "skip" };
-            if (g.phase === "rent" && p.cash < g.pending.amount)
-              a = { type: "surrender" };
-          }
-          action(g, p.id, a);
+          if (!p.bot && timed) a = timeoutAction(g, p.id);
+          if (a) action(g, p.id, a);
           publish(g);
           botDue.delete(key);
           if (g.phase !== "auction" && g.phase !== "duel") break;

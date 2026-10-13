@@ -11,6 +11,7 @@ import {
   victory,
   migrate,
   defaultAction,
+  timeoutAction,
   active,
 } from "../server/game.js";
 import { BOARD, makeBoard, coordinates } from "../shared/board.js";
@@ -300,4 +301,28 @@ test("new bot matches resolve auctions and events without invalid money or holdi
     }
     assert.equal(g.status, "finished");
   }
+});
+
+test("timeouts never auction or mortgage human assets and two idle turns eliminate", () => {
+  const { g, p } = game();
+  p.pos = 1;
+  land(g);
+  assert.equal(timeoutAction(g, p.id), null);
+  assert.equal(g.phase, "end");
+  assert.equal(g.auction, undefined);
+  assert.equal(p.afk, 1);
+  action(g, p.id, { type: "end" });
+  g.turn = 0;
+  g.phase = "roll";
+  g.timeoutCounted = false;
+  assert.equal(timeoutAction(g, p.id), null);
+  assert.equal(p.out, true);
+  const f = game();
+  f.g.props[1] = prop(f.b.id);
+  f.g.props[39] = prop(f.p.id);
+  f.p.cash = 0;
+  f.p.pos = 1;
+  land(f.g);
+  assert.equal(timeoutAction(f.g, f.p.id).type, "surrender");
+  assert.equal(f.g.props[39].mortgaged, false);
 });

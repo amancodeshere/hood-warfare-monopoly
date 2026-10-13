@@ -150,6 +150,7 @@ export function profileStore(dir) {
     return issue(p);
   }
   function find(value) {
+    value = String(value || "").replace(/^@/, "");
     return (
       profiles.get(value) ||
       [...profiles.values()].find(
@@ -210,6 +211,12 @@ export function profileStore(dir) {
       p.incoming = p.incoming.filter((x) => x !== to.id);
       to.outgoing = to.outgoing.filter((x) => x !== id);
       if (a.accept !== false) {
+        assert(
+          p.friends.length < 250 && to.friends.length < 250,
+          "The friend list is full.",
+        );
+        p.outgoing = p.outgoing.filter((x) => x !== to.id);
+        to.incoming = to.incoming.filter((x) => x !== id);
         if (!p.friends.includes(to.id)) p.friends.push(to.id);
         if (!to.friends.includes(id)) to.friends.push(id);
       }
@@ -272,6 +279,8 @@ export function profileStore(dir) {
     for (const seat of humans) {
       const p = profile(seat.profileId);
       if (!p) continue;
+      const matchId = g.code + ":" + g.createdAt;
+      if (p.history.some((h) => h.matchId === matchId)) continue;
       const won = (g.winners || [g.winner]).includes(seat.id);
       p.respect += competitive ? (won ? 10 : 3) : won ? 2 : 1;
       if (competitive) {
@@ -280,6 +289,7 @@ export function profileStore(dir) {
         p.stats.karma++;
       } else p.stats.practiceWins += won ? 1 : 0;
       p.history.unshift({
+        matchId,
         code: g.code,
         public: g.settings.visibility === "public",
         won,
@@ -300,6 +310,10 @@ export function profileStore(dir) {
     persist();
   }
   return {
+    logout: (token) => {
+      tokens.delete(token);
+      persist();
+    },
     authorize,
     register,
     login,
