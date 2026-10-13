@@ -12,7 +12,7 @@ export default defineConfig({
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
-    command: "node server/index.js",
+    command: "node tests/prepare-browser.js && node server/index.js",
     url: "http://127.0.0.1:4173/api/health",
     env: { PORT: "4173", DATA_DIR: "/tmp/stb-playwright-" + Date.now() },
     reuseExistingServer: !process.env.CI,

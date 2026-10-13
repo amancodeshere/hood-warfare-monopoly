@@ -1,4 +1,4 @@
-name: Quality & Railway deployment
+name: Quality checks (Railway waits for CI)
 on:
   push:
     branches: [main]
@@ -34,21 +34,5 @@ jobs:
             playwright-report/
             test-results/
           retention-days: 7
-  deploy:
-    name: Deploy tested main to Railway
-    needs: quality
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    environment: production
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Install pinned Railway CLI
-        run: npm install -g @railway/cli@5.67.0
-      - name: Deploy via Railway CLI
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --ci --project e4b53995-5f92-45a1-a3d0-0da85f2db10f --environment production --service spin-the-block
+  # Railway's native GitHub source has checkSuites=true in .railway/railway.ts.
+  # It deploys main after this workflow passes, without a long-lived CI token.

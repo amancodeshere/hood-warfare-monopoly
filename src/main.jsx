@@ -375,11 +375,13 @@ function Rules({ close }) {
 }
 function Modal({ children, title, close, wide = false }) {
   const ref = useRef(null);
+  const closeRef = useRef(close);
+  closeRef.current = close;
   useEffect(() => {
     const previous = document.activeElement;
     ref.current?.focus();
     function keys(e) {
-      if (e.key === "Escape" && close) close();
+      if (e.key === "Escape" && closeRef.current) closeRef.current();
       if (e.key === "Tab") {
         const items = ref.current?.querySelectorAll(
           'button:not(:disabled), input, select, [tabindex="0"]',
@@ -387,7 +389,11 @@ function Modal({ children, title, close, wide = false }) {
         if (!items?.length) return;
         const first = items[0],
           last = items[items.length - 1];
-        if (e.shiftKey && document.activeElement === first) {
+        if (
+          e.shiftKey &&
+          (document.activeElement === first ||
+            document.activeElement === ref.current)
+        ) {
           e.preventDefault();
           last.focus();
         } else if (!e.shiftKey && document.activeElement === last) {
@@ -401,7 +407,7 @@ function Modal({ children, title, close, wide = false }) {
       document.removeEventListener("keydown", keys);
       previous?.focus();
     };
-  }, [close]);
+  }, []);
   return (
     <div className="modal-backdrop">
       <section
@@ -652,6 +658,13 @@ function App() {
     [give, setGive] = useState(""),
     [take, setTake] = useState(""),
     [tradeCash, setTradeCash] = useState("0");
+  const propertyFocus = useRef(null);
+  useEffect(() => {
+    if (selected !== null && window.innerWidth <= 720) {
+      propertyFocus.current?.focus({ preventScroll: true });
+      propertyFocus.current?.scrollIntoView({ block: "center" });
+    }
+  }, [selected]);
   const gameRef = useRef(null),
     audioRef = useRef(null),
     mutedRef = useRef(muted);
@@ -810,13 +823,17 @@ function App() {
     return (
       <section
         className="property-detail"
+        ref={propertyFocus}
+        tabIndex={-1}
+        role="region"
+        aria-labelledby="property-heading"
         style={{
           "--district":
             t.group !== undefined ? DISTRICTS[t.group].color : "#92a392",
         }}
       >
         <div className="property-title">
-          <h3>{t.name}</h3>
+          <h3 id="property-heading">{t.name}</h3>
           <button
             className="icon-button"
             onClick={() => setSelected(null)}
@@ -1229,6 +1246,20 @@ function App() {
           <button onClick={() => socket.connect()}>Reconnect</button>
         </div>
       )}
+      <div
+        className="sr-only"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        {game?.status === "playing"
+          ? `${current.name}’s turn. ${game.phase.replaceAll("-", " ")}. At ${BOARD[current.pos].name}. ${game.log[0]?.text || ""}`
+          : game?.status === "finished"
+            ? `${winner?.name} wins the match.`
+            : game
+              ? `Room ${game.code}. ${game.players.length} crews joined.`
+              : "Create or join a private room to play."}
+      </div>
       <main className="game-layout">
         <aside className="crew-sidebar">
           <div className="section-heading">
@@ -1448,7 +1479,7 @@ function App() {
                 <div className="join-row">
                   <input
                     id="room-code"
-                    placeholder="6-digit code"
+                    placeholder="6-character code"
                     maxLength={6}
                     value={code}
                     onChange={(e) => setCode(e.target.value.toUpperCase())}

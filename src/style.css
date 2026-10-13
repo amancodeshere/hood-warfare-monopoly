@@ -2388,3 +2388,36 @@ button:hover:not(:disabled) {
     scroll-behavior: auto !important;
   }
 }
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.property-detail:focus {
+  outline: 2px solid var(--lime);
+  outline-offset: 5px;
+}
+@media (max-width: 720px) {
+  .action-sidebar {
+    order: -1;
+  }
+  .crew-sidebar {
+    order: 0;
+  }
+  .table-area {
+    order: 1;
+  }
+  .action-sidebar .welcome {
+    margin-bottom: 18px;
+  }
+  .action-sidebar .join-divider {
+    margin-top: 24px;
+    margin-bottom: 19px;
+  }
+}

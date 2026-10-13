@@ -123,10 +123,11 @@ function publish(g) {
   save();
 }
 // Control characters are intentionally removed from player-supplied names.
-// eslint-disable-next-line no-control-regex
 const cleanName = (n) =>
   String(n || "")
-    .replace(/[<>\x00-\x1f]/g, "")
+    .split("")
+    .filter((c) => c.charCodeAt(0) >= 32 && c !== "<" && c !== ">")
+    .join("")
     .trim()
     .slice(0, 20) || "New crew";
 function attach(socket, g, p, token) {

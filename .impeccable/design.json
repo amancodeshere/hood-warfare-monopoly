@@ -1,0 +1,853 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-13T14:30:16.198158+00:00",
+  "title": "Design System: Spin the Block",
+  "extensions": {
+    "colorMeta": {
+      "lime": {
+        "role": "primary",
+        "displayName": "Lime",
+        "tonalRamp": [
+          "oklch(15% 0.1565 124.11)",
+          "oklch(26.43% 0.1565 124.11)",
+          "oklch(37.86% 0.1565 124.11)",
+          "oklch(49.29% 0.1565 124.11)",
+          "oklch(60.71% 0.1565 124.11)",
+          "oklch(72.14% 0.1565 124.11)",
+          "oklch(83.57% 0.1565 124.11)",
+          "oklch(95% 0.1565 124.11)"
+        ]
+      },
+      "lime-hover": {
+        "role": "primary",
+        "displayName": "Lime Hover",
+        "tonalRamp": [
+          "oklch(15% 0.1250 123.96)",
+          "oklch(26.43% 0.1250 123.96)",
+          "oklch(37.86% 0.1250 123.96)",
+          "oklch(49.29% 0.1250 123.96)",
+          "oklch(60.71% 0.1250 123.96)",
+          "oklch(72.14% 0.1250 123.96)",
+          "oklch(83.57% 0.1250 123.96)",
+          "oklch(95% 0.1250 123.96)"
+        ]
+      },
+      "sunset": {
+        "role": "secondary",
+        "displayName": "Sunset",
+        "tonalRamp": [
+          "oklch(15% 0.0988 55.64)",
+          "oklch(26.43% 0.0988 55.64)",
+          "oklch(37.86% 0.0988 55.64)",
+          "oklch(49.29% 0.0988 55.64)",
+          "oklch(60.71% 0.0988 55.64)",
+          "oklch(72.14% 0.0988 55.64)",
+          "oklch(83.57% 0.0988 55.64)",
+          "oklch(95% 0.0988 55.64)"
+        ]
+      },
+      "royals": {
+        "role": "secondary",
+        "displayName": "Royals",
+        "tonalRamp": [
+          "oklch(15% 0.1078 296.61)",
+          "oklch(26.43% 0.1078 296.61)",
+          "oklch(37.86% 0.1078 296.61)",
+          "oklch(49.29% 0.1078 296.61)",
+          "oklch(60.71% 0.1078 296.61)",
+          "oklch(72.14% 0.1078 296.61)",
+          "oklch(83.57% 0.1078 296.61)",
+          "oklch(95% 0.1078 296.61)"
+        ]
+      },
+      "harbor": {
+        "role": "secondary",
+        "displayName": "Harbor",
+        "tonalRamp": [
+          "oklch(15% 0.0716 207.22)",
+          "oklch(26.43% 0.0716 207.22)",
+          "oklch(37.86% 0.0716 207.22)",
+          "oklch(49.29% 0.0716 207.22)",
+          "oklch(60.71% 0.0716 207.22)",
+          "oklch(72.14% 0.0716 207.22)",
+          "oklch(83.57% 0.0716 207.22)",
+          "oklch(95% 0.0716 207.22)"
+        ]
+      },
+      "asphalt": {
+        "role": "neutral",
+        "displayName": "Asphalt",
+        "tonalRamp": [
+          "oklch(15% 0.0072 164.25)",
+          "oklch(26.43% 0.0072 164.25)",
+          "oklch(37.86% 0.0072 164.25)",
+          "oklch(49.29% 0.0072 164.25)",
+          "oklch(60.71% 0.0072 164.25)",
+          "oklch(72.14% 0.0072 164.25)",
+          "oklch(83.57% 0.0072 164.25)",
+          "oklch(95% 0.0072 164.25)"
+        ]
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "Text",
+        "tonalRamp": [
+          "oklch(15% 0.0136 120.28)",
+          "oklch(26.43% 0.0136 120.28)",
+          "oklch(37.86% 0.0136 120.28)",
+          "oklch(49.29% 0.0136 120.28)",
+          "oklch(60.71% 0.0136 120.28)",
+          "oklch(72.14% 0.0136 120.28)",
+          "oklch(83.57% 0.0136 120.28)",
+          "oklch(95% 0.0136 120.28)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted",
+        "tonalRamp": [
+          "oklch(15% 0.0174 142.53)",
+          "oklch(26.43% 0.0174 142.53)",
+          "oklch(37.86% 0.0174 142.53)",
+          "oklch(49.29% 0.0174 142.53)",
+          "oklch(60.71% 0.0174 142.53)",
+          "oklch(72.14% 0.0174 142.53)",
+          "oklch(83.57% 0.0174 142.53)",
+          "oklch(95% 0.0174 142.53)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Line",
+        "tonalRamp": [
+          "oklch(15% 0.0182 148.33)",
+          "oklch(26.43% 0.0182 148.33)",
+          "oklch(37.86% 0.0182 148.33)",
+          "oklch(49.29% 0.0182 148.33)",
+          "oklch(60.71% 0.0182 148.33)",
+          "oklch(72.14% 0.0182 148.33)",
+          "oklch(83.57% 0.0182 148.33)",
+          "oklch(95% 0.0182 148.33)"
+        ]
+      },
+      "panel": {
+        "role": "neutral",
+        "displayName": "Panel",
+        "tonalRamp": [
+          "oklch(15% 0.0136 154.30)",
+          "oklch(26.43% 0.0136 154.30)",
+          "oklch(37.86% 0.0136 154.30)",
+          "oklch(49.29% 0.0136 154.30)",
+          "oklch(60.71% 0.0136 154.30)",
+          "oklch(72.14% 0.0136 154.30)",
+          "oklch(83.57% 0.0136 154.30)",
+          "oklch(95% 0.0136 154.30)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "tonalRamp": [
+          "oklch(15% 0.0167 145.02)",
+          "oklch(26.43% 0.0167 145.02)",
+          "oklch(37.86% 0.0167 145.02)",
+          "oklch(49.29% 0.0167 145.02)",
+          "oklch(60.71% 0.0167 145.02)",
+          "oklch(72.14% 0.0167 145.02)",
+          "oklch(83.57% 0.0167 145.02)",
+          "oklch(95% 0.0167 145.02)"
+        ]
+      },
+      "action-panel": {
+        "role": "neutral",
+        "displayName": "Action Panel",
+        "tonalRamp": [
+          "oklch(15% 0.0170 148.63)",
+          "oklch(26.43% 0.0170 148.63)",
+          "oklch(37.86% 0.0170 148.63)",
+          "oklch(49.29% 0.0170 148.63)",
+          "oklch(60.71% 0.0170 148.63)",
+          "oklch(72.14% 0.0170 148.63)",
+          "oklch(83.57% 0.0170 148.63)",
+          "oklch(95% 0.0170 148.63)"
+        ]
+      },
+      "crew-surface": {
+        "role": "neutral",
+        "displayName": "Crew Surface",
+        "tonalRamp": [
+          "oklch(15% 0.0128 150.09)",
+          "oklch(26.43% 0.0128 150.09)",
+          "oklch(37.86% 0.0128 150.09)",
+          "oklch(49.29% 0.0128 150.09)",
+          "oklch(60.71% 0.0128 150.09)",
+          "oklch(72.14% 0.0128 150.09)",
+          "oklch(83.57% 0.0128 150.09)",
+          "oklch(95% 0.0128 150.09)"
+        ]
+      },
+      "crew-active": {
+        "role": "neutral",
+        "displayName": "Crew Active",
+        "tonalRamp": [
+          "oklch(15% 0.0261 142.71)",
+          "oklch(26.43% 0.0261 142.71)",
+          "oklch(37.86% 0.0261 142.71)",
+          "oklch(49.29% 0.0261 142.71)",
+          "oklch(60.71% 0.0261 142.71)",
+          "oklch(72.14% 0.0261 142.71)",
+          "oklch(83.57% 0.0261 142.71)",
+          "oklch(95% 0.0261 142.71)"
+        ]
+      },
+      "field": {
+        "role": "neutral",
+        "displayName": "Field",
+        "tonalRamp": [
+          "oklch(15% 0.0141 154.08)",
+          "oklch(26.43% 0.0141 154.08)",
+          "oklch(37.86% 0.0141 154.08)",
+          "oklch(49.29% 0.0141 154.08)",
+          "oklch(60.71% 0.0141 154.08)",
+          "oklch(72.14% 0.0141 154.08)",
+          "oklch(83.57% 0.0141 154.08)",
+          "oklch(95% 0.0141 154.08)"
+        ]
+      },
+      "field-border": {
+        "role": "neutral",
+        "displayName": "Field Border",
+        "tonalRamp": [
+          "oklch(15% 0.0247 138.48)",
+          "oklch(26.43% 0.0247 138.48)",
+          "oklch(37.86% 0.0247 138.48)",
+          "oklch(49.29% 0.0247 138.48)",
+          "oklch(60.71% 0.0247 138.48)",
+          "oklch(72.14% 0.0247 138.48)",
+          "oklch(83.57% 0.0247 138.48)",
+          "oklch(95% 0.0247 138.48)"
+        ]
+      },
+      "field-text": {
+        "role": "neutral",
+        "displayName": "Field Text",
+        "tonalRamp": [
+          "oklch(15% 0.0134 115.84)",
+          "oklch(26.43% 0.0134 115.84)",
+          "oklch(37.86% 0.0134 115.84)",
+          "oklch(49.29% 0.0134 115.84)",
+          "oklch(60.71% 0.0134 115.84)",
+          "oklch(72.14% 0.0134 115.84)",
+          "oklch(83.57% 0.0134 115.84)",
+          "oklch(95% 0.0134 115.84)"
+        ]
+      },
+      "action-ink": {
+        "role": "neutral",
+        "displayName": "Action Ink",
+        "tonalRamp": [
+          "oklch(15% 0.0383 140.35)",
+          "oklch(26.43% 0.0383 140.35)",
+          "oklch(37.86% 0.0383 140.35)",
+          "oklch(49.29% 0.0383 140.35)",
+          "oklch(60.71% 0.0383 140.35)",
+          "oklch(72.14% 0.0383 140.35)",
+          "oklch(83.57% 0.0383 140.35)",
+          "oklch(95% 0.0383 140.35)"
+        ]
+      },
+      "secondary-text": {
+        "role": "neutral",
+        "displayName": "Secondary Text",
+        "tonalRamp": [
+          "oklch(15% 0.0302 127.91)",
+          "oklch(26.43% 0.0302 127.91)",
+          "oklch(37.86% 0.0302 127.91)",
+          "oklch(49.29% 0.0302 127.91)",
+          "oklch(60.71% 0.0302 127.91)",
+          "oklch(72.14% 0.0302 127.91)",
+          "oklch(83.57% 0.0302 127.91)",
+          "oklch(95% 0.0302 127.91)"
+        ]
+      },
+      "secondary-border": {
+        "role": "neutral",
+        "displayName": "Secondary Border",
+        "tonalRamp": [
+          "oklch(15% 0.0429 136.64)",
+          "oklch(26.43% 0.0429 136.64)",
+          "oklch(37.86% 0.0429 136.64)",
+          "oklch(49.29% 0.0429 136.64)",
+          "oklch(60.71% 0.0429 136.64)",
+          "oklch(72.14% 0.0429 136.64)",
+          "oklch(83.57% 0.0429 136.64)",
+          "oklch(95% 0.0429 136.64)"
+        ]
+      },
+      "secondary-hover": {
+        "role": "neutral",
+        "displayName": "Secondary Hover",
+        "tonalRamp": [
+          "oklch(15% 0.0426 138.66)",
+          "oklch(26.43% 0.0426 138.66)",
+          "oklch(37.86% 0.0426 138.66)",
+          "oklch(49.29% 0.0426 138.66)",
+          "oklch(60.71% 0.0426 138.66)",
+          "oklch(72.14% 0.0426 138.66)",
+          "oklch(83.57% 0.0426 138.66)",
+          "oklch(95% 0.0426 138.66)"
+        ]
+      },
+      "board-frame": {
+        "role": "neutral",
+        "displayName": "Board Frame",
+        "tonalRamp": [
+          "oklch(15% 0.0246 147.30)",
+          "oklch(26.43% 0.0246 147.30)",
+          "oklch(37.86% 0.0246 147.30)",
+          "oklch(49.29% 0.0246 147.30)",
+          "oklch(60.71% 0.0246 147.30)",
+          "oklch(72.14% 0.0246 147.30)",
+          "oklch(83.57% 0.0246 147.30)",
+          "oklch(95% 0.0246 147.30)"
+        ]
+      },
+      "board-border": {
+        "role": "neutral",
+        "displayName": "Board Border",
+        "tonalRamp": [
+          "oklch(15% 0.0437 134.44)",
+          "oklch(26.43% 0.0437 134.44)",
+          "oklch(37.86% 0.0437 134.44)",
+          "oklch(49.29% 0.0437 134.44)",
+          "oklch(60.71% 0.0437 134.44)",
+          "oklch(72.14% 0.0437 134.44)",
+          "oklch(83.57% 0.0437 134.44)",
+          "oklch(95% 0.0437 134.44)"
+        ]
+      },
+      "board-center": {
+        "role": "neutral",
+        "displayName": "Board Center",
+        "tonalRamp": [
+          "oklch(15% 0.0246 151.84)",
+          "oklch(26.43% 0.0246 151.84)",
+          "oklch(37.86% 0.0246 151.84)",
+          "oklch(49.29% 0.0246 151.84)",
+          "oklch(60.71% 0.0246 151.84)",
+          "oklch(72.14% 0.0246 151.84)",
+          "oklch(83.57% 0.0246 151.84)",
+          "oklch(95% 0.0246 151.84)"
+        ]
+      },
+      "tile": {
+        "role": "neutral",
+        "displayName": "Tile",
+        "tonalRamp": [
+          "oklch(15% 0.0310 121.45)",
+          "oklch(26.43% 0.0310 121.45)",
+          "oklch(37.86% 0.0310 121.45)",
+          "oklch(49.29% 0.0310 121.45)",
+          "oklch(60.71% 0.0310 121.45)",
+          "oklch(72.14% 0.0310 121.45)",
+          "oklch(83.57% 0.0310 121.45)",
+          "oklch(95% 0.0310 121.45)"
+        ]
+      },
+      "tile-ink": {
+        "role": "neutral",
+        "displayName": "Tile Ink",
+        "tonalRamp": [
+          "oklch(15% 0.0289 144.82)",
+          "oklch(26.43% 0.0289 144.82)",
+          "oklch(37.86% 0.0289 144.82)",
+          "oklch(49.29% 0.0289 144.82)",
+          "oklch(60.71% 0.0289 144.82)",
+          "oklch(72.14% 0.0289 144.82)",
+          "oklch(83.57% 0.0289 144.82)",
+          "oklch(95% 0.0289 144.82)"
+        ]
+      },
+      "tile-border": {
+        "role": "neutral",
+        "displayName": "Tile Border",
+        "tonalRamp": [
+          "oklch(15% 0.0354 136.30)",
+          "oklch(26.43% 0.0354 136.30)",
+          "oklch(37.86% 0.0354 136.30)",
+          "oklch(49.29% 0.0354 136.30)",
+          "oklch(60.71% 0.0354 136.30)",
+          "oklch(72.14% 0.0354 136.30)",
+          "oklch(83.57% 0.0354 136.30)",
+          "oklch(95% 0.0354 136.30)"
+        ]
+      },
+      "tile-hover": {
+        "role": "neutral",
+        "displayName": "Tile Hover",
+        "tonalRamp": [
+          "oklch(15% 0.0269 113.86)",
+          "oklch(26.43% 0.0269 113.86)",
+          "oklch(37.86% 0.0269 113.86)",
+          "oklch(49.29% 0.0269 113.86)",
+          "oklch(60.71% 0.0269 113.86)",
+          "oklch(72.14% 0.0269 113.86)",
+          "oklch(83.57% 0.0269 113.86)",
+          "oklch(95% 0.0269 113.86)"
+        ]
+      },
+      "tile-selected": {
+        "role": "neutral",
+        "displayName": "Tile Selected",
+        "tonalRamp": [
+          "oklch(15% 0.0350 115.93)",
+          "oklch(26.43% 0.0350 115.93)",
+          "oklch(37.86% 0.0350 115.93)",
+          "oklch(49.29% 0.0350 115.93)",
+          "oklch(60.71% 0.0350 115.93)",
+          "oklch(72.14% 0.0350 115.93)",
+          "oklch(83.57% 0.0350 115.93)",
+          "oklch(95% 0.0350 115.93)"
+        ]
+      },
+      "tile-occupied": {
+        "role": "neutral",
+        "displayName": "Tile Occupied",
+        "tonalRamp": [
+          "oklch(15% 0.0240 112.01)",
+          "oklch(26.43% 0.0240 112.01)",
+          "oklch(37.86% 0.0240 112.01)",
+          "oklch(49.29% 0.0240 112.01)",
+          "oklch(60.71% 0.0240 112.01)",
+          "oklch(72.14% 0.0240 112.01)",
+          "oklch(83.57% 0.0240 112.01)",
+          "oklch(95% 0.0240 112.01)"
+        ]
+      },
+      "tile-corner": {
+        "role": "neutral",
+        "displayName": "Tile Corner",
+        "tonalRamp": [
+          "oklch(15% 0.0397 123.94)",
+          "oklch(26.43% 0.0397 123.94)",
+          "oklch(37.86% 0.0397 123.94)",
+          "oklch(49.29% 0.0397 123.94)",
+          "oklch(60.71% 0.0397 123.94)",
+          "oklch(72.14% 0.0397 123.94)",
+          "oklch(83.57% 0.0397 123.94)",
+          "oklch(95% 0.0397 123.94)"
+        ]
+      },
+      "tile-mortgaged": {
+        "role": "neutral",
+        "displayName": "Tile Mortgaged",
+        "tonalRamp": [
+          "oklch(15% 0.0303 130.03)",
+          "oklch(26.43% 0.0303 130.03)",
+          "oklch(37.86% 0.0303 130.03)",
+          "oklch(49.29% 0.0303 130.03)",
+          "oklch(60.71% 0.0303 130.03)",
+          "oklch(72.14% 0.0303 130.03)",
+          "oklch(83.57% 0.0303 130.03)",
+          "oklch(95% 0.0303 130.03)"
+        ]
+      },
+      "low-end": {
+        "role": "tertiary",
+        "displayName": "Low End",
+        "tonalRamp": [
+          "oklch(15% 0.0757 127.49)",
+          "oklch(26.43% 0.0757 127.49)",
+          "oklch(37.86% 0.0757 127.49)",
+          "oklch(49.29% 0.0757 127.49)",
+          "oklch(60.71% 0.0757 127.49)",
+          "oklch(72.14% 0.0757 127.49)",
+          "oklch(83.57% 0.0757 127.49)",
+          "oklch(95% 0.0757 127.49)"
+        ]
+      },
+      "eastside": {
+        "role": "tertiary",
+        "displayName": "Eastside",
+        "tonalRamp": [
+          "oklch(15% 0.0522 231.14)",
+          "oklch(26.43% 0.0522 231.14)",
+          "oklch(37.86% 0.0522 231.14)",
+          "oklch(49.29% 0.0522 231.14)",
+          "oklch(60.71% 0.0522 231.14)",
+          "oklch(72.14% 0.0522 231.14)",
+          "oklch(83.57% 0.0522 231.14)",
+          "oklch(95% 0.0522 231.14)"
+        ]
+      },
+      "old-town": {
+        "role": "tertiary",
+        "displayName": "Old Town",
+        "tonalRamp": [
+          "oklch(15% 0.0785 57.19)",
+          "oklch(26.43% 0.0785 57.19)",
+          "oklch(37.86% 0.0785 57.19)",
+          "oklch(49.29% 0.0785 57.19)",
+          "oklch(60.71% 0.0785 57.19)",
+          "oklch(72.14% 0.0785 57.19)",
+          "oklch(83.57% 0.0785 57.19)",
+          "oklch(95% 0.0785 57.19)"
+        ]
+      },
+      "heights": {
+        "role": "tertiary",
+        "displayName": "Heights",
+        "tonalRamp": [
+          "oklch(15% 0.0658 304.48)",
+          "oklch(26.43% 0.0658 304.48)",
+          "oklch(37.86% 0.0658 304.48)",
+          "oklch(49.29% 0.0658 304.48)",
+          "oklch(60.71% 0.0658 304.48)",
+          "oklch(72.14% 0.0658 304.48)",
+          "oklch(83.57% 0.0658 304.48)",
+          "oklch(95% 0.0658 304.48)"
+        ]
+      },
+      "downtown": {
+        "role": "tertiary",
+        "displayName": "Downtown",
+        "tonalRamp": [
+          "oklch(15% 0.0764 351.54)",
+          "oklch(26.43% 0.0764 351.54)",
+          "oklch(37.86% 0.0764 351.54)",
+          "oklch(49.29% 0.0764 351.54)",
+          "oklch(60.71% 0.0764 351.54)",
+          "oklch(72.14% 0.0764 351.54)",
+          "oklch(83.57% 0.0764 351.54)",
+          "oklch(95% 0.0764 351.54)"
+        ]
+      },
+      "millionaire-row": {
+        "role": "tertiary",
+        "displayName": "Millionaire Row",
+        "tonalRamp": [
+          "oklch(15% 0.0884 94.87)",
+          "oklch(26.43% 0.0884 94.87)",
+          "oklch(37.86% 0.0884 94.87)",
+          "oklch(49.29% 0.0884 94.87)",
+          "oklch(60.71% 0.0884 94.87)",
+          "oklch(72.14% 0.0884 94.87)",
+          "oklch(83.57% 0.0884 94.87)",
+          "oklch(95% 0.0884 94.87)"
+        ]
+      },
+      "modal": {
+        "role": "neutral",
+        "displayName": "Modal",
+        "tonalRamp": [
+          "oklch(15% 0.0248 144.92)",
+          "oklch(26.43% 0.0248 144.92)",
+          "oklch(37.86% 0.0248 144.92)",
+          "oklch(49.29% 0.0248 144.92)",
+          "oklch(60.71% 0.0248 144.92)",
+          "oklch(72.14% 0.0248 144.92)",
+          "oklch(83.57% 0.0248 144.92)",
+          "oklch(95% 0.0248 144.92)"
+        ]
+      },
+      "modal-border": {
+        "role": "neutral",
+        "displayName": "Modal Border",
+        "tonalRamp": [
+          "oklch(15% 0.0718 133.15)",
+          "oklch(26.43% 0.0718 133.15)",
+          "oklch(37.86% 0.0718 133.15)",
+          "oklch(49.29% 0.0718 133.15)",
+          "oklch(60.71% 0.0718 133.15)",
+          "oklch(72.14% 0.0718 133.15)",
+          "oklch(83.57% 0.0718 133.15)",
+          "oklch(95% 0.0718 133.15)"
+        ]
+      },
+      "card-good": {
+        "role": "neutral",
+        "displayName": "Card Good",
+        "tonalRamp": [
+          "oklch(15% 0.0872 121.72)",
+          "oklch(26.43% 0.0872 121.72)",
+          "oklch(37.86% 0.0872 121.72)",
+          "oklch(49.29% 0.0872 121.72)",
+          "oklch(60.71% 0.0872 121.72)",
+          "oklch(72.14% 0.0872 121.72)",
+          "oklch(83.57% 0.0872 121.72)",
+          "oklch(95% 0.0872 121.72)"
+        ]
+      },
+      "card-bad": {
+        "role": "neutral",
+        "displayName": "Card Bad",
+        "tonalRamp": [
+          "oklch(15% 0.0645 51.43)",
+          "oklch(26.43% 0.0645 51.43)",
+          "oklch(37.86% 0.0645 51.43)",
+          "oklch(49.29% 0.0645 51.43)",
+          "oklch(60.71% 0.0645 51.43)",
+          "oklch(72.14% 0.0645 51.43)",
+          "oklch(83.57% 0.0645 51.43)",
+          "oklch(95% 0.0645 51.43)"
+        ]
+      },
+      "error-surface": {
+        "role": "neutral",
+        "displayName": "Error Surface",
+        "tonalRamp": [
+          "oklch(15% 0.0349 46.55)",
+          "oklch(26.43% 0.0349 46.55)",
+          "oklch(37.86% 0.0349 46.55)",
+          "oklch(49.29% 0.0349 46.55)",
+          "oklch(60.71% 0.0349 46.55)",
+          "oklch(72.14% 0.0349 46.55)",
+          "oklch(83.57% 0.0349 46.55)",
+          "oklch(95% 0.0349 46.55)"
+        ]
+      },
+      "error-text": {
+        "role": "neutral",
+        "displayName": "Error Text",
+        "tonalRamp": [
+          "oklch(15% 0.0424 54.37)",
+          "oklch(26.43% 0.0424 54.37)",
+          "oklch(37.86% 0.0424 54.37)",
+          "oklch(49.29% 0.0424 54.37)",
+          "oklch(60.71% 0.0424 54.37)",
+          "oklch(72.14% 0.0424 54.37)",
+          "oklch(83.57% 0.0424 54.37)",
+          "oklch(95% 0.0424 54.37)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Board display",
+        "purpose": "Stacked board brand; reduces during play and on smaller screens."
+      },
+      "headline": {
+        "displayName": "Decision headline",
+        "purpose": "Primary decision headings."
+      },
+      "title": {
+        "displayName": "Panel title",
+        "purpose": "Secondary condensed headings."
+      },
+      "body": {
+        "displayName": "Interface body",
+        "purpose": "Root interface family; panel copy uses contextual smaller sizes."
+      },
+      "label": {
+        "displayName": "Tracked label",
+        "purpose": "Field labels and metadata."
+      },
+      "button": {
+        "displayName": "Action text",
+        "purpose": "Room and turn controls."
+      }
+    },
+    "shadows": [
+      {
+        "name": "board",
+        "value": "0 17px 32px #0c120f66",
+        "purpose": "Cabinet separation"
+      },
+      {
+        "name": "token",
+        "value": "0 2px 3px #15221460",
+        "purpose": "Occupant marker"
+      },
+      {
+        "name": "dice",
+        "value": "0 3px 5px #111a1160",
+        "purpose": "Dice object"
+      },
+      {
+        "name": "street-card",
+        "value": "0 9px 18px #11181166",
+        "purpose": "Printed outcome card"
+      },
+      {
+        "name": "toast",
+        "value": "0 8px 20px #10151070",
+        "purpose": "Temporary status"
+      },
+      {
+        "name": "modal",
+        "value": "0 24px 80px #0009",
+        "purpose": "Decision interruption"
+      },
+      {
+        "name": "roulette",
+        "value": "0 7px 22px #10180b90",
+        "purpose": "Wheel object"
+      }
+    ],
+    "motion": [
+      {
+        "name": "control-transition",
+        "value": ".15s ease",
+        "purpose": "Background, color, and opacity changes"
+      },
+      {
+        "name": "dice-rattle",
+        "value": ".6s ease-out",
+        "purpose": "Dice roll feedback"
+      },
+      {
+        "name": "modal-entry",
+        "value": ".25s ease-out",
+        "purpose": "Opacity .6 to 1 and translateY 10px to 0"
+      },
+      {
+        "name": "waiting-pulse",
+        "value": "1.4s infinite",
+        "purpose": "Opacity pulse with .15s stagger"
+      },
+      {
+        "name": "roulette-spin",
+        "value": "2.5s cubic-bezier(0.1, 0.8, 0.16, 1)",
+        "purpose": "Decelerating result reveal"
+      },
+      {
+        "name": "reduced-motion",
+        "value": "(prefers-reduced-motion: reduce)",
+        "purpose": "Disable CSS animations and transitions; use automatic scrolling. The 2.6-second roulette result gate remains."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "wide-cabinet",
+        "value": "1500px"
+      },
+      {
+        "name": "compact-desktop",
+        "value": "1180px"
+      },
+      {
+        "name": "two-column",
+        "value": "980px"
+      },
+      {
+        "name": "controls-first-mobile",
+        "value": "720px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary action",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The cabinet\u2019s main room or turn action.",
+      "html": "<button class=\"ds-button ds-primary\">Create a private room <span aria-hidden=\"true\">\u2192</span></button>",
+      "css": ".ds-button{display:flex;align-items:center;justify-content:space-between;gap:9px;width:100%;min-height:45px;padding:12px 13px;font-family:\"Barlow\",sans-serif;font-size:12px;font-weight:600;border-radius:5px;cursor:pointer;transition:background .15s ease,color .15s ease,opacity .15s ease}.ds-button:disabled{opacity:.42;cursor:not-allowed}.ds-button:focus-visible{outline:2px solid var(--lime,#c6ed72);outline-offset:4px;}@media(prefers-reduced-motion:reduce){.ds-button{transition:none}}.ds-primary{background:var(--lime,#c6ed72);border:1px solid var(--lime,#c6ed72);color:#1c2b19}.ds-primary:hover:not(:disabled){background:#d8f899}"
+    },
+    {
+      "name": "Secondary action",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "A supporting or alternate game action.",
+      "html": "<button class=\"ds-button ds-secondary\">Keep my cash <span aria-hidden=\"true\">\u2192</span></button>",
+      "css": ".ds-button{display:flex;align-items:center;justify-content:space-between;gap:9px;width:100%;min-height:45px;padding:12px 13px;font-family:\"Barlow\",sans-serif;font-size:12px;font-weight:600;border-radius:5px;cursor:pointer;transition:background .15s ease,color .15s ease,opacity .15s ease}.ds-button:disabled{opacity:.42;cursor:not-allowed}.ds-button:focus-visible{outline:2px solid var(--lime,#c6ed72);outline-offset:4px;}@media(prefers-reduced-motion:reduce){.ds-button{transition:none}}.ds-secondary{background:transparent;border:1px solid #52634b;color:#d6e0cb}.ds-secondary:hover:not(:disabled){background:#354630}"
+    },
+    {
+      "name": "Danger action",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "A consequential action paired with explanatory copy.",
+      "html": "<button class=\"ds-button ds-danger\">Challenge to a shootout <span aria-hidden=\"true\">\u2192</span></button>",
+      "css": ".ds-button{display:flex;align-items:center;justify-content:space-between;gap:9px;width:100%;min-height:45px;padding:12px 13px;font-family:\"Barlow\",sans-serif;font-size:12px;font-weight:600;border-radius:5px;cursor:pointer;transition:background .15s ease,color .15s ease,opacity .15s ease}.ds-button:disabled{opacity:.42;cursor:not-allowed}.ds-button:focus-visible{outline:2px solid var(--lime,#c6ed72);outline-offset:4px;}@media(prefers-reduced-motion:reduce){.ds-button{transition:none}}.ds-danger{background:#ecaa7c;border:1px solid #ecaa7c;color:#30251e}.ds-danger:hover:not(:disabled){filter:brightness(1.1)}"
+    },
+    {
+      "name": "Room field",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "Tracked room code input with a visible label.",
+      "html": "<label class=\"ds-label\" for=\"ds-code\">ROOM CODE</label><input class=\"ds-field\" id=\"ds-code\" placeholder=\"ABC123\" maxlength=\"6\" />",
+      "css": ".ds-label{display:block;margin-bottom:8px;color:#b7c5ab;font-family:\"Barlow\",sans-serif;font-size:9px;font-weight:600;letter-spacing:.1em}.ds-field{width:100%;min-height:45px;padding:13px 12px;background:#171e19;border:1px solid #465043;border-radius:6px;color:#f0f2e8;font-family:\"Barlow\",sans-serif;font-size:12px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;transition:background .15s ease,color .15s ease,opacity .15s ease}.ds-field::placeholder{color:#a7afa2}.ds-field:focus-visible{outline:2px solid var(--lime,#c6ed72);outline-offset:2px}@media(prefers-reduced-motion:reduce){.ds-field{transition:none}}"
+    },
+    {
+      "name": "Action navigation",
+      "kind": "nav",
+      "refersTo": "action-panel",
+      "description": "Three native button tabs for turn, turf, and trade.",
+      "html": "<nav class=\"ds-tabs\" aria-label=\"Game panel\"><button class=\"ds-tab ds-current\">The move</button><button class=\"ds-tab\">My turf <span>2</span></button><button class=\"ds-tab\">Trade</button></nav>",
+      "css": ".ds-tabs{display:flex;gap:15px;border-bottom:1px solid #42513a}.ds-tab{position:relative;display:flex;align-items:center;gap:4px;padding:0 0 13px;background:none;border:0;color:#b5c3aa;font-family:\"Barlow\",sans-serif;font-size:11px;white-space:nowrap;cursor:pointer}.ds-current{color:var(--lime,#c6ed72)}.ds-current:after{content:\"\";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--lime,#c6ed72)}.ds-tab span{padding:1px 4px;border-radius:3px;background:#37482e;color:#d4e3c4;font-size:8px}.ds-tab:hover{filter:brightness(1.1)}.ds-tab:focus-visible{outline:2px solid var(--lime,#c6ed72);outline-offset:4px;}"
+    },
+    {
+      "name": "Crew badge",
+      "kind": "chip",
+      "refersTo": "crew-card",
+      "description": "Circular crew identity that combines color and symbol.",
+      "html": "<span class=\"ds-crew-mark\" aria-label=\"Grove Collective\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m2 8 3 12h14l3-12-6 5-4-10-4 10-6-5Z\"/><path d=\"M5 21h14\"/></svg></span>",
+      "css": ".ds-crew-mark{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;color:var(--lime,#c6ed72);background:color-mix(in srgb,var(--lime,#c6ed72) 12%,#202722);border:1px solid color-mix(in srgb,var(--lime,#c6ed72) 45%,#202722);border-radius:50%}"
+    },
+    {
+      "name": "Active crew card",
+      "kind": "card",
+      "refersTo": "crew-card",
+      "description": "The current player\u2019s roster surface and cash balance.",
+      "html": "<article class=\"ds-crew-card\"><div class=\"ds-crew-name\">Your crew<small>Grove Collective</small></div><strong>$1,500</strong><span class=\"ds-in-play\">IN PLAY</span></article>",
+      "css": ".ds-crew-card{position:relative;padding:15px 13px 13px;background:#253024;border:1px solid var(--lime,#c6ed72);border-radius:7px;color:#edf0e6;font-family:\"Barlow\",sans-serif}.ds-crew-name{font-size:13px;font-weight:600;line-height:1.1}.ds-crew-name small{display:block;margin-top:5px;color:#a8b29f;font-size:10px;font-weight:400}.ds-crew-card strong{display:block;margin-top:13px;font-size:18px;font-weight:600;letter-spacing:-.02em}.ds-in-play{position:absolute;right:11px;bottom:11px;color:var(--lime,#c6ed72);font-size:8px;letter-spacing:.1em}"
+    },
+    {
+      "name": "Selected property tile",
+      "kind": "custom",
+      "refersTo": "board-tile-selected",
+      "description": "A district-coded board button with explicit selected state.",
+      "html": "<button class=\"ds-tile\" aria-label=\"Grove Street, $120\"><span class=\"ds-stripe\"></span><span class=\"ds-tile-name\">Grove Street</span><span class=\"ds-price\">$120</span></button>",
+      "css": ".ds-tile{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;width:88px;height:88px;padding:15px 3px 5px;background:#e1e6cc;border:1px solid #5a6854;border-radius:2px;color:#263326;font-family:\"Barlow\",sans-serif;outline:2px solid var(--lime,#c6ed72);outline-offset:0;cursor:pointer;transition:background .15s ease}.ds-stripe{position:absolute;left:0;right:0;top:0;height:14%;background:#a3ba86}.ds-tile-name{max-width:95%;font-size:12px;font-weight:700;line-height:1.15;text-align:center}.ds-price{font-size:10px;font-weight:500;line-height:1.05}.ds-tile:hover{background:#e0e3cf}.ds-tile:focus-visible{outline:2px solid var(--lime,#c6ed72);outline-offset:4px;}@media(prefers-reduced-motion:reduce){.ds-tile{transition:none}}"
+    },
+    {
+      "name": "Street luck card",
+      "kind": "card",
+      "refersTo": "action-panel",
+      "description": "A printed outcome surface with a direct consequence.",
+      "html": "<article class=\"ds-street-card\"><span>STREET LUCK</span><h2>The block pays back</h2><p>Your pop-up sold out. Collect $250.</p></article>",
+      "css": ".ds-street-card{position:relative;max-width:240px;min-height:285px;margin:8px;padding:24px 20px;background:#c1d494;border:2px solid #d8e5b6;border-radius:9px;color:#24351d;box-shadow:0 9px 18px #11181166;transform:rotate(-2deg);font-family:\"Barlow\",sans-serif}.ds-street-card>span{display:block;margin-bottom:18px;font-size:9px;font-weight:600;letter-spacing:.15em}.ds-street-card h2{margin:0;font-family:\"Barlow Condensed\",sans-serif;font-size:38px;font-weight:700;line-height:1.02;letter-spacing:-.015em}.ds-street-card p{max-width:180px;margin:15px 0 0;color:#304525;font-size:12px;line-height:1.55}"
+    },
+    {
+      "name": "Decision dialog",
+      "kind": "custom",
+      "refersTo": "modal",
+      "description": "The bordered dark surface for rules, roulette, and duel decisions.",
+      "html": "<section class=\"ds-modal\" aria-label=\"Street rules\"><h2>Street rules</h2><p>Claim your blocks. Collect the rent. Keep your crew in play.</p><button class=\"ds-button ds-primary\">Let\u2019s play <span aria-hidden=\"true\">\u2192</span></button></section>",
+      "css": ".ds-button{display:flex;align-items:center;justify-content:space-between;gap:9px;width:100%;min-height:45px;padding:12px 13px;font-family:\"Barlow\",sans-serif;font-size:12px;font-weight:600;border-radius:5px;cursor:pointer;transition:background .15s ease,color .15s ease,opacity .15s ease}.ds-button:disabled{opacity:.42;cursor:not-allowed}.ds-button:focus-visible{outline:2px solid var(--lime,#c6ed72);outline-offset:4px;}@media(prefers-reduced-motion:reduce){.ds-button{transition:none}}.ds-modal{max-width:490px;padding:28px;background:#253025;border:1px solid #637d51;border-radius:10px;color:#edf0e6;box-shadow:0 24px 80px #0009;font-family:\"Barlow\",sans-serif}.ds-modal h2{margin:0 0 20px;font-family:\"Barlow Condensed\",sans-serif;font-size:42px;font-weight:700;line-height:1.02;letter-spacing:-.015em}.ds-modal p{margin:0 0 20px;color:#c0d0b3;font-size:12px;line-height:1.6}.ds-primary{background:var(--lime,#c6ed72);border:1px solid var(--lime,#c6ed72);color:#1c2b19}.ds-primary:hover:not(:disabled){background:#d8f899}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Street game cabinet",
+    "overview": "This documents the implemented direction recorded in `index.html`: a street game table where land, luck, and duels meet. Dark asphalt surfaces surround a pale square board, painted district strips, condensed sporting type, lime controls, and an original isometric city. The cabinet carries the visual identity; the room and turn controls make the game playable.\n\nThe interface is dense around the board and more spacious around consequential actions. Friendly crew symbols and muted city colors give the original setting character without making players decode decoration. This is a record of the built system under the user's creative liberty. No approved visual comparisons, reference images, or image-generation assets were supplied.",
+    "keyCharacteristics": [
+      "Asphalt and olive surfaces with pale, readable board pieces.",
+      "Condensed display type paired with direct, compact interface text.",
+      "Lime action and focus treatments; crew and district colors carry game meaning.",
+      "An authored vector city inside a real, interactive perimeter board.",
+      "Responsive controls-first play and explicit keyboard focus."
+    ],
+    "rules": [
+      {
+        "name": "The Ownership Rule",
+        "body": "Keep district and crew identity separate: a property's upper strip shows its district, its bottom strip shows its owner, and its circular tokens show occupants.",
+        "section": "colors"
+      }
+    ],
+    "dos": [
+      "**Do** preserve the square perimeter board and the original city at its center.",
+      "**Do** retain controls-first mobile presentation and focus the selected property detail.",
+      "**Do** pair district and crew colors with names, symbols, strips, or explicit text.",
+      "**Do** keep native keyboard activation, visible focus, dialog focus handling, and polite game announcements.",
+      "**Do** self-host the existing Barlow families and honor reduced motion.",
+      "**Do** state game consequences beside risky actions and outcomes."
+    ],
+    "donts": [
+      "**Don't** reuse the district strip to imply ownership; the bottom owner bar has that job.",
+      "**Don't** turn compact board metadata into primary instruction text.",
+      "**Don't** remove disabled, selected, mortgaged, occupied, or eliminated state distinctions.",
+      "**Don't** claim approved visual references or generated imagery that do not exist.",
+      "**Don't** replace the authored city or crew identities with copied franchise artwork."
+    ]
+  }
+}
