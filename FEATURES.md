@@ -2,20 +2,20 @@
 
 The comparison uses Richup’s public room settings and its official release notes, checked on 14 October 2026. This is an original implementation with its own board, art, economy, cards, and shootouts. The table records observable feature families rather than claiming identical rules or the same commercial service.
 
-| Richup feature family                        | Spin the Block implementation                                                                                                                                     |
-| -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Public/private rooms, 2–8 players, bot seats | Public directory, quick play, private invite links, 2–8 seats, bot autofill, solo with 1–7 opponents                                                              |
-| Maps and house rules                         | Two 40-square city maps; configurable starting cash, doubles, auctioning, mortgages, prison rent, even building, community payouts, order and capacity            |
-| Property, utility and transport economy      | Eight districts, four transit lines, two utilities, four houses plus hotel, auctioning and mortgage/redeem                                                        |
-| Trading                                      | Atomic offers containing multiple properties, cash in both directions, and escape cards; rescue gifts; fair-value checks during rent debt                         |
-| Team alliances                               | Up to four named teams, no allied rent, shared district/transit/utility sets, teammate inheritance and server-filtered team chat                                  |
-| Turn clock                                   | Free thinking time plus personal reserve, debt extension, donated minutes, idle elimination and disconnect pause                                                  |
-| Chat and spectators                          | Global/team chat, readable spectator seats, per-profile mute/block, rate limits and saved reports                                                                 |
-| Friends and account-only rooms               | Guest profiles, optional username/password accounts, friend requests, online status, invitations, registered-only room setting                                    |
-| Statistics and history                       | Online wins/games, completion count, separate practice wins, leaderboard, last 30 games, participant-only private histories                                       |
-| Appearance/store                             | Six token appearances unlocked with earned respect. No payment processing, PayPal store, purchased currency, arbitrary avatar uploads, or copied Richup assets    |
-| Animation and ownership inspection           | Authored SVG city, walking tokens, roster hover highlights, selectable square details, reduced-motion support                                                     |
-| Added street mechanics                       | Rent-debt tactical 1v1 shootout, weighted roulette, three equal-odds Oppa Stoppa spins feeding a shared Community Plot, unlimited last-crew/team-standing default |
+| Richup feature family                        | Spin the Block implementation                                                                                                                                         |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Public/private rooms, 2–8 players, bot seats | Public directory, quick play, private invite links, 2–8 seats, bot autofill, solo with 1–7 opponents                                                                  |
+| Maps and house rules                         | Two 40-square city maps; configurable starting cash, doubles, auctioning, mortgages, prison rent, even building, community payouts, order and capacity                |
+| Property, utility and transport economy      | Eight districts, four transit lines, two utilities, four houses plus hotel, auctioning and mortgage/redeem                                                            |
+| Trading                                      | Atomic offers containing multiple properties, cash in both directions, and escape cards; rescue gifts; fair-value checks during rent debt                             |
+| Team alliances                               | Up to four named teams, no allied rent, shared district/transit/utility sets, teammate inheritance and server-filtered team chat                                      |
+| Turn clock                                   | Free thinking time plus personal reserve, debt extension, donated minutes, idle elimination and disconnect pause                                                      |
+| Chat and spectators                          | Global/team chat, readable spectator seats, per-profile mute/block, rate limits and saved reports                                                                     |
+| Friends and account-only rooms               | Guest profiles, optional username/password accounts, friend requests, online status, invitations, registered-only room setting                                        |
+| Statistics and history                       | Online wins/games, completion count, separate practice wins, leaderboard, last 30 games, participant-only private histories                                           |
+| Appearance/store                             | Six token appearances unlocked with earned respect. No payment processing, PayPal store, purchased currency, arbitrary avatar uploads, or copied Richup assets        |
+| Animation and ownership inspection           | Authored SVG city, walking tokens, roster hover highlights, selectable square details, reduced-motion support                                                         |
+| Added street mechanics                       | Rent-debt first-person 1v1 shootout, weighted roulette, three equal-odds Oppa Stoppa spins feeding a shared Community Plot, unlimited last-crew/team-standing default |
 
 Primary references:
 
@@ -34,7 +34,7 @@ This release does not provide payment commerce, email verification/recovery, upl
 
 ## Verification
 
-CI runs lint, Node engine/profile/multiplayer tests with coverage, production build, and nine Chromium browser tests. Game tests exercise legacy preservation, 40-space geometry, optional limits, cash conservation, auctions, team ownership/inheritance, fair trades, human timeouts, secret choices, and seeded full-match simulations. Integration tests exercise real sockets, origin rejection, private/public discovery, capacity, bot filling, team-chat secrecy, spectators, profile preferences, and restart recovery. Browser tests exercise desktop/mobile room play, roulette, shootouts, solo opponents, house settings, Oppa Stoppa, auctions, team chat, cosmetics, and account sign-in.
+CI runs lint, Node engine/profile/multiplayer tests with coverage, production build, and 13 Chromium browser tests. Game tests exercise legacy preservation, 40-space geometry, optional limits, cash conservation, auctions, team ownership/inheritance, fair trades, human timeouts, secret choices, and seeded full-match simulations. Integration tests exercise real sockets, origin rejection, private/public discovery, capacity, bot filling, team-chat secrecy, spectators, profile preferences, and restart recovery. Browser tests exercise desktop/mobile room play, roulette, shootouts, solo opponents, house settings, Oppa Stoppa, auctions, team chat, cosmetics, and account sign-in.
 
 ## Accounts and cities
 
@@ -44,3 +44,9 @@ CI runs lint, Node engine/profile/multiplayer tests with coverage, production bu
 - Verified Map Studio: up to ten saved maps, 40 square names, eight district names/colors, and card/roulette/Oppa Stoppa event placement.
 - Owner-only map editing and server-side selection permissions; guests can join custom cities.
 - Immutable room maps, including rematches, even after the source map is edited or deleted.
+
+## First-person shootouts and readable board pieces
+
+New challenges use an authoritative 2D first-person alley duel with ready/countdown, aiming, dodge lanes, duck cover, head/body hit boxes, six-round magazines, reloads, health, a 30-second cap, bots, pause/recovery, and spectator restrictions. An exact timed tie protects the landlord; no hidden coin toss. Saved tactic duels remain compatible.
+
+Ownership has a named crew badge and explicit mortgage state. Larger illustrated hooded crew figures, house counts, and hotel silhouettes remain readable on the detailed mobile board. Stacks show a primary piece and count; the property panel lists every resident crew. Earned token emblems remain visible.

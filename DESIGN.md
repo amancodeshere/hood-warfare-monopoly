@@ -88,6 +88,10 @@ colors:
   studio-meta: "#b7bfa7"
   studio-footer: "#202b23"
   studio-essential: "#b6b6a6"
+  street-outline: "#101814"
+  street-skin: "#a67857"
+  street-chain: "#e2c76e"
+  alley-backdrop: "#26372d"
 typography:
   display:
     fontFamily: '"Barlow Condensed", sans-serif'
@@ -221,6 +225,32 @@ typography:
     fontFamily: '"Barlow Condensed", sans-serif'
     fontSize: "24px"
     fontWeight: 700
+  shootout-message:
+    fontFamily: '"Barlow Condensed", sans-serif'
+    fontSize: "36px"
+    lineHeight: "1.1"
+  shootout-message-mobile:
+    fontFamily: '"Barlow Condensed", sans-serif'
+    fontSize: "26px"
+    lineHeight: "1.1"
+  shootout-countdown:
+    fontFamily: '"Barlow Condensed", sans-serif'
+    fontSize: "90px"
+  shootout-stakes-mobile:
+    fontFamily: '"Barlow Condensed", sans-serif'
+    fontSize: "20px"
+  shootout-ammo-mobile:
+    fontFamily: '"Barlow Condensed", sans-serif'
+    fontSize: "22px"
+  board-small:
+    fontFamily: '"Barlow", sans-serif'
+    fontSize: "7px"
+  board-overview-label:
+    fontFamily: '"Barlow", sans-serif'
+    fontSize: "5px"
+  board-overview-count:
+    fontFamily: '"Barlow", sans-serif'
+    fontSize: "6px"
 rounded:
   tile: "2px"
   compact-chip: "3px"
@@ -301,6 +331,12 @@ components:
   studio-row:
     backgroundColor: "{colors.studio-row}"
     padding: "8px"
+  ownership-badge:
+    backgroundColor: "var(--owner)"
+    textColor: "{colors.ink}"
+    padding: "2px"
+  shootout-arena:
+    backgroundColor: "{colors.alley-backdrop}"
   entry-field:
     backgroundColor: "{colors.entry-field}"
     textColor: "{colors.entry-paper}"
@@ -314,7 +350,7 @@ components:
 
 **Creative North Star: "Street game cabinet"**
 
-This documents the implemented direction recorded in `index.html`: a street game table where land, luck, and duels meet. Dark asphalt surfaces surround a pale square board, painted district strips, condensed sporting type, lime controls, and an original isometric city. The cabinet carries the visual identity; the room and turn controls make the game playable. The expanded board, eight crews, and supporting settings, room, social, and profile panels continue this same world. The login front desk, six-city collection, and personal Map Studio extend the same street table: an authored city welcomes the player, painted district swatches distinguish maps, and compact editing rows make the board personal.
+This documents the implemented direction recorded in `index.html`: a street game table where land, luck, and duels meet. Dark asphalt surfaces surround a pale square board, painted district strips, condensed sporting type, lime controls, and an original isometric city. The cabinet carries the visual identity; the room and turn controls make the game playable. The expanded board, eight crews, and supporting settings, room, social, and profile panels continue this same world. Live first-person shootouts, original hooded crew figures, named ownership badges, and illustrated buildings bring the same street materials to combat and property play. The login front desk, six-city collection, and personal Map Studio extend the same street table: an authored city welcomes the player, painted district swatches distinguish maps, and compact editing rows make the board personal.
 
 The interface is dense around the board and more spacious around consequential actions. Friendly crew symbols and muted city colors give the original setting character without making players decode decoration. This is a record of the built system under the user's creative liberty. No approved visual comparisons, reference images, or image-generation assets were supplied.
 
@@ -325,6 +361,7 @@ The interface is dense around the board and more spacious around consequential a
 - Lime action and focus treatments; crew and district colors carry game meaning.
 - An authored vector city inside a real, interactive perimeter board.
 - Responsive controls-first play and explicit keyboard focus.
+- Original vector street figures and first-person alley art, with health, ammunition, ownership, and building states expressed in words.
 - A city-led entry, painted map collection, and practical editing surface within the incumbent identity.
 
 ## Colors
@@ -346,6 +383,8 @@ The palette combines desaturated street materials with clear painted accents. Fr
 
 ### Neutral
 
+- **Street Outline / Skin / Chain / Alley Backdrop:** Repeated source-authored figure and shootout materials. The dark outline makes silhouettes readable, the skin and chain accents give figures character, and the alley backdrop remains within the asphalt/olive world. The alley’s perspective faces, cover, gun metal, and muzzle flash use local illustration colors; they are artwork fills rather than new shared action or status colors.
+
 - **Asphalt / Panel / Action Panel / Crew Surface:** The page and functional surfaces. Active crews use a distinct olive surface and crew-colored border.
 - **Text / Muted / Line:** Primary text, lower-emphasis text, and structural separation.
 - **Field / Field Border / Field Text:** Editable room and trade values.
@@ -358,7 +397,7 @@ The palette combines desaturated street materials with clear painted accents. Fr
 
 The front desk intentionally extends the asphalt/olive family with Entry Asphalt, Entry World, and a restrained Entry Glow. Entry Paper warms the welcome lettering; Entry Copy, Support, Muted, and Tagline keep the supporting hierarchy within the same materials. Entry Field and its border are inset rather than floating. Entry Divider separates account choices. Map Card, Border, Copy, and Swatch frame painted city identities; selection reuses the existing Millionaire Row gold. Verified Text communicates a confirmed state alongside a check and explicit words. Studio Preview, Row, Meta, Footer, and Essential provide readable editing layers; Essential marks non-district spaces, while each property index uses its authored district color. These additions are deliberate surface roles, not a replacement palette. User-authored district colors are map data, not global UI tokens.
 
-**The Ownership Rule.** Keep district and crew identity separate: a property's upper strip shows its district, its bottom strip shows its owner, and its circular tokens show occupants.
+**The Ownership Rule.** Keep district and crew identity separate: a property's upper strip shows its district, its bottom strip shows its owner, and its hooded figures show occupants.
 
 ## Typography
 
@@ -373,10 +412,12 @@ Both families are self-hosted through local `@fontsource` package imports in `sr
 - **Body:** Barlow is the root family. Panel copy commonly uses 12px with 1.6–1.65 line height; mobile decision copy uses 13px. Paragraphs generally use 1.55 line height.
 - **Label:** Small uppercase labels, table metadata, and input headings use tracking. They supplement larger names and controls.
 - **Numbers:** Purchase prices and turn summaries use condensed type at 56px and 48px respectively; crew balances use Barlow at 18px.
-- **Tile text:** Board names and prices deliberately scale with the board; readable expanded property details accompany tile selection. On mobile the readable map uses 9px names and 7px prices; the full-map overview hides both. Do not use tile-sized text for primary instructions or actions.
+- **Tile text:** Board names and prices deliberately scale with the board; readable expanded property details accompany tile selection. On mobile the readable map uses 9px ordinary names and 7px prices; built or occupied names use 7–8px. The full-map overview suppresses prices and uses compact names where applicable. Do not use tile-sized text for primary instructions or actions.
 - **Expanded panels:** Form labels and chat messages use 14px Barlow; supporting rows and labels use 12–13px. Event explanations and disclosure summaries use 15px; appearance names use 16px. Chat and trade section headings use 30px condensed type; auction bids use 64px, Stoppa center numbers 40px, and Stoppa outcome titles 32px. Profile codes use 24px Barlow and statistics 28px. These are authored contextual exceptions, not replacements for the base hierarchy.
 
 - **Entry and maps:** The front desk display uses the entry-display role and its explicit mobile variant; its final desktop clamp ends at 88px. Entry branding uses 29px desktop and 23px mobile condensed type. Account headings use 48px desktop and 38px mobile. Introductory copy uses 17px desktop and 12px mobile; account copy is 13px on mobile. Verification titles use 25px; collection headings use 28px; map names use 21px desktop and 18px mobile; map descriptions and studio metadata use 11px. Studio section titles and preview names use 24px. Entry divider copy uses 10px and the small mobile brand tagline uses 8px; both are supplementary to visible headings and controls. The entry action overrides the shared button size to 14px.
+
+Shootout stakes use 24px condensed text (20px on mobile), the clock 32px (24px on mobile), and ammunition 28px (22px on mobile). Ready/result messages use 36px (26px on mobile), and the start countdown uses 90px with a 16px tracked caption. Live action labels finish at 11px on mobile, overriding the earlier 10px declaration. Owner names use 8px, owner state labels 5px, and mortgage state labels 7px; compact overview owner names use 5px and stack/build counts 6px. These small board labels supplement the full property panel and are not instruction typography.
 
 The one-time detector reported early entry sizes (a 112px clamp endpoint and 58px mobile display) from declarations superseded by the final cascade. Those are not active design tokens. The removed entry and collection eyebrow spans are not part of the built hierarchy.
 
@@ -388,7 +429,7 @@ The default board is an 11 × 11 CSS grid with a square aspect ratio. Its 40 pla
 
 At 980px and below, the crew list spans a row above a two-column board and action layout. The district key, sidebar tip, and add-seat rail control are hidden at this size. At 720px and below, the cabinet becomes a single column with **actions first, crews second, board third**. The header navigation hides; essential header actions remain. Mobile page padding is 20px 14px, the board frame uses 5px padding and a 2px gap, and primary buttons reach a 48px minimum height. The action panel has 25px padding. This order is visual CSS ordering; the document's underlying order remains crew, board, actions.
 
-At mobile sizes the board sits in a contained horizontal scrolling viewport with a 660px minimum board width, keeping street names legible without widening the page. A swipe hint and **See full map** control explain the interaction. The overview removes that minimum width and fits the whole square board, hides street names and prices, and uses smaller icons and tokens; **Explore readable streets** returns to the detailed map. Tile activation still opens the readable property detail in either mode. Overview brand sizes are 60px and 27px.
+At mobile sizes the board sits in a contained horizontal scrolling viewport with a 780px minimum board width, keeping street names legible without widening the page. A swipe hint and **See full map** control explain the interaction. The overview removes that minimum width and fits the whole square board, suppresses prices and reduces street names to compact supplementary labels, and uses smaller icons and 17 × 27px hooded figures; **Explore readable streets** returns to the detailed map. Tile activation still opens the readable property detail in either mode. Overview brand sizes are 60px and 27px.
 
 Expanded dialogs use the same 490px default width and 610px wide variant, constrained to the viewport and a 90dvh height with internal scrolling and contained overscroll. Settings fields and rule switches use two columns on desktop and one on mobile. Profile statistics use four columns on desktop and two on mobile. Room and social directory rows wrap their information above actions on mobile; chat history scrolls inside its bounded panel.
 
@@ -407,7 +448,9 @@ The entry city uses a static radial olive light within its flat world surface. M
 ### Shadow Vocabulary
 
 - **Board:** `0 17px 32px #0c120f66` beneath the cabinet.
-- **Token:** `0 2px 3px #15221460` beneath an occupant marker.
+- **Street figure:** `drop-shadow(0 2px 1px #10181460)` beneath the hooded SVG figure. The earlier circular marker shadow is superseded.
+- **Street building:** `drop-shadow(0 2px 1px #26332640)` under house and hotel art.
+- **Foreground pistol:** `drop-shadow(0 5px 4px #10181470)` inside the shootout viewport.
 - **Dice:** `0 3px 5px #111a1160` beneath the dice.
 - **Street card:** `0 9px 18px #11181166` beneath the tilted card.
 - **Toast:** `0 8px 20px #10151070` beneath the temporary status surface.
@@ -417,7 +460,7 @@ The entry city uses a static radial olive light within its flat world surface. M
 
 ## Shapes
 
-Use small radii for precise game surfaces and modest radii for larger containers: tiles are nearly square, controls are gently rounded, and the cabinet has a softer outer frame. The frontmatter captures observed radii, not a new abstract scale. Crew marks, tokens, dice pips, and the roulette and Stoppa wheels are circular. Auction participant chips and panel textareas use the compact 3px radius. The header mark is a pointed shield silhouette, the roulette pointer a clipped triangle, and duel score pips are skewed rectangles.
+Use small radii for precise game surfaces and modest radii for larger containers: tiles are nearly square, controls are gently rounded, and the cabinet has a softer outer frame. The frontmatter captures observed radii, not a new abstract scale. Crew marks, earned emblems, dice pips, and the roulette and Stoppa wheels are circular. Auction participant chips and panel textareas use the compact 3px radius. The header mark is a pointed shield silhouette, the roulette pointer a clipped triangle, and legacy saved tactic-duel score pips are skewed rectangles. Current board occupants have hooded SVG silhouettes; the shootout uses an alley perspective, a visible foreground pistol, and a matching armed rival.
 
 District strips and ownership bars stay flush to tile edges. Street cards tilt by −2 degrees; the board brand tilts by −5 degrees. These fixed poses communicate printed game material without moving the surrounding control layout.
 
@@ -445,7 +488,7 @@ Crew cards show the circular symbol, player name, crew name, cash, and property 
 
 ### Interactive Board / Property Details
 
-Tiles are native buttons with accessible names describing the block, price, and owner. Tab reaches them; Enter or Space selects them. Hover lightens a tile, selection adds a lime outline, the current player's block uses an occupied tone, and mortgaged land uses a muted tone and reduced name opacity. Occupant tokens hide the small price line and lift the title slightly to prevent overlap. When more than four occupants share a block, tokens become a four-column grid of 14px circles with 9px symbols and 1px gaps. The tile’s large symbol hides and its title moves above the tokens; the crew roster retains full identities. In mobile overview, ordinary tokens reduce to 12px, and crowded tokens become wrapping 7px dots without symbols. The property detail is a named region with a close control, a district-colored upper rule, stats, and conditionally enabled management buttons. Its programmatic focus has a lime outline with a 5px offset.
+Tiles are native buttons with accessible names describing the block, price, and owner. Tab reaches them; Enter or Space selects them. Hover lightens a tile, selection adds a lime outline, the current player's block uses an occupied tone, and mortgaged land uses a muted tone and reduced name opacity. Occupants use original 25 × 40px hooded figures with crew or equipped appearance color. Earned cosmetic emblems appear as small outlined badges on the figure. The final layout shows one primary figure per occupied block; a +count indicates additional residents, including two-player stacks. Prices hide beneath occupied pieces, and names align to a reserved text column instead of being covered. Mobile overview reduces the figure to 17 × 27px, removes the cosmetic emblem, and keeps the count. A piece legend explains the visual vocabulary. Selecting the square reveals every resident as a named figure in a wrapping list; ownership is separate from residence. An explicit bottom badge shows OWNED, YOU OWN, or MORTGAGED and the owner’s name, with an owner-colored inset tile outline. Mortgage badges use a neutral dark fill and light text. Buildings show one large illustrated house with ×count for levels 1–4, or distinct hotel art and HOTEL for level 5. The property owner summary repeats the full owner name, mortgage/building information, and building art. The property detail is a named region with a close control, a district-colored upper rule, stats, and conditionally enabled management buttons. Its programmatic focus has a lime outline with a 5px offset.
 
 ### Street Cards / Activity / Feedback
 
@@ -453,7 +496,15 @@ Street cards are pale, slightly tilted printed surfaces with an icon, condensed 
 
 ### Dialogs / Roulette / Duels
 
-Dialogs are labelled modal regions. They receive initial focus, loop Tab and Shift+Tab among controls, support Escape when a close callback exists, and restore the previously focused element on unmount. Rules are dismissible; active roulette and duel decisions are resolved through their game actions. Roulette is a labelled radial game object with a pointer and explicit outcome caption. Duels use named crew emblems, score pips, and three native tactic buttons with descriptions of their relationships.
+Dialogs are labelled modal regions. They receive initial focus, loop Tab and Shift+Tab among controls, support Escape when a close callback exists, and restore the previously focused element on unmount. Rules are dismissible; active roulette and duel decisions are resolved through their game actions. Roulette is a labelled radial game object with a pointer and explicit outcome caption. Saved legacy tactic duels retain named crew emblems, score pips, and three native tactic buttons. Current rent duels use the live first-person shootout pattern below.
+
+### Live First-Person Shootout
+
+The wide decision dialog keeps rent stakes above two crew-colored native health meters with numeric HP and a central timer. The arena is an original SVG alley, an armed hooded opponent, a crosshair, and a foreground pistol. Desktop uses a 16:9 arena; mobile uses 4:3. Ready and result screens place readable copy and a primary action over the arena, while a large countdown introduces live play. The Ready copy explains the rent and forfeiture stakes before either player commits.
+
+Pointer aim and click/tap fire coexist with native Dodge left, Duck, Dodge right, Reload, Fire, and four directional aiming buttons. Live controls have a 44px minimum height; the smaller aim adjustments have 32px minimum height. The final mobile action labels are 11px. A/D dodge, S centers, Space ducks, R reloads, and Enter fires at the crosshair; labelled buttons remain available for keyboard aiming. Inactive, reloading, cover, cooldown, and empty-ammunition states disable the relevant controls. Ammo, IN COVER, RELOADING, HIT, HEADSHOT, and MISSED use explicit words beside the visual feedback. Both health and the 30-second limit are visible; exact ties protect the landlord, and the ready deadline is explained in the help copy. Spectators receive the challenger view and named health bars without playable controls.
+
+The HUD stays inside the arena; controls wrap below it. Cover raises an opaque foreground ledge, firing briefly moves the pistol and flashes, hit/miss marks expire, and incoming damage outlines the arena. These signals belong to the game state, not ambient decoration. Keep the existing modal focus handling and visible focus treatment; avoid announcing every clock tick through the global status region.
 
 ### Expanded Panels / Settings / Social
 
@@ -481,9 +532,9 @@ The editor is a labelled wide dialog with the incumbent focus loop, Escape and f
 
 ### Motion and Assets
 
-Control state transitions use 0.15s ease. Dice rattle lasts 0.6s ease-out; modal entry lasts 0.25s ease-out; waiting dots pulse over 1.4s with staggered delays. Token arrival uses a 0.14s ease-out settle; movement advances through board positions every 45ms. Oppa Stoppa turns over 1.75s with `cubic-bezier(0.16, 1, 0.3, 1)`. The wheel decelerates over 2.5s using `cubic-bezier(0.1, 0.8, 0.16, 1)`. The reduced-motion media query disables all CSS animations and transitions and uses automatic scrolling. The roulette result still waits for its existing 2.6-second result gate; the preference removes visual movement, not game timing.
+Control state transitions use 0.15s ease. Dice rattle lasts 0.6s ease-out; modal entry lasts 0.25s ease-out; waiting dots pulse over 1.4s with staggered delays. The current hooded figures explicitly disable the former 0.14s token-arrival animation; movement advances through board positions every 45ms. Oppa Stoppa turns over 1.75s with `cubic-bezier(0.16, 1, 0.3, 1)`. The wheel decelerates over 2.5s using `cubic-bezier(0.1, 0.8, 0.16, 1)`. The reduced-motion media query disables all CSS animations and transitions and uses automatic scrolling. The roulette result still waits for its existing 2.6-second result gate; the preference removes visual movement, not game timing.
 
-The city is original source-authored SVG in `src/City.jsx`: isometric building faces, window grids, storefront signs, tree-lined roads, cars, street lamps, and a basketball court. It has an explicit image role and descriptive accessible label. The favicon is a source-authored SVG with a dark geometric glyph on a rounded lime square in `public/favicon.svg`; the header uses a separate shield silhouette. Interface and crew symbols come from the Lucide icon library; they are not claimed as original artwork. There are no supplied photographs, generated raster assets, or external image dependencies. Extend the city through its existing vector geometry and muted material palette.
+The city is original source-authored SVG in `src/City.jsx`: isometric building faces, window grids, storefront signs, tree-lined roads, cars, street lamps, and a basketball court. It has an explicit image role and descriptive accessible label. The favicon is a source-authored SVG with a dark geometric glyph on a rounded lime square in `public/favicon.svg`; the header uses a separate shield silhouette. Interface and crew symbols come from the Lucide icon library; they are not claimed as original artwork. The alley and foreground pistol in `src/FPSDuel.jsx` and hooded figures, houses, and hotels in `src/StreetPieces.jsx` are also original source-authored SVG. There are no supplied photographs, generated raster assets, or external image dependencies. Extend the city through its existing vector geometry and muted material palette.
 
 ## Do's and Don'ts
 
@@ -495,6 +546,8 @@ The city is original source-authored SVG in `src/City.jsx`: isometric building f
 - **Do** keep native keyboard activation, visible focus, dialog focus handling, and polite game announcements.
 - **Do** self-host the existing Barlow families and honor reduced motion.
 - **Do** state game consequences beside risky actions and outcomes.
+- **Do** keep owner names, mortgage words, building counts, and full resident lists alongside the illustrated board pieces.
+- **Do** retain visible health, ammunition, timer, live control labels, and ready/result copy in the shootout.
 - **Do** extend account and map surfaces with the same Barlow families, asphalt/olive layers, visible labels, and authored city geometry.
 - **Do** pair map selection, verification, and locks with explicit text or icons and preserve the sticky editor action surface on narrow screens.
 

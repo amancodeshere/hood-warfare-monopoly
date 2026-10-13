@@ -1,6 +1,6 @@
 # Spin the Block
 
-A complete online property party game with an original street city, private invite rooms, tactical rent shootouts, and roulette cards. Built from scratch for Hood Warfare Monopoly.
+A complete online property party game with an original street city, private invite rooms, first-person rent shootouts, and roulette cards. Built from scratch for Hood Warfare Monopoly.
 
 **Play:** https://spin-the-block-production.up.railway.app
 
@@ -14,7 +14,11 @@ The city has **40 squares, eight districts, four transit routes, two utilities, 
 
 Claim blocks, bid in auctions, collect rent, complete districts, and build four houses plus a hotel. Utilities charge dice-based rent; transit rent grows with the number of lines your side owns. Teams share sets, pay no allied rent, use private team chat, and inherit a departing ally’s cash and turf. Name your teams in the lobby. Trade multiple properties, cash, and escape cards in one atomic offer, or send rescue gifts. Debt trades cannot give an empire away below fair value.
 
-When player rent is unaffordable, raise cash or challenge the landlord to a simultaneous tactic shootout. Fire beats flank, flank beats guard, guard beats fire. Win wipes rent; lose eliminates your crew and passes assets to a living teammate, otherwise the landlord. Roulette offers weighted jackpots, jail, payday, escape cards, and losses. Full odds are shown in the game.
+When player rent is unaffordable, raise cash or challenge the landlord to a live 2D first-person alley shootout. Both crews ready up within 25 seconds, followed by a three-second countdown and a 30-second duel. Click/tap to aim and fire; A/D dodge, S returns to center, Space ducks, R reloads, and Enter fires at the crosshair. Six-round magazines, a 400ms shot cooldown, 1.3-second reloads, 700ms cover, 25-damage body hits, and 40-damage headshots are enforced on the server. Cover blocks torso shots but leaves the head exposed. Zero health ends the duel; otherwise higher health at the time limit wins, with an exact tie protecting the landlord. Win wipes rent; lose eliminates your crew and passes assets to a living teammate, otherwise the landlord. Bots use the same controls. Timers pause when all human seats disconnect, including combat clocks. Spectators cannot fire. Existing saved tactic duels finish with their original rules.
+
+Owned squares show a crew-colored owner badge, mortgage status, and a large illustrated house count or hotel. Hooded crew pieces wear chains, masks, sneakers, and crew colors, with earned cosmetic emblems retained. Crowded squares show your piece first plus the number of other crews; tap a square to see everyone on the block. Mobile offers a readable scrollable board and compact overview.
+
+Roulette offers weighted jackpots, jail, payday, escape cards, and losses. Full odds are shown in the game.
 
 Profiles work immediately as guests and can be registered with a username and password to use another device. Friends support requests, online presence, and lobby invitations. Completed games earn respect that unlocks token appearances without payments. Public games contribute to online ranks only when at least two distinct human profiles participate; solo wins are tracked separately. Private game history is visible only to its own participants. Mute hides chat, block prevents future matching and hides chat, and reports are retained with the room for operator review; there is no staffed moderation service.
 

@@ -33,3 +33,7 @@ Online reliability comes first. Every risk communicates its consequences. Turns 
 ## Accounts and map authorship
 
 The login entry supports guest continuation and username/password accounts. Guests host two base cities and may join any selected city. Real email verification unlocks four extra city themes and up to ten personal saved maps. Map Studio edits square names, district names/colors, and surprise-space event types while keeping essential spaces and prices balanced. Room maps are snapshots, including rematches. Email delivery requires a verified Resend sender and private Railway credentials; unavailable delivery must be disclosed. Email verification is not password recovery.
+
+## Live rent duels and street pieces
+
+Shootouts use a live 2D first-person alley view with server-checked aiming, dodging, cover, ammunition, reloads, headshots, health, bot play, and a 30-second cap. Exact ties protect the landlord. Existing saved tactic duels retain their original rules. The board makes ownership explicit with named badges and mortgage status, larger hooded crew figures with earned emblems, readable illustrated house counts and hotels, and full resident lists on inspected squares.

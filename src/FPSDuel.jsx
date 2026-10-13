@@ -292,8 +292,14 @@ export default function FPSDuel({ game, act, disabled }) {
             <strong>Settle it on the block.</strong>
             <p>
               Aim at your rival. Dodge left or right. Duck behind cover. Six
-              shots, then reload. Win wipes rent; lose forfeits your cash and
-              turf.
+              shots, then reload.
+            </p>
+            <p>
+              {game.me === d.attacker
+                ? "Win wipes your rent. Lose forfeits your cash and turf."
+                : playing
+                  ? "Win eliminates the challenger; a loss wipes the rent they owe you."
+                  : "Challenger victory wipes rent; defeat eliminates the challenger and transfers their assets."}
             </p>
             {playing ? (
               <button
@@ -330,7 +336,7 @@ export default function FPSDuel({ game, act, disabled }) {
             <p>
               {d.winner === d.attacker
                 ? "Rent wiped. Live to own another block."
-                : "The landlord takes the cash and turf. The challenger is out."}
+                : "The challenger is out. Cash and turf pass to a living teammate, otherwise the landlord."}
             </p>
             {game.me === d.attacker &&
             !game.players.find((p) => p.id === d.attacker).out ? (

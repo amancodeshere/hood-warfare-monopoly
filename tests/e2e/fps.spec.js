@@ -16,6 +16,14 @@ test("two browsers ready, dodge and fire an authoritative first-person rent duel
   const a = page.getByRole("dialog", { name: "Rent due. Guns up." }),
     b = rival.getByRole("dialog", { name: "Rent due. Guns up." });
   await expect(a.getByRole("button", { name: "Ready up" })).toBeVisible();
+  await expect(
+    a.getByText("Win wipes your rent. Lose forfeits your cash and turf."),
+  ).toBeVisible();
+  await expect(
+    b.getByText(
+      "Win eliminates the challenger; a loss wipes the rent they owe you.",
+    ),
+  ).toBeVisible();
   await a.getByRole("button", { name: "Ready up" }).click();
   await expect(
     a.getByRole("button", { name: /Ready · waiting/ }),
