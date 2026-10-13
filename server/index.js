@@ -1,3 +1,4 @@
+import { shiftFPS } from "./fps.js";
 import express from "express";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
@@ -21,6 +22,7 @@ import {
   migrate,
   finishAuction,
   timeoutAction,
+  tickDuel,
 } from "./game.js";
 import { settings, matchLimit } from "../shared/settings.js";
 import { profileStore } from "./profiles.js";
@@ -36,11 +38,20 @@ try {
   for (const g of saved.rooms || []) {
     if (Date.now() - g.updatedAt < 24 * 3600000) {
       migrate(g);
+      shiftFPS(
+        g.duel,
+        Math.max(0, Date.now() - (saved.savedAt || g.updatedAt)),
+      );
       g.spectators = [];
       g.pausedAt = Date.now();
       g.players.forEach((p) => (p.connected = p.bot));
       g.turnDeadline = Date.now() + 90000;
-      g.deadline = g.turnDeadline;
+      g.deadline =
+        g.duel?.mode === "fps" && g.phase === "duel"
+          ? g.duel.stage === "live"
+            ? g.duel.endsAt
+            : Date.now() + 25000
+          : g.turnDeadline;
       rooms.set(g.code, g);
     }
   }
@@ -56,7 +67,11 @@ function save() {
     try {
       writeFileSync(
         file + ".tmp",
-        JSON.stringify({ rooms: [...rooms.values()], sessions: [...sessions] }),
+        JSON.stringify({
+          savedAt: Date.now(),
+          rooms: [...rooms.values()],
+          sessions: [...sessions],
+        }),
         { mode: 0o600 },
       );
       renameSync(file + ".tmp", file);
@@ -195,6 +210,7 @@ function attach(socket, g, p, token, spectator = false) {
   profileUpdates();
   if (!spectator && g.pausedAt && g.status === "playing") {
     const delta = Date.now() - g.pausedAt;
+    shiftFPS(g.duel, delta);
     g.deadline += delta;
     g.turnDeadline = g.turnDeadline ? g.turnDeadline + delta : g.deadline;
     g.turnStarted = (g.turnStarted || Date.now()) + delta;
@@ -359,7 +375,12 @@ io.on("connection", (socket) => {
         window = Date.now();
         count = 0;
       }
-      if (++count > 30)
+      const fps =
+        event === "action" &&
+        payload?.type?.startsWith("duel-") &&
+        rooms.get(socket.data.code)?.duel?.mode === "fps" &&
+        rooms.get(socket.data.code)?.duel?.fighters?.[socket.data.player];
+      if (++count > (fps ? 80 : 30))
         return (
           typeof ack === "function" &&
           ack({ error: "Too many actions. Wait a moment." })
@@ -759,6 +780,28 @@ const interval = setInterval(() => {
       g.pausedAt ||= Date.now();
       continue;
     }
+    if (g.phase === "duel" && g.duel?.mode === "fps") {
+      if (tickDuel(g)) publish(g);
+      if (g.phase === "duel") {
+        for (const p of g.players.filter(
+          (p) => p.bot && [g.duel.attacker, g.duel.defender].includes(p.id),
+        )) {
+          const key = g.code + ":fps:" + p.id;
+          if ((botDue.get(key)?.at || 0) > Date.now()) continue;
+          botDue.set(key, { at: Date.now() + 700 });
+          const a = defaultAction(g, p.id);
+          if (a) {
+            try {
+              action(g, p.id, a);
+              publish(g);
+            } catch {
+              /* A concurrent hit may finish the duel before this bot acts. */
+            }
+          }
+        }
+        continue;
+      }
+    }
     if (g.phase === "auction" && Date.now() > g.deadline) {
       finishAuction(g);
       publish(g);
@@ -840,7 +883,11 @@ function shutdown() {
   try {
     writeFileSync(
       file,
-      JSON.stringify({ rooms: [...rooms.values()], sessions: [...sessions] }),
+      JSON.stringify({
+        savedAt: Date.now(),
+        rooms: [...rooms.values()],
+        sessions: [...sessions],
+      }),
       { mode: 0o600 },
     );
   } catch (e) {

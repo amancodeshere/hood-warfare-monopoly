@@ -156,6 +156,7 @@ function duelFixture(n = 3) {
   f.p.cash = 5;
   land(f.g);
   action(f.g, f.p.id, { type: "shootout" });
+  delete f.g.duel.mode; // Regression fixture for persisted pre-FPS duels.
   return f;
 }
 test("duel choices are secret and cannot be changed or submitted by spectators", () => {

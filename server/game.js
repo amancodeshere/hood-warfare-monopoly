@@ -1,3 +1,4 @@
+import { createFPS, fpsAction, fpsWinner, fpsBot, fpsTick } from "./fps.js";
 import { randomInt, randomUUID } from "node:crypto";
 import {
   BOARD as DEFAULT_BOARD,
@@ -380,6 +381,38 @@ export function next(g) {
   prepareTurn(g);
   phase(g, active(g).jail ? "jail" : "roll");
 }
+function settleDuel(g, winner) {
+  const d = g.duel;
+  d.winner = winner;
+  if (d.mode === "fps") d.stage = "finished";
+  const p = g.players.find((p) => p.id === d.attacker),
+    owner = g.players.find((p) => p.id === d.defender);
+  if (d.winner === d.attacker) {
+    log(
+      g,
+      `${p.name} wins the shootout. The $${d.debt} rent is wiped.`,
+      "good",
+    );
+    g.pending = null;
+  } else eliminate(g, p, owner);
+  if (g.status !== "finished") phase(g, "duel-result");
+}
+export function tickDuel(g, now = Date.now()) {
+  if (g.phase !== "duel" || g.duel?.mode !== "fps") return false;
+  const d = g.duel;
+  const changed = fpsTick(d, now);
+  if (d.stage === "ready" && now >= g.deadline) {
+    // An absent challenger forfeits; an absent landlord concedes the debt.
+    settleDuel(g, d.ready.includes(d.attacker) ? d.attacker : d.defender);
+    return true;
+  }
+  const winner = fpsWinner(d, now);
+  if (winner) {
+    settleDuel(g, winner);
+    return true;
+  }
+  return changed;
+}
 export function resolveDuel(g, rng = secureRandom) {
   const d = g.duel;
   if (!d || !d.choices[d.attacker] || !d.choices[d.defender]) return;
@@ -400,17 +433,7 @@ export function resolveDuel(g, rng = secureRandom) {
         : d.scores[d.attacker] > d.scores[d.defender]
           ? d.attacker
           : d.defender;
-    const p = g.players.find((p) => p.id === d.attacker),
-      owner = g.players.find((p) => p.id === d.defender);
-    if (d.winner === d.attacker) {
-      log(
-        g,
-        `${p.name} wins the shootout. The $${d.debt} rent is wiped.`,
-        "good",
-      );
-      g.pending = null;
-    } else eliminate(g, p, owner);
-    if (g.status !== "finished") phase(g, "duel-result");
+    settleDuel(g, d.winner);
   } else phase(g, "duel");
 }
 export function action(g, id, a, rng = secureRandom, options = {}) {
@@ -426,7 +449,28 @@ export function action(g, id, a, rng = secureRandom, options = {}) {
           ["end", "duel-result"].includes(g.phase))),
     "You are not an active player.",
   );
+  if (
+    g.phase === "duel" &&
+    g.duel?.mode === "fps" &&
+    a.type === "forfeit" &&
+    [g.duel.attacker, g.duel.defender].includes(id)
+  ) {
+    if (id === g.duel.attacker) settleDuel(g, g.duel.defender);
+    else {
+      eliminate(g, p);
+      settleDuel(g, g.duel.attacker);
+    }
+    return;
+  }
   if (extendedAction(g, id, a, rng, options)) return;
+  if (g.duel?.mode === "fps" && a.type.startsWith("duel-")) {
+    assert(g.phase === "duel", "This shootout is over.");
+    const now = options.now ?? Date.now();
+    fpsAction(g.duel, id, a, now);
+    if (g.duel.stage === "live") g.deadline = g.duel.endsAt;
+    tickDuel(g, now);
+    return;
+  }
   if (a.type === "duel-choice") {
     assert(
       g.phase === "duel" && [g.duel.attacker, g.duel.defender].includes(id),
@@ -536,6 +580,7 @@ export function action(g, id, a, rng = secureRandom, options = {}) {
     const owner = g.players.find((x) => x.id === g.pending.owner);
     assert(owner && !owner.out, "This landlord is no longer active.");
     g.duel = {
+      ...createFPS([id, owner.id]),
       attacker: id,
       defender: owner.id,
       debt: g.pending.amount,
@@ -706,6 +751,8 @@ export function defaultAction(g, id) {
       ? { type: "auction-bid", amount: au.highBid + 10 }
       : { type: "auction-pass" };
   }
+  if (g.phase === "duel" && g.duel.mode === "fps")
+    return fpsBot(g.duel, id, secureRandom);
   if (g.phase === "duel")
     return {
       type: "duel-choice",
@@ -796,6 +843,7 @@ export function view(g, id, hidden = []) {
       (!m.team || (me?.team != null && m.team === String(me.team))),
   );
   delete v.reports;
+  v.serverNow = Date.now();
   v.me = id;
   return v;
 }
