@@ -7,6 +7,7 @@
     "node": ">=18"
   },
   "scripts": {
+    "email:check": "node scripts/check-email.js",
     "dev": "concurrently -k \"node --watch server/index.js\" \"vite --host 0.0.0.0\"",
     "build": "vite build",
     "start": "node server/index.js",

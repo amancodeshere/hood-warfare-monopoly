@@ -1,5 +1,10 @@
-export const emailAvailable = () =>
-  !!(process.env.RESEND_API_KEY && process.env.EMAIL_FROM);
+export function emailConfiguration(env = process.env) {
+  const missing = ["RESEND_API_KEY", "EMAIL_FROM"].filter(
+    (name) => !env[name]?.trim(),
+  );
+  return { configured: missing.length === 0, missing };
+}
+export const emailAvailable = () => emailConfiguration().configured;
 export async function sendVerification({ email, code }) {
   if (!emailAvailable())
     throw new Error(
