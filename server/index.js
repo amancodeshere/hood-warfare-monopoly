@@ -162,14 +162,28 @@ const cleanName = (n) =>
     .join("")
     .trim()
     .slice(0, 20) || "New crew";
+function releasePresence(socket, g) {
+  const p = g?.players.find((p) => p.id === socket.data.player);
+  if (p)
+    p.connected =
+      p.bot ||
+      [...io.sockets.sockets.values()].some(
+        (s) =>
+          s.id !== socket.id &&
+          s.data.code === g.code &&
+          s.data.player === p.id,
+      );
+}
 function attach(socket, g, p, token, spectator = false) {
   if (socket.data.code && socket.data.code !== g.code) {
     const old = rooms.get(socket.data.code);
+    releasePresence(socket, old);
     if (socket.data.spectator && old)
       old.spectators = old.spectators.filter(
         (x) => x.id !== socket.data.player,
       );
     socket.leave(socket.data.code);
+    if (old) publish(old);
   }
   Object.assign(socket.data, { code: g.code, player: p.id, token, spectator });
   socket.join(g.code);
@@ -674,6 +688,7 @@ io.on("connection", (socket) => {
       "Forfeit your seat before leaving an active match.",
     );
     const id = socket.data.player;
+    releasePresence(socket, g);
     if (socket.data.spectator)
       g.spectators = g.spectators.filter((p) => p.id !== id);
     else if (g.status === "lobby") {

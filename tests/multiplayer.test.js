@@ -241,6 +241,13 @@ test("real multiplayer: authority, room capacity, reconnect, origin checks, and 
   clients.push(soloReconnect);
   assert((await send(soloReconnect, "resume", { token: solo.savedToken })).ok);
   assert(soloReconnect.game.deadline >= deadline + 1200);
+  await send(watch, "spectate", { code: soloCreated.code });
+  assert((await send(soloReconnect, "action", { type: "forfeit" })).ok);
+  assert((await send(soloReconnect, "leave")).ok);
+  assert.equal(watch.game.players[0].connected, false);
+  const stoppedRevision = watch.game.revision;
+  await new Promise((resolve) => setTimeout(resolve, 1800));
+  assert.equal(watch.game.revision, stoppedRevision);
   const health = await fetch(url + "/api/health");
   assert.equal(health.status, 200);
   const blocked = io(url, {
