@@ -53,3 +53,27 @@ writeFileSync(
   resolve(process.env.DATA_DIR, "rooms.json"),
   JSON.stringify({ rooms: fixtures, sessions }),
 );
+// Verified account fixture: no verification bypass exists in the production server.
+const { profileStore } = await import("../server/profiles.js");
+let code;
+const profiles = profileStore(process.env.DATA_DIR, {
+  send: async (m) => {
+    code = m.code;
+  },
+});
+const account = profiles.authorize(null, "Map Maker");
+await profiles.register(
+  account.profile.id,
+  { username: "map_maker", password: "map-maker-test-password" },
+  "fixture",
+);
+await profiles.requestEmail(
+  account.profile.id,
+  { email: "map@example.com" },
+  "fixture",
+);
+profiles.verifyEmail(account.profile.id, { code });
+writeFileSync(
+  resolve(process.env.DATA_DIR, "map-token.json"),
+  JSON.stringify({ token: account.token }),
+);

@@ -623,8 +623,9 @@ io.on("connection", (socket) => {
           "Every human seat needs an account for this rule.",
         );
         const city = profiles.resolveMap(socket.data.profile, next.map);
+        const limit = "limit" in d ? matchLimit(d.limit) : g.limit;
         g.settings = next;
-        if ("limit" in d) g.limit = matchLimit(d.limit);
+        g.limit = limit;
         Object.assign(g, city);
       } else if (d.type === "start") {
         if (g.settings.autoFill) fillBots(g);

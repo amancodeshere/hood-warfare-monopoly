@@ -6,6 +6,8 @@ test("friends create, invite, start, and restore a live seat", async ({
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
+  if (await page.getByRole("button", { name: "Continue as guest" }).count())
+    await page.getByRole("button", { name: "Continue as guest" }).click();
   await page.getByLabel("YOUR STREET NAME").fill("Ace");
   await page.getByRole("button", { name: "Create a private room" }).click();
   await expect(
@@ -15,6 +17,8 @@ test("friends create, invite, start, and restore a live seat", async ({
   const context = await browser.newContext();
   const friend = await context.newPage();
   await friend.goto("/?room=" + code);
+  if (await friend.getByRole("button", { name: "Continue as guest" }).count())
+    await friend.getByRole("button", { name: "Continue as guest" }).click();
   await friend.getByLabel("YOUR STREET NAME").fill("Remy");
   await friend.getByRole("button", { name: "Join room", exact: true }).click();
   await expect(friend.getByText("Waiting for the host to start")).toBeVisible();
@@ -44,6 +48,8 @@ test("mobile table is usable without horizontal page overflow and rules are keyb
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
+  if (await page.getByRole("button", { name: "Continue as guest" }).count())
+    await page.getByRole("button", { name: "Continue as guest" }).click();
   await expect(
     page.getByRole("button", { name: "Create a private room" }),
   ).toBeVisible();
@@ -87,6 +93,8 @@ test("roulette animation resolves to a collectible server result", async ({
 }) => {
   await page.addInitScript(() => localStorage.setItem("stb-seat", "wheel-ace"));
   await page.goto("/");
+  if (await page.getByRole("button", { name: "Continue as guest" }).count())
+    await page.getByRole("button", { name: "Continue as guest" }).click();
   const dialog = page.getByRole("dialog", { name: "The street wheel" });
   await expect(dialog).toBeVisible();
   await dialog.getByRole("button", { name: "Spin the wheel" }).click();
@@ -103,12 +111,16 @@ test("online shootout keeps tactics locked until both crews choose", async ({
 }) => {
   await page.addInitScript(() => localStorage.setItem("stb-seat", "duel-ace"));
   await page.goto("/");
+  if (await page.getByRole("button", { name: "Continue as guest" }).count())
+    await page.getByRole("button", { name: "Continue as guest" }).click();
   const friendContext = await browser.newContext();
   await friendContext.addInitScript(() =>
     localStorage.setItem("stb-seat", "duel-rival"),
   );
   const friend = await friendContext.newPage();
   await friend.goto("/");
+  if (await friend.getByRole("button", { name: "Continue as guest" }).count())
+    await friend.getByRole("button", { name: "Continue as guest" }).click();
   const a = page.getByRole("dialog", { name: "Rent due. Guns up." }),
     b = friend.getByRole("dialog", { name: "Rent due. Guns up." });
   await expect(a).toBeVisible();
@@ -137,6 +149,8 @@ test("solo bot count, default match length and rich house settings are usable", 
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
+  if (await page.getByRole("button", { name: "Continue as guest" }).count())
+    await page.getByRole("button", { name: "Continue as guest" }).click();
   await expect(page.getByLabel("Match length", { exact: true })).toHaveValue(
     "0",
   );
@@ -171,6 +185,8 @@ test("Oppa Stoppa spins a server percentage and sends the loss to Community Plot
     localStorage.setItem("stb-seat", "stoppa-ace"),
   );
   await page.goto("/");
+  if (await page.getByRole("button", { name: "Continue as guest" }).count())
+    await page.getByRole("button", { name: "Continue as guest" }).click();
   const dial = page.getByRole("dialog", {
     name: "Oppa Stoppa caught you lackin.",
   });
@@ -197,12 +213,16 @@ test("online auction lets another crew bid and collects only when others pass", 
     localStorage.setItem("stb-seat", "auction-ace"),
   );
   await page.goto("/");
+  if (await page.getByRole("button", { name: "Continue as guest" }).count())
+    await page.getByRole("button", { name: "Continue as guest" }).click();
   const context = await browser.newContext();
   await context.addInitScript(() =>
     localStorage.setItem("stb-seat", "auction-rival"),
   );
   const rival = await context.newPage();
   await rival.goto("/");
+  if (await rival.getByRole("button", { name: "Continue as guest" }).count())
+    await rival.getByRole("button", { name: "Continue as guest" }).click();
   const a = page.getByRole("dialog"),
     b = rival.getByRole("dialog");
   await expect(a).toContainText("Who’s buying Auntie’s Bodega?");
@@ -226,6 +246,8 @@ test("private team chat and earned appearances work across browsers", async ({
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
+  if (await page.getByRole("button", { name: "Continue as guest" }).count())
+    await page.getByRole("button", { name: "Continue as guest" }).click();
   await page.getByLabel("YOUR STREET NAME").fill("Host");
   await page
     .getByRole("button", { name: "Room settings", exact: true })
@@ -237,6 +259,8 @@ test("private team chat and earned appearances work across browsers", async ({
   const context = await browser.newContext(),
     ally = await context.newPage();
   await ally.goto("/?room=" + code);
+  if (await ally.getByRole("button", { name: "Continue as guest" }).count())
+    await ally.getByRole("button", { name: "Continue as guest" }).click();
   await ally.getByLabel("YOUR STREET NAME").fill("Ally");
   await ally.getByRole("button", { name: "Join room", exact: true }).click();
   await page.getByLabel("Your team", { exact: true }).selectOption("1");
@@ -267,6 +291,8 @@ test("guest can register, save a profile, and sign in from another device", asyn
   browser,
 }) => {
   await page.goto("/");
+  if (await page.getByRole("button", { name: "Continue as guest" }).count())
+    await page.getByRole("button", { name: "Continue as guest" }).click();
   await page.getByRole("button", { name: "Profile and friends" }).click();
   await page.getByRole("button", { name: "Account", exact: true }).click();
   const username = "test_" + Date.now().toString(36);
@@ -277,6 +303,8 @@ test("guest can register, save a profile, and sign in from another device", asyn
   const context = await browser.newContext(),
     other = await context.newPage();
   await other.goto("/");
+  if (await other.getByRole("button", { name: "Continue as guest" }).count())
+    await other.getByRole("button", { name: "Continue as guest" }).click();
   await other.getByRole("button", { name: "Profile and friends" }).click();
   await other.getByRole("button", { name: "Account", exact: true }).click();
   await other.getByRole("button", { name: "Sign in", exact: true }).click();

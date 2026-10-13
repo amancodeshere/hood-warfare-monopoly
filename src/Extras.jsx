@@ -1,3 +1,4 @@
+import { MapPicker, Verification } from "./LoginMaps.jsx";
 import React, { useState, useEffect, useRef } from "react";
 import {
   Shield,
@@ -54,7 +55,17 @@ const LenOptions = () => (
     <option value={30}>Marathon · 30 rounds</option>
   </>
 );
-export function SettingsPanel({ game, options, limit, save, close, disabled }) {
+export function SettingsPanel({
+  game,
+  options,
+  limit,
+  save,
+  close,
+  disabled,
+  profile,
+  openStudio,
+  openAccount,
+}) {
   const [draft, setDraft] = useState({
       ...DEFAULT_SETTINGS,
       ...(game?.settings || options),
@@ -72,6 +83,14 @@ export function SettingsPanel({ game, options, limit, save, close, disabled }) {
         Winner takes all keeps playing until one crew or team owns the city.
         Choose a round cap for a shorter game.
       </p>
+      <MapPicker
+        value={draft.map}
+        onChange={(map) => change("map", map)}
+        profile={profile}
+        editable={editable && !disabled}
+        openStudio={openStudio}
+        openAccount={openAccount}
+      />
       <fieldset disabled={!editable || disabled} className="settings-fields">
         <div className="settings-grid">
           <label>
@@ -103,11 +122,25 @@ export function SettingsPanel({ game, options, limit, save, close, disabled }) {
           <label>
             City map
             <select
+              aria-label="City map"
               value={draft.map}
               onChange={(e) => change("map", e.target.value)}
             >
+              {game?.settings.map?.startsWith("custom:") &&
+                !profile?.savedMaps?.some(
+                  (m) => "custom:" + m.id === game.settings.map,
+                ) && <option value={game.settings.map}>{game.mapName}</option>}
+              {profile?.savedMaps?.map((m) => (
+                <option key={m.id} value={"custom:" + m.id}>
+                  {m.definition.name}
+                </option>
+              ))}
               {MAPS.map((m) => (
-                <option key={m.id} value={m.id}>
+                <option
+                  key={m.id}
+                  value={m.id}
+                  disabled={m.verified && !profile?.verified}
+                >
                   {m.name}
                 </option>
               ))}
@@ -755,8 +788,10 @@ export function AccountPanel({
   authenticated,
   inviteJoin,
   signoutToken,
+  openLogin,
+  initialTab = "friends",
 }) {
-  const [tab, setTab] = useState("friends"),
+  const [tab, setTab] = useState(initialTab),
     [query, setQuery] = useState(""),
     [username, setUsername] = useState(""),
     [password, setPassword] = useState(""),
@@ -1048,6 +1083,12 @@ export function AccountPanel({
               Save name
             </Btn>
           </form>
+          {profile.registered && <Verification profile={profile} emit={emit} />}
+          {!profile.registered && (
+            <Btn secondary disabled={!!game} onClick={openLogin}>
+              Open login page
+            </Btn>
+          )}
           {profile.registered && (
             <Btn
               secondary
@@ -1131,7 +1172,9 @@ export function AccountPanel({
                   </p>
                 )}
                 <p className="micro-note">
-                  Keep your password safe. This version has no email recovery.
+                  Verify your email after creating an account to unlock more
+                  maps. Keep your password safe; email verification does not
+                  reset it.
                 </p>
               </form>
             </>

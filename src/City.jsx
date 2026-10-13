@@ -18,19 +18,22 @@ function Building({
         opacity=".5"
         transform="translate(13 10)"
       />
-      <path d={`M0 ${-h}L${d} ${d * 0.5 - h}V${d * 0.5}L0 0Z`} fill={color} />
+      <path
+        d={`M0 ${-h}L${d} ${d * 0.5 - h}V${d * 0.5}L0 0Z`}
+        fill={`var(--city-${Math.abs(Math.round(x / 100)) % 3 === 0 ? "one" : Math.abs(Math.round(x / 100)) % 3 === 1 ? "two" : "three"}, ${color})`}
+      />
       <path
         d={`M${d} ${d * 0.5 - h}L${w + d} ${(-w + d) * 0.5 - h}V${(-w + d) * 0.5}L${d} ${d * 0.5}Z`}
-        fill={color}
+        fill={`var(--city-${Math.abs(Math.round(x / 100)) % 3 === 0 ? "one" : Math.abs(Math.round(x / 100)) % 3 === 1 ? "two" : "three"}, ${color})`}
         style={{ filter: "brightness(.65)" }}
       />
       <path
         d={`M0 ${-h}L${w} ${-w * 0.5 - h}L${w + d} ${(-w + d) * 0.5 - h}L${d} ${d * 0.5 - h}Z`}
-        fill={roof}
+        fill={`var(--city-roof, ${roof})`}
       />
       <path
         d={`M5 ${-h}L${w} ${-w * 0.5 - h + 3}L${w + d - 5} ${(-w + d) * 0.5 - h}L${d} ${d * 0.5 - h - 3}Z`}
-        fill={color}
+        fill={`var(--city-${Math.abs(Math.round(x / 100)) % 3 === 0 ? "one" : Math.abs(Math.round(x / 100)) % 3 === 1 ? "two" : "three"}, ${color})`}
         opacity=".3"
       />
       {windows &&
@@ -73,10 +76,20 @@ function Tree({ x, y }) {
     </g>
   );
 }
-export default function City() {
+export default function City({ palette, theme }) {
   return (
     <svg
-      className="city-art"
+      className={`city-art city-theme-${theme || "trenches"}`}
+      style={
+        palette
+          ? {
+              "--city-one": palette[0],
+              "--city-two": palette[2],
+              "--city-three": palette[4],
+              "--city-roof": palette[6],
+            }
+          : undefined
+      }
       viewBox="0 0 600 400"
       role="img"
       aria-label="An original isometric city with storefronts, towers, a basketball court, and tree-lined streets"

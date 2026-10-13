@@ -1,3 +1,4 @@
+import { EntryPage, MapStudio } from "./LoginMaps.jsx";
 import React, { useState, useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import { io } from "socket.io-client";
@@ -165,7 +166,10 @@ function Button({ children, secondary = false, danger = false, ...props }) {
 function Board({ game, selected, setSelected, rolling, highlight }) {
   const BOARD = game?.board || DEFAULT_BOARD,
     size = BOARD.length / 4 + 1,
-    districts = game?.schemaVersion === 1 ? LEGACY_DISTRICTS : DISTRICTS;
+    districts =
+      game?.schemaVersion === 1
+        ? LEGACY_DISTRICTS
+        : game?.districts || DISTRICTS;
   const [walking, setWalking] = useState(null),
     lastMove = useRef(game?.lastMove?.id);
   useEffect(() => {
@@ -302,7 +306,10 @@ function Board({ game, selected, setSelected, rolling, highlight }) {
             </span>
             <span className="brand-sub">THE STREETS ARE YOURS. TAKE THEM.</span>
           </div>
-          <City />
+          <City
+            palette={districts.map((d) => d.color)}
+            theme={game?.mapTheme}
+          />
           <div className={`center-bottom ${rolling ? "rolling" : ""}`}>
             {game && game.status !== "lobby" ? (
               <>
@@ -543,7 +550,11 @@ function Duel({ game, act, disabled }) {
   );
 }
 function App() {
-  const [game, setGame] = useState(null),
+  const [entry, setEntry] = useState(
+      !stored("stb-entry") && !stored("stb-seat"),
+    ),
+    [studio, setStudio] = useState(false),
+    [game, setGame] = useState(null),
     [connected, setConnected] = useState(false),
     [pending, setPending] = useState(false),
     [error, setError] = useState(""),
@@ -565,6 +576,7 @@ function App() {
     [settingsOpen, setSettingsOpen] = useState(false),
     [roomsOpen, setRoomsOpen] = useState(false),
     [accountOpen, setAccountOpen] = useState(false),
+    [accountTab, setAccountTab] = useState("friends"),
     [profile, setProfile] = useState(null),
     [social, setSocial] = useState({ friends: [], incoming: [], outgoing: [] }),
     [playerOpen, setPlayerOpen] = useState(null),
@@ -771,7 +783,8 @@ function App() {
     }
   }
   const BOARD = game?.board || DEFAULT_BOARD;
-  const districts = game?.schemaVersion === 1 ? LEGACY_DISTRICTS : DISTRICTS;
+  const districts =
+    game?.schemaVersion === 1 ? LEGACY_DISTRICTS : game?.districts || DISTRICTS;
   const me = game?.players.find((p) => p.id === game.me),
     current = game?.players[game.turn],
     mine = me?.id === current?.id && !me?.out,
@@ -1207,6 +1220,26 @@ function App() {
         );
     }
   }
+  const authenticated = (r) => {
+    persist("stb-profile", r.token);
+    setProfile(r.profile);
+    setName(r.profile.name);
+    persist("stb-name", r.profile.name);
+  };
+  const enter = () => {
+    persist("stb-entry", "yes");
+    setEntry(false);
+  };
+  if (entry && !game)
+    return (
+      <EntryPage
+        profile={profile}
+        emit={emit}
+        authenticated={authenticated}
+        enter={enter}
+        disabled={disabled}
+      />
+    );
   return (
     <>
       <header className="topbar">
@@ -1237,7 +1270,10 @@ function App() {
           <button
             className="icon-button"
             aria-label="Profile and friends"
-            onClick={() => setAccountOpen(true)}
+            onClick={() => {
+              setAccountTab("friends");
+              setAccountOpen(true);
+            }}
           >
             <Users size={19} />
           </button>
@@ -1413,7 +1449,9 @@ function App() {
                   ? "CREW ASSEMBLING"
                   : game.status === "finished"
                     ? "MATCH COMPLETE"
-                    : "LIVE ON THE BLOCK"
+                    : game.mapName
+                      ? `LIVE · ${game.mapName.toUpperCase()}`
+                      : "LIVE ON THE BLOCK"
                 : "THE CITY IS OPEN"}
             </div>
             {game ? (
@@ -2025,6 +2063,16 @@ function App() {
       {settingsOpen && (
         <SettingsPanel
           game={game}
+          profile={profile}
+          openStudio={() => {
+            setSettingsOpen(false);
+            setStudio(true);
+          }}
+          openAccount={() => {
+            setSettingsOpen(false);
+            setAccountTab("account");
+            setAccountOpen(true);
+          }}
           options={options}
           limit={limit}
           disabled={disabled}
@@ -2065,20 +2113,35 @@ function App() {
           }}
         />
       )}
+      {studio && (
+        <MapStudio
+          profile={profile}
+          emit={emit}
+          close={() => setStudio(false)}
+          select={async (map) => {
+            if (game) {
+              if (!(await lobby({ type: "settings", settings: { map } })))
+                return;
+            } else setOptions((o) => ({ ...o, map }));
+            setStudio(false);
+            setSettingsOpen(true);
+          }}
+        />
+      )}
       {accountOpen && (
         <AccountPanel
           profile={profile}
+          initialTab={accountTab}
+          openLogin={() => {
+            setAccountOpen(false);
+            setEntry(true);
+          }}
           social={social}
           game={game}
           emit={emit}
           disabled={disabled}
           close={() => setAccountOpen(false)}
-          authenticated={(r) => {
-            persist("stb-profile", r.token);
-            setProfile(r.profile);
-            setName(r.profile.name);
-            persist("stb-name", r.profile.name);
-          }}
+          authenticated={authenticated}
           signoutToken={stored("stb-profile")}
           inviteJoin={async (c) => {
             setCode(c);
