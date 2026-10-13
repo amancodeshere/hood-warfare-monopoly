@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import {
   assert,
   active,
@@ -189,12 +190,19 @@ export function extendedAction(g, id, a, rng) {
     }
     return true;
   }
-  if (a.type === "trade") {
-    assert(
-      active(g).id === id && movable(g),
-      "Trade on your turn before or after resolving a tile, or raise cash in debt.",
-    );
-    assert(!g.trade, "Wait for the current trade to be answered.");
+  if (a.type === "trade" || a.type === "trade-counter") {
+    assert(movable(g), "Finish the current event before trading.");
+    if (a.type === "trade-counter") {
+      assert(
+        g.trade?.to === id,
+        "Only the receiving crew can counter this offer.",
+      );
+      assert(
+        !g.trade.id || a.offerId === g.trade.id,
+        "This offer changed. Review the latest deal.",
+      );
+      assert(a.to === g.trade.from, "Counter the crew who sent this offer.");
+    } else assert(!g.trade, "Wait for the current trade to be answered.");
     const giveTiles = a.giveTiles ?? (a.give !== undefined ? [a.give] : []),
       takeTiles = a.takeTiles ?? (a.take !== undefined ? [a.take] : []);
     assert(
@@ -209,14 +217,16 @@ export function extendedAction(g, id, a, rng) {
       "Choose unique properties.",
     );
     const tr = {
+      id: randomUUID(),
+      revision: a.type === "trade-counter" ? (g.trade.revision || 1) + 1 : 1,
       from: id,
       to: a.to,
       giveTiles,
       takeTiles,
-      cash: a.cash || 0,
-      requestCash: a.requestCash || 0,
-      giveEscapes: a.giveEscapes || 0,
-      takeEscapes: a.takeEscapes || 0,
+      cash: a.cash ?? 0,
+      requestCash: a.requestCash ?? 0,
+      giveEscapes: a.giveEscapes ?? 0,
+      takeEscapes: a.takeEscapes ?? 0,
     };
     assert(tr.to !== id, "Choose another crew.");
     assert(
@@ -237,20 +247,40 @@ export function extendedAction(g, id, a, rng) {
     );
     checkTrade(g, tr);
     g.trade = tr;
+    log(
+      g,
+      `${p.name} ${a.type === "trade-counter" ? "countered" : "offered a deal to"} ${g.players.find((x) => x.id === tr.to).name}.`,
+    );
+    return true;
+  }
+  if (a.type === "trade-cancel") {
+    assert(g.trade?.from === id, "No trade to cancel.");
+    assert(
+      !g.trade.id || a.offerId === g.trade.id,
+      "This offer changed. Review the latest deal.",
+    );
+    g.trade = null;
+    log(g, `${p.name} withdrew their trade offer.`);
     return true;
   }
   if (a.type === "trade-respond" && g.trade?.giveTiles) {
     const tr = g.trade;
     assert(tr.to === id, "No trade to answer.");
     assert(
-      ![
-        "duel",
-        "auction",
-        "stoppa",
-        "stoppa-result",
-        "roulette",
-        "roulette-result",
-      ].includes(g.phase),
+      !tr.id || a.offerId === tr.id,
+      "This offer changed. Review the latest deal.",
+    );
+    assert(typeof a.accept === "boolean", "Choose accept or decline.");
+    assert(
+      !a.accept ||
+        ![
+          "duel",
+          "auction",
+          "stoppa",
+          "stoppa-result",
+          "roulette",
+          "roulette-result",
+        ].includes(g.phase),
       "Finish this event before accepting a trade.",
     );
     if (a.accept) {
@@ -263,7 +293,7 @@ export function extendedAction(g, id, a, rng) {
       from.escapes += tr.takeEscapes - tr.giveEscapes;
       p.escapes += tr.giveEscapes - tr.takeEscapes;
       log(g, `${from.name} and ${p.name} made a block deal.`, "good");
-    }
+    } else log(g, `${p.name} declined the trade offer.`);
     g.trade = null;
     return true;
   }

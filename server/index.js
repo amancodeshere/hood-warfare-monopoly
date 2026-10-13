@@ -865,7 +865,7 @@ const interval = setInterval(() => {
           ? value(tr.giveTiles) + tr.cash + tr.giveEscapes * 100 >=
             value(tr.takeTiles) + tr.requestCash + tr.takeEscapes * 100
           : t[tr.give].price + tr.cash >= t[tr.take].price;
-        action(g, tr.to, { type: "trade-respond", accept });
+        action(g, tr.to, { type: "trade-respond", accept, offerId: tr.id });
         publish(g);
       } catch {
         g.trade = null;

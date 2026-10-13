@@ -301,9 +301,17 @@ test("trade validates recipient and transfers both blocks and cash atomically", 
   g.props[6] = { owner: b.id, level: 0, mortgaged: false };
   action(g, p.id, { type: "trade", give: 1, take: 6, cash: 50, to: b.id });
   assert.throws(() =>
-    action(g, g.players[2].id, { type: "trade-respond", accept: true }),
+    action(g, g.players[2].id, {
+      type: "trade-respond",
+      accept: true,
+      offerId: g.trade?.id,
+    }),
   );
-  action(g, b.id, { type: "trade-respond", accept: true });
+  action(g, b.id, {
+    type: "trade-respond",
+    accept: true,
+    offerId: g.trade?.id,
+  });
   assert.equal(g.props[1].owner, b.id);
   assert.equal(g.props[6].owner, p.id);
   assert.equal(p.cash, 1450);
@@ -317,7 +325,12 @@ test("trade becomes invalid when offered cash is no longer available", () => {
   p.cash = 100;
   const saved = JSON.stringify(g);
   assert.throws(
-    () => action(g, b.id, { type: "trade-respond", accept: true }),
+    () =>
+      action(g, b.id, {
+        type: "trade-respond",
+        accept: true,
+        offerId: g.trade?.id,
+      }),
     /afford/,
   );
   assert.equal(JSON.stringify(g), saved);

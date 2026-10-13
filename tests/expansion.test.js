@@ -193,7 +193,11 @@ test("multi-asset trades transfer properties, cash and escape cards atomically",
     giveEscapes: 2,
     takeEscapes: 1,
   });
-  action(g, b.id, { type: "trade-respond", accept: true });
+  action(g, b.id, {
+    type: "trade-respond",
+    accept: true,
+    offerId: g.trade?.id,
+  });
   assert.equal(g.props[1].owner, b.id);
   assert.equal(g.props[6].owner, p.id);
   assert.equal(p.cash, 1600);
@@ -226,7 +230,11 @@ test("debt trades cannot dump an empire; cash-only rescue trades work", () => {
     takeTiles: [],
     requestCash: 500,
   });
-  action(g, b.id, { type: "trade-respond", accept: true });
+  action(g, b.id, {
+    type: "trade-respond",
+    accept: true,
+    offerId: g.trade?.id,
+  });
   action(g, p.id, { type: "pay" });
   assert.equal(g.phase, "end");
 });
@@ -325,4 +333,122 @@ test("timeouts never auction or mortgage human assets and two idle turns elimina
   land(f.g);
   assert.equal(timeoutAction(f.g, f.p.id).type, "surrender");
   assert.equal(f.g.props[39].mortgaged, false);
+});
+
+test("off-turn negotiations counter atomically, reject stale answers and withdraw without waiting for a turn", () => {
+  const { g, p, b, c } = game();
+  g.props[1] = prop(b.id);
+  g.props[6] = prop(c.id);
+  action(g, b.id, {
+    type: "trade",
+    to: c.id,
+    giveTiles: [1],
+    takeTiles: [6],
+    cash: 20,
+  });
+  const original = g.trade.id;
+  assert.throws(
+    () =>
+      action(g, p.id, {
+        type: "trade-counter",
+        to: b.id,
+        offerId: original,
+        cash: 10,
+      }),
+    /receiving/,
+  );
+  assert.throws(
+    () =>
+      action(g, c.id, {
+        type: "trade-counter",
+        to: b.id,
+        offerId: original,
+        requestCash: 99999,
+      }),
+    /afford/,
+  );
+  assert.equal(g.trade.id, original);
+  action(g, c.id, {
+    type: "trade-counter",
+    to: b.id,
+    offerId: original,
+    giveTiles: [6],
+    takeTiles: [1],
+    requestCash: 50,
+  });
+  assert.notEqual(g.trade.id, original);
+  assert.equal(g.trade.revision, 2);
+  assert.equal(g.props[1].owner, b.id);
+  assert.throws(
+    () =>
+      action(g, b.id, {
+        type: "trade-respond",
+        offerId: original,
+        accept: true,
+      }),
+    /changed/,
+  );
+  action(g, b.id, { type: "trade-respond", offerId: g.trade.id, accept: true });
+  assert.equal(b.cash, 1450);
+  assert.equal(c.cash, 1550);
+  assert.equal(g.props[1].owner, c.id);
+  assert.equal(g.props[6].owner, b.id);
+  action(g, b.id, { type: "trade", to: c.id, cash: 1 });
+  action(g, b.id, { type: "trade-cancel", offerId: g.trade.id });
+  assert.equal(g.trade, null);
+});
+
+test("trade revalidates assets and finances before moving anything; mortgages travel and special events block acceptance", () => {
+  const { g, p, b } = game();
+  g.props[1] = { ...prop(p.id), mortgaged: true };
+  action(g, p.id, {
+    type: "trade",
+    to: b.id,
+    giveTiles: [1],
+    requestCash: 100,
+  });
+  b.cash = 50;
+  assert.throws(
+    () =>
+      action(g, b.id, {
+        type: "trade-respond",
+        offerId: g.trade.id,
+        accept: true,
+      }),
+    /afford/,
+  );
+  assert.equal(g.props[1].owner, p.id);
+  assert.equal(p.cash, 1500);
+  b.cash = 1500;
+  g.phase = "roulette";
+  assert.throws(
+    () =>
+      action(g, b.id, {
+        type: "trade-respond",
+        offerId: g.trade.id,
+        accept: true,
+      }),
+    /event/,
+  );
+  action(g, b.id, {
+    type: "trade-respond",
+    offerId: g.trade.id,
+    accept: false,
+  });
+  assert.equal(g.trade, null);
+  g.phase = "roll";
+  for (const cash of [NaN, -1, 1.5, "100"])
+    assert.throws(
+      () => action(g, p.id, { type: "trade", to: b.id, cash }),
+      /whole/,
+    );
+  action(g, p.id, {
+    type: "trade",
+    to: b.id,
+    giveTiles: [1],
+    requestCash: 100,
+  });
+  action(g, b.id, { type: "trade-respond", offerId: g.trade.id, accept: true });
+  assert.equal(g.props[1].owner, b.id);
+  assert.equal(g.props[1].mortgaged, true);
 });
