@@ -217,6 +217,11 @@ export default function ArenaDuel({ game, act, disabled }) {
       stop();
     }
     function key(e) {
+      if (e.key === "Escape" && document.pointerLockElement === element) {
+        document.exitPointerLock();
+        stop();
+        return;
+      }
       if (
         /INPUT|TEXTAREA|SELECT/.test(e.target.tagName) ||
         !current.current.live
@@ -346,6 +351,10 @@ export default function ArenaDuel({ game, act, disabled }) {
     camera.current.pitch = clamp(camera.current.pitch - dy * 0.0035, -0.5, 0.5);
   }
   async function capture() {
+    if (document.pointerLockElement === canvas.current) {
+      document.exitPointerLock();
+      return;
+    }
     canvas.current?.focus();
     try {
       await canvas.current.requestPointerLock();
