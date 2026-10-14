@@ -1,6 +1,8 @@
 import { ARENA, angle } from "../shared/arena.js";
 const FOV = 1.16;
 const INK = "#161616";
+const fighterSprites = new Map();
+let weaponLayer;
 function cast(x, y, dx, dy) {
   let mx = Math.floor(x),
     my = Math.floor(y),
@@ -62,12 +64,12 @@ export function renderArena(ctx, camera, d, viewer, now, effects) {
     ctx.fillStyle = `rgb(${shade},${shade},${shade})`;
     ctx.fillRect(x, top, 2, bottom - top);
     ctx.fillStyle = INK;
-    ctx.fillRect(x, top, 2, 2);
-    ctx.fillRect(x, bottom - 2, 2, 2);
+    ctx.fillRect(x, top, 2, 4);
+    ctx.fillRect(x, bottom - 4, 2, 4);
     // Outline geometry rather than blurring it; panels remain anchored to walls.
     const key = hit.mx + "," + hit.my + "," + hit.side;
     if (key !== previous) {
-      ctx.fillRect(x, top, 2, bottom - top);
+      ctx.fillRect(x, top, 4, bottom - top);
       previous = key;
     }
     ctx.fillStyle = "#535353";
@@ -141,7 +143,21 @@ export function renderArena(ctx, camera, d, viewer, now, effects) {
   ctx.stroke();
 }
 function drawFighter(ctx, dead, firing) {
-  ctx.fillStyle = INK;
+  const key = `${dead}:${firing}`;
+  if (!fighterSprites.has(key)) {
+    const sprite = document.createElement("canvas");
+    sprite.width = 32;
+    sprite.height = 60;
+    const ink = sprite.getContext("2d");
+    ink.scale(0.5, 0.5);
+    paintFighter(ink, dead, firing);
+    fighterSprites.set(key, sprite);
+  }
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(fighterSprites.get(key), 0, 0, 64, 120);
+}
+function paintFighter(ctx, dead, firing) {
+  ctx.fillStyle = "#ececec";
   ctx.beginPath();
   ctx.moveTo(18, 0);
   ctx.lineTo(44, 0);
@@ -163,19 +179,23 @@ function drawFighter(ctx, dead, firing) {
   ctx.lineTo(11, 13);
   ctx.closePath();
   ctx.fill();
-  ctx.strokeStyle = "#fff";
-  ctx.lineWidth = 3;
+  ctx.strokeStyle = INK;
+  ctx.lineWidth = 5;
   ctx.stroke();
+  ctx.fillStyle = INK;
+  ctx.fillRect(15, 3, 34, 27);
   ctx.fillStyle = "#ececec";
   ctx.fillRect(20, 14, 25, 14);
   ctx.fillStyle = INK;
   ctx.fillRect(24, 19, 6, 3);
   ctx.fillRect(35, 19, 6, 3);
   ctx.fillRect(25, 25, 14, 3);
-  ctx.fillStyle = "#dedede";
-  ctx.fillRect(21, 38, 5, 31);
-  ctx.fillRect(36, 38, 5, 31);
-  ctx.fillRect(14, 75, 34, 4);
+  ctx.fillStyle = INK;
+  ctx.fillRect(29, 34, 5, 39);
+  ctx.fillRect(10, 65, 10, 7);
+  ctx.fillRect(14, 76, 32, 4);
+  ctx.fillRect(12, 80, 13, 38);
+  ctx.fillRect(34, 80, 11, 38);
   ctx.fillStyle = "#f0322c";
   ctx.fillRect(33, 44, 29, 10);
   ctx.fillRect(40, 53, 10, 14);
@@ -189,6 +209,20 @@ function drawFighter(ctx, dead, firing) {
   }
 }
 function drawWeapon(ctx, w, h, now, fx) {
+  weaponLayer ||= document.createElement("canvas");
+  const width = Math.ceil(w / 3),
+    height = Math.ceil(h / 3);
+  if (weaponLayer.width !== width || weaponLayer.height !== height) {
+    weaponLayer.width = width;
+    weaponLayer.height = height;
+  }
+  const ink = weaponLayer.getContext("2d");
+  ink.clearRect(0, 0, width, height);
+  paintWeapon(ink, width, height, now, fx);
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(weaponLayer, 0, 0, w, h);
+}
+function paintWeapon(ctx, w, h, now, fx) {
   const recoil = fx.reduced ? 0 : Math.max(0, 1 - (now - fx.shot) / 150),
     kick = Math.max(0, 1 - (now - fx.kick) / 280);
   const reload =
@@ -199,7 +233,7 @@ function drawWeapon(ctx, w, h, now, fx) {
     ? 0
     : Math.sin(fx.steps * 9) * Math.min(4, fx.speed * 2);
   ctx.save();
-  ctx.translate(w * 0.68, h + recoil * 20 + reload * 95 + bob);
+  ctx.translate(w * 0.68, h + (recoil * 20 + reload * 95 + bob) * (h / 360));
   ctx.scale(h / 360, h / 360);
   if (kick) {
     ctx.fillStyle = "#eee";

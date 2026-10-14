@@ -23,6 +23,11 @@ test("two browsers move freely and settle a projectile rent duel without blockin
       "Win eliminates the challenger; a loss wipes the rent they owe you.",
     ),
   ).toBeVisible();
+  if (process.env.STB_SCREENSHOT_DIR)
+    await page.screenshot({
+      path: process.env.STB_SCREENSHOT_DIR + "/arena-desktop-ready.png",
+      fullPage: false,
+    });
   await a.getByRole("button", { name: "Ready up" }).click();
   await expect(
     a.getByRole("button", { name: /Ready · waiting/ }),
@@ -31,6 +36,20 @@ test("two browsers move freely and settle a projectile rent duel without blockin
   await expect(
     a.getByRole("button", { name: "Fire", exact: true }),
   ).toBeEnabled({ timeout: 6000 });
+  await page.bringToFront();
+  await a.getByRole("button", { name: "Capture mouse" }).click();
+  const captured = a.getByRole("button", {
+    name: "Mouse captured · Esc releases",
+  });
+  await expect(
+    captured.or(
+      a.getByText(
+        "Mouse capture unavailable. Drag the arena to aim, or use arrow keys.",
+      ),
+    ),
+  ).toBeVisible();
+  if (await captured.isVisible()) await page.keyboard.press("Escape");
+  await expect(a.getByRole("button", { name: "Capture mouse" })).toBeVisible();
   const canvas = a.locator(".arena-canvas"),
     before = await canvas.evaluate((el) => el.toDataURL());
   await page.keyboard.down("w");
@@ -82,7 +101,31 @@ test("touch arena supports held movement, aiming, ammunition and reload on a nar
   );
   const rival = await context.newPage();
   await rival.goto("/");
-  await page.getByRole("button", { name: "Ready up" }).click();
+  await page.setViewportSize({ width: 320, height: 740 });
+  const narrowReady = page.getByRole("button", { name: "Ready up" });
+  const narrowBox = await narrowReady.boundingBox(),
+    narrowStage = await page.locator(".arena-stage").boundingBox();
+  expect(narrowBox.y + narrowBox.height).toBeLessThan(
+    narrowStage.y + narrowStage.height,
+  );
+  if (process.env.STB_SCREENSHOT_DIR)
+    await page.screenshot({
+      path: process.env.STB_SCREENSHOT_DIR + "/arena-narrow-ready.png",
+      fullPage: false,
+    });
+  await page.setViewportSize({ width: 390, height: 844 });
+  const ready = page.getByRole("button", { name: "Ready up" });
+  const readyBox = await ready.boundingBox(),
+    stageBox = await page.locator(".arena-stage").boundingBox();
+  expect(readyBox.y + readyBox.height).toBeLessThan(
+    stageBox.y + stageBox.height,
+  );
+  if (process.env.STB_SCREENSHOT_DIR)
+    await page.screenshot({
+      path: process.env.STB_SCREENSHOT_DIR + "/arena-mobile-ready.png",
+      fullPage: false,
+    });
+  await ready.click();
   await rival.getByRole("button", { name: "Ready up" }).click();
   const fire = page.getByRole("button", { name: "Fire", exact: true });
   await expect(fire).toBeEnabled({ timeout: 6000 });
@@ -110,7 +153,7 @@ test("touch arena supports held movement, aiming, ammunition and reload on a nar
   if (process.env.STB_SCREENSHOT_DIR)
     await page.screenshot({
       path: process.env.STB_SCREENSHOT_DIR + "/arena-mobile.png",
-      fullPage: true,
+      fullPage: false,
     });
   expect(
     await page.evaluate(

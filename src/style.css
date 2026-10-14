@@ -4847,3 +4847,18 @@ button:hover:not(:disabled) {
     font-size: 12px;
   }
 }
+
+.arena-stage:has(.arena-message) .arena-canvas {
+  min-height: 440px;
+}
+@media (max-width: 600px) {
+  .arena-stage:has(.arena-message) .arena-canvas {
+    min-height: 370px;
+  }
+}
+
+@media (max-width: 360px) {
+  .arena-stage:has(.arena-message) .arena-canvas {
+    min-height: 430px;
+  }
+}

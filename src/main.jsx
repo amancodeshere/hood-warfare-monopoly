@@ -802,6 +802,7 @@ function App() {
     }
     const combat =
       event === "action" &&
+      gameRef.current?.duel?.mode === "fps" &&
       data.type?.startsWith("duel-") &&
       data.type !== "duel-ready";
     if (combat && data.type === "duel-input") {
@@ -821,7 +822,7 @@ function App() {
               : null,
           );
         } else if (r?.error) {
-          setError(r.error);
+          if (!combat || gameRef.current?.phase === "duel") setError(r.error);
           resolve(report ? { error: r.error } : null);
         } else resolve(r);
       }),

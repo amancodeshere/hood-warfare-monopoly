@@ -346,6 +346,7 @@ export default function ArenaDuel({ game, act, disabled }) {
     camera.current.pitch = clamp(camera.current.pitch - dy * 0.0035, -0.5, 0.5);
   }
   async function capture() {
+    canvas.current?.focus();
     try {
       await canvas.current.requestPointerLock();
       setNotice("");

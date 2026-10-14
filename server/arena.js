@@ -150,8 +150,9 @@ export function arenaTick(d, now) {
   d.projectiles = d.projectiles.filter((b) => {
     const target =
       d.fighters[b.player === d.attacker ? d.defender : d.attacker];
-    const steps = Math.ceil((seconds * BULLET_SPEED) / 0.08),
-      dt = seconds / steps;
+    const flightSeconds = Math.min(seconds, Math.max(0, (end - b.at) / 1000));
+    const steps = Math.ceil((flightSeconds * BULLET_SPEED) / 0.08),
+      dt = steps ? flightSeconds / steps : 0;
     for (let i = 0; i < steps; i++) {
       b.x += b.vx * dt;
       b.y += b.vy * dt;

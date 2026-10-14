@@ -53,7 +53,10 @@ for (const kind of [
     a.cash = 0;
     land(g);
     action(g, a.id, { type: "shootout" });
-    if (kind === "duel") delete g.duel.mode; // Preserve a legacy tactic-duel fixture.
+    if (kind === "duel") {
+      delete g.duel.mode;
+      delete g.duel.arena;
+    } // Preserve a legacy tactic-duel fixture.
   }
   fixtures.push(g);
   sessions.push(

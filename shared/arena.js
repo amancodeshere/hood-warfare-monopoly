@@ -42,6 +42,7 @@ export function move(f, input, seconds) {
 }
 export function sight(ax, ay, bx, by) {
   const length = Math.hypot(bx - ax, by - ay);
+  if (length < 0.001) return !wall(ax, ay);
   for (let i = 0; i <= length; i += 0.06)
     if (wall(ax + ((bx - ax) * i) / length, ay + ((by - ay) * i) / length))
       return false;

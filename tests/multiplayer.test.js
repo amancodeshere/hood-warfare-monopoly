@@ -5,7 +5,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { io } from "socket.io-client";
-import { room, player, start } from "../server/game.js";
+import { room, player, start, land, action } from "../server/game.js";
 const data = mkdtempSync(join(tmpdir(), "stb-test-"));
 const port = 4387,
   url = `http://127.0.0.1:${port}`;
@@ -81,11 +81,33 @@ test("real multiplayer: authority, room capacity, reconnect, origin checks, and 
     lastMove: { id: "old" },
     teamNames: { 1: "Custom crew" },
   });
+  const fighter = player("Arena Ace"),
+    landlord = player("Arena Rival"),
+    arena = room("ARENA1", fighter);
+  arena.players.push(landlord, player("Arena Watcher"));
+  start(arena, fighter.id);
+  arena.props[1] = { owner: landlord.id, level: 0, mortgaged: false };
+  fighter.pos = 1;
+  fighter.cash = 0;
+  land(arena);
+  action(arena, fighter.id, { type: "shootout" });
+  Object.assign(arena.duel, {
+    stage: "live",
+    ready: [fighter.id, landlord.id],
+    startsAt: Date.now() - 100,
+    endsAt: Date.now() + 30000,
+    tickAt: Date.now() - 100,
+  });
+  arena.deadline = arena.duel.endsAt;
   writeFileSync(
     join(data, "rooms.json"),
     JSON.stringify({
-      rooms: [finished],
-      sessions: [["rematch-host", { code: "REPLAY", id: captain.id }]],
+      rooms: [finished, arena],
+      sessions: [
+        ["rematch-host", { code: "REPLAY", id: captain.id }],
+        ["arena-ace", { code: arena.code, id: fighter.id }],
+        ["arena-rival", { code: arena.code, id: landlord.id }],
+      ],
     }),
   );
   await boot();
@@ -98,6 +120,72 @@ test("real multiplayer: authority, room capacity, reconnect, origin checks, and 
   const a = await client(),
     b = await client();
   clients.push(a, b);
+  const arenaClient = await client(),
+    arenaRival = await client();
+  clients.push(arenaClient, arenaRival);
+  const compact = [];
+  arenaRival.on("arena-state", (packet) => compact.push(packet));
+  assert((await send(arenaClient, "resume", { token: "arena-ace" })).ok);
+  assert((await send(arenaRival, "resume", { token: "arena-rival" })).ok);
+  let fullUpdates = 0;
+  arenaRival.on("state", () => fullUpdates++);
+  for (let seq = 1; seq <= 300; seq++)
+    assert(
+      (
+        await send(arenaClient, "action", {
+          type: "duel-input",
+          seq,
+          forward: 0,
+          strafe: 0,
+          yaw: 0,
+          pitch: 0,
+        })
+      ).ok,
+    );
+  assert(
+    (
+      await send(arenaClient, "chat", {
+        text: "Movement does not consume the chat budget",
+      })
+    ).ok,
+  );
+  await new Promise((resolve) => setTimeout(resolve, 250));
+  assert(compact.length >= 1);
+  assert(compact.length < 15);
+  assert(fullUpdates <= 2);
+  assert(
+    !("board" in compact[0]) &&
+      !("chat" in compact[0]) &&
+      !("players" in compact[0]),
+  );
+  assert.equal(compact.at(-1).fighters[fighter.id].x, 2.5);
+  assert(
+    (await send(arenaClient, "action", { type: "duel-fire", yaw: 0, pitch: 0 }))
+      .ok,
+  );
+  await new Promise((resolve) => setTimeout(resolve, 650));
+  assert.equal(compact.at(-1).fighters[landlord.id].hp, 75);
+  let throttled = false;
+  for (let seq = 301; seq <= 410; seq++) {
+    const r = await send(arenaClient, "action", {
+      type: "duel-input",
+      seq,
+      forward: 0,
+      strafe: 0,
+      yaw: 0,
+      pitch: 0,
+    });
+    if (r.error) {
+      assert.match(r.error, /Too many/);
+      throttled = true;
+      break;
+    }
+  }
+  assert(throttled);
+  assert((await send(arenaClient, "action", { type: "forfeit" })).ok);
+  assert((await send(arenaClient, "leave")).ok);
+  arenaClient.disconnect();
+  arenaRival.disconnect();
   assert.match(
     (await send(a, "create", { settings: { map: "neon" } })).error,
     /Verify/,

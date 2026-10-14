@@ -725,7 +725,12 @@ io.on("connection", (socket) => {
   handle("action", (d) => {
     const g = session(socket);
     action(g, socket.data.player, d);
-    if (!(g.phase === "duel" && g.duel?.arena && d.type !== "duel-ready"))
+    if (!(
+      g.phase === "duel" &&
+      g.duel?.arena &&
+      g.duel.mode === "fps" &&
+      d.type !== "duel-ready"
+    ))
       publish(g);
     return {};
   });
@@ -784,7 +789,7 @@ const interval = setInterval(() => {
       g.pausedAt ||= Date.now();
       continue;
     }
-    if (g.phase === "duel" && g.duel?.arena) continue;
+    if (g.phase === "duel" && g.duel?.arena && g.duel.mode === "fps") continue;
     if (g.phase === "duel" && g.duel?.mode === "fps") {
       if (tickDuel(g)) publish(g);
       if (g.phase === "duel") {
@@ -883,7 +888,12 @@ const interval = setInterval(() => {
 const arenaInterval = setInterval(() => {
   const now = Date.now();
   for (const g of rooms.values()) {
-    if (g.status !== "playing" || g.phase !== "duel" || !g.duel?.arena)
+    if (
+      g.status !== "playing" ||
+      g.phase !== "duel" ||
+      !g.duel?.arena ||
+      g.duel.mode !== "fps"
+    )
       continue;
     if (!g.players.some((p) => !p.bot && p.connected)) {
       g.pausedAt ||= now;
