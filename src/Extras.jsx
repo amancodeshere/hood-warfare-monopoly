@@ -1474,9 +1474,11 @@ export function ExpandedRules({ close, game }) {
               {legacy
                 ? "This saved match uses the original 28-square board."
                 : "2–8 crews move around 40 squares. Fill spare seats with bots or play solo against 1–7 bots."}{" "}
-              Pass Home Base for $200. With doubles enabled, roll again; three
-              doubles in a row send you to County. Choose winner takes all
-              (default), or a 10/20/30-round cap.
+              Totals 2–12 each have a 1-in-11 chance. The dice show a randomly
+              selected pair for that total. Pass Home Base for $200. With
+              doubles enabled, roll again; three doubles in a row send you to
+              County. Choose winner takes all (default), or a 10/20/30-round
+              cap.
             </p>
           </div>
         </article>

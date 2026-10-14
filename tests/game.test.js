@@ -11,7 +11,39 @@ import {
   view,
   active,
   defaultAction,
+  rollDice,
 } from "../server/game.js";
+test("dice draw each total from the same 11-way range and every valid pair uniformly", () => {
+  const totals = [];
+  for (let draw = 0; draw < 11; draw++) {
+    const total = draw + 2;
+    const low = Math.max(1, total - 6);
+    const high = Math.min(6, total - 1);
+    const pairs = [];
+    for (let pair = 0; pair <= high - low; pair++) {
+      let calls = 0;
+      const dice = rollDice((limit) => {
+        if (calls++ === 0) {
+          assert.equal(limit, 11);
+          return draw;
+        }
+        assert.equal(limit, high - low + 1);
+        return pair;
+      });
+      assert.equal(calls, 2);
+      assert(dice.every((face) => face >= 1 && face <= 6));
+      assert.equal(dice[0] + dice[1], total);
+      pairs.push(dice);
+    }
+    assert.equal(new Set(pairs.map((p) => p.join(","))).size, high - low + 1);
+    assert.deepEqual(
+      pairs.map((p) => p[0]),
+      Array.from({ length: high - low + 1 }, (_, i) => low + i),
+    );
+    totals.push(total);
+  }
+  assert.deepEqual(totals, [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+});
 import { BOARD, coordinates } from "../shared/legacy-board.js";
 function fixture(n = 3) {
   const p = player("Ace"),
