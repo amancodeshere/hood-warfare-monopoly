@@ -516,29 +516,33 @@ export function ExchangePanel({ game, act, disabled, counter, clearCounter }) {
               </button>
             </p>
           )}
-          <label htmlFor="exchange-crew">
-            Trade with
-            <select
-              id="exchange-crew"
-              value={to}
-              disabled={!!counter || disabled}
-              onChange={(e) => {
-                setTo(e.target.value);
-                setTake([]);
-                setRequestCash("0");
-                setRequestEscapes("0");
-              }}
-            >
-              <option value="">Choose a crew</option>
-              {game.players
-                .filter((p) => p.id !== me.id && !p.out)
-                .map((p) => (
-                  <option key={p.id} value={p.id}>
+          <fieldset
+            className="trade-crew-choices"
+            disabled={!!counter || disabled}
+          >
+            <legend>Trade with</legend>
+            {game.players
+              .filter((p) => p.id !== me.id && !p.out)
+              .map((p) => (
+                <label key={p.id}>
+                  <input
+                    type="radio"
+                    name="trade-partner"
+                    value={p.id}
+                    checked={to === p.id}
+                    onChange={() => {
+                      setTo(p.id);
+                      setTake([]);
+                      setRequestCash("0");
+                      setRequestEscapes("0");
+                    }}
+                  />
+                  <span>
                     {p.name} · {money(p.cash)}
-                  </option>
-                ))}
-            </select>
-          </label>
+                  </span>
+                </label>
+              ))}
+          </fieldset>
           <fieldset
             disabled={!movable || disabled || stale}
             className="exchange-fields"

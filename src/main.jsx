@@ -1463,6 +1463,17 @@ function App() {
                         ? game.teamNames?.[p.team] || `Team ${p.team}`
                         : CREWS[p.crew].name}
                     </small>
+                    {p.escapes > 0 && (
+                      <span
+                        className="held-cards"
+                        aria-label={`${p.name} holds ${p.escapes} escape card${p.escapes === 1 ? "" : "s"}`}
+                      >
+                        <KeyRound size={12} aria-hidden="true" />
+                        <span>
+                          {p.escapes} escape card{p.escapes === 1 ? "" : "s"}
+                        </span>
+                      </span>
+                    )}
                   </div>
                   {p.bot ? (
                     <span className="bot-tag">BOT</span>

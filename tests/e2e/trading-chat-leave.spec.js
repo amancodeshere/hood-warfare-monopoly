@@ -20,14 +20,14 @@ test("two crews negotiate properties, cash and cards through an editable counter
   await page.getByRole("button", { name: "Trade", exact: true }).click();
   const editor = page.locator(".exchange");
   await editor
-    .getByLabel("Trade with")
-    .selectOption({ label: "Trade Rival · $1,500" });
+    .getByRole("radio", { name: "Trade Rival · $1,500", exact: true })
+    .check();
   await editor
     .getByRole("checkbox", { name: /Auntie’s Tax-Free Corner/ })
     .check();
   await editor.getByRole("checkbox", { name: /Broke Boy Blvd/ }).check();
   // Select the opponent's one owned property using its live rendered label.
-  await editor.locator("fieldset").nth(1).getByRole("checkbox").check();
+  await editor.locator(".exchange-fields").nth(1).getByRole("checkbox").check();
   await editor.getByLabel("Cash to give", { exact: true }).fill("100");
   await editor.getByLabel("Cash to receive", { exact: true }).fill("200");
   await editor.getByLabel("Escape cards to give", { exact: true }).fill("2");
@@ -80,8 +80,8 @@ test("two crews negotiate properties, cash and cards through an editable counter
   ).toContainText("$1,650");
   await rival.getByRole("button", { name: "Trade", exact: true }).click();
   await counter
-    .getByLabel("Trade with")
-    .selectOption({ label: "Trade Ace · $1,350" });
+    .getByRole("radio", { name: "Trade Ace · $1,350", exact: true })
+    .check();
   await counter.getByLabel("Cash to give", { exact: true }).fill("10");
   await counter
     .getByRole("button", { name: "Send offer", exact: true })
@@ -188,5 +188,42 @@ test("eliminated mobile player exits even during an event, clears seat and canno
     expect(result.error).toBeTruthy();
   } finally {
     socket.disconnect();
+  }
+});
+
+test("eight crews expose held cards and all trade partners without nested scrolling", async ({
+  page,
+}) => {
+  await resume(page, "pieces-ace");
+  await page.getByRole("button", { name: "Trade", exact: true }).click();
+  const choices = page.locator(".trade-crew-choices");
+  await expect(choices.getByRole("radio")).toHaveCount(7);
+  const owner = page.locator(".crew-row").filter({ hasText: "Big Stepper" });
+  await expect(owner.locator(".held-cards")).toHaveText("2 escape cards");
+  await expect(
+    page
+      .locator(".crew-row")
+      .filter({ hasText: "Gold Chain" })
+      .locator(".held-cards"),
+  ).toHaveText("1 escape card");
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await choices.getByRole("radio").last().check();
+    await expect(choices.getByRole("radio").last()).toBeChecked();
+    expect(
+      await choices.evaluate((el) => el.scrollHeight <= el.clientHeight),
+    ).toBeTruthy();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBeTruthy();
+    const cardBox = await owner.locator(".held-cards").boundingBox();
+    const crewBox = await owner.locator(".crew-main small").boundingBox();
+    expect(cardBox.y).toBeGreaterThanOrEqual(crewBox.y + crewBox.height);
+    await page
+      .locator(".crew-sidebar")
+      .screenshot({ path: `work/cards-${width}.png` });
+    await choices.screenshot({ path: `work/trade-partners-${width}.png` });
   }
 });
