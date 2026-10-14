@@ -153,6 +153,7 @@ test("email transport uses the configured sender and keeps provider failures pri
   const previous = {
     key: process.env.RESEND_API_KEY,
     from: process.env.EMAIL_FROM,
+    provider: process.env.EMAIL_PROVIDER,
     fetch: globalThis.fetch,
   };
   t.after(() => {
@@ -160,10 +161,13 @@ test("email transport uses the configured sender and keeps provider failures pri
     else process.env.RESEND_API_KEY = previous.key;
     if (previous.from === undefined) delete process.env.EMAIL_FROM;
     else process.env.EMAIL_FROM = previous.from;
+    if (previous.provider === undefined) delete process.env.EMAIL_PROVIDER;
+    else process.env.EMAIL_PROVIDER = previous.provider;
     globalThis.fetch = previous.fetch;
   });
   delete process.env.RESEND_API_KEY;
   delete process.env.EMAIL_FROM;
+  delete process.env.EMAIL_PROVIDER;
   assert.equal(emailAvailable(), false);
   await assert.rejects(
     sendVerification({ email: "a@example.com", code: "123456" }),
@@ -191,4 +195,87 @@ test("email transport uses the configured sender and keeps provider failures pri
     (e) =>
       e.message.includes("Could not send") && !e.message.includes("internals"),
   );
+});
+
+test("Brevo sends verification with its own key and requires provider acceptance", async (t) => {
+  const { sendVerification, emailAvailable } =
+    await import("../server/email.js");
+  const names = [
+    "EMAIL_PROVIDER",
+    "EMAIL_FROM",
+    "BREVO_API_KEY",
+    "RESEND_API_KEY",
+  ];
+  const previous = Object.fromEntries(
+    names.map((name) => [name, process.env[name]]),
+  );
+  const previousFetch = globalThis.fetch;
+  t.after(() => {
+    for (const name of names) {
+      if (previous[name] === undefined) delete process.env[name];
+      else process.env[name] = previous[name];
+    }
+    globalThis.fetch = previousFetch;
+  });
+  process.env.EMAIL_PROVIDER = "brevo";
+  process.env.EMAIL_FROM = "Spin the Block <play@example.com>";
+  process.env.RESEND_API_KEY = "unrelated-resend-key";
+  delete process.env.BREVO_API_KEY;
+  assert.equal(emailAvailable(), false);
+  process.env.BREVO_API_KEY = "test-brevo-key";
+  assert.equal(emailAvailable(), true);
+  let request;
+  globalThis.fetch = async (url, options) => {
+    request = { url, options };
+    return {
+      ok: true,
+      json: async () => ({ messageId: "accepted-test-message" }),
+    };
+  };
+  await sendVerification({ email: "player@example.com", code: "654321" });
+  assert.equal(request.url, "https://api.brevo.com/v3/smtp/email");
+  assert.equal(request.options.headers["api-key"], "test-brevo-key");
+  assert.equal(request.options.headers.Authorization, undefined);
+  assert(request.options.signal instanceof AbortSignal);
+  const body = JSON.parse(request.options.body);
+  assert.deepEqual(body.sender, {
+    name: "Spin the Block",
+    email: "play@example.com",
+  });
+  assert.deepEqual(body.to, [{ email: "player@example.com" }]);
+  assert(body.textContent.includes("654321"));
+  assert(body.htmlContent.includes("654321"));
+  process.env.EMAIL_FROM = "play@example.com";
+  await sendVerification({ email: "player@example.com", code: "654321" });
+  assert.deepEqual(JSON.parse(request.options.body).sender, body.sender);
+  for (const response of [
+    { ok: false },
+    { ok: true, json: async () => ({}) },
+    {
+      ok: true,
+      json: async () => {
+        throw new Error("private provider data");
+      },
+    },
+  ]) {
+    globalThis.fetch = async () => response;
+    await assert.rejects(
+      sendVerification({ email: "player@example.com", code: "654321" }),
+      (error) =>
+        error.message ===
+        "Could not send your code. Check the address and try again later.",
+    );
+  }
+  globalThis.fetch = async () => {
+    throw new Error("secret API key");
+  };
+  await assert.rejects(
+    sendVerification({ email: "player@example.com", code: "654321" }),
+    /Could not send your code/,
+  );
+  process.env.EMAIL_FROM = "malformed sender";
+  assert.equal(emailAvailable(), false);
+  process.env.EMAIL_FROM = "play@example.com";
+  process.env.EMAIL_PROVIDER = "unsupported";
+  assert.equal(emailAvailable(), false);
 });
