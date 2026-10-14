@@ -79,6 +79,7 @@ for (let i = 1; i < 8; i++)
   );
 maker.escapes = 2;
 pieces.settings.maxPlayers = 8;
+pieces.pot = 325;
 pieces.players[1].escapes = 1;
 pieces.players[7].name = "Final Boss With Drip";
 start(pieces, maker.id);

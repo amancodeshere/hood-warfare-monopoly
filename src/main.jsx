@@ -230,7 +230,7 @@ function Board({ game, selected, setSelected, rolling, highlight }) {
                   : "transparent",
               }}
               onClick={() => setSelected(t.id)}
-              aria-label={`${t.name}${t.price ? ", " + money(t.price) : ""}${q ? ", owned by " + game.players.find((p) => p.id === q.owner)?.name : ""}`}
+              aria-label={`${t.name}${t.price ? ", " + money(t.price) : ""}${t.type === "parking" ? ", community balance " + money(game?.pot || 0) : ""}${q ? ", owned by " + game.players.find((p) => p.id === q.owner)?.name : ""}`}
             >
               {t.group !== undefined && <div className="district-stripe"></div>}
               {q?.level > 0 && (
@@ -247,25 +247,32 @@ function Board({ game, selected, setSelected, rolling, highlight }) {
                 <Icon name={t.type} size={corner ? 24 : 19} />
               )}
               <span className="tile-name">{t.name}</span>
-              <span className="tile-price">
-                {t.price
-                  ? money(t.price)
-                  : t.type === "start"
-                    ? "+$200"
-                    : t.type === "tax"
-                      ? "$100"
-                      : t.type === "roulette"
-                        ? "SPIN TO WIN"
-                        : t.type === "stoppa"
-                          ? "LOSE 1–10%"
-                          : t.type === "card"
-                            ? "TAKE A CHANCE"
-                            : t.type === "jail"
-                              ? "JUST VISITING"
-                              : t.type === "raid"
-                                ? "GO TO JAIL"
-                                : "COMMUNITY POT"}
-              </span>
+              {t.type === "parking" && (
+                <span className="community-balance">
+                  {money(game?.pot || 0)}
+                </span>
+              )}
+              {t.type !== "parking" && (
+                <span className="tile-price">
+                  {t.price
+                    ? money(t.price)
+                    : t.type === "start"
+                      ? "+$200"
+                      : t.type === "tax"
+                        ? "$100"
+                        : t.type === "roulette"
+                          ? "SPIN TO WIN"
+                          : t.type === "stoppa"
+                            ? "LOSE 1–10%"
+                            : t.type === "card"
+                              ? "TAKE A CHANCE"
+                              : t.type === "jail"
+                                ? "JUST VISITING"
+                                : t.type === "raid"
+                                  ? "GO TO JAIL"
+                                  : "COMMUNITY POT"}
+                </span>
+              )}
               {q && (
                 <span
                   className="owner-badge"
@@ -940,9 +947,17 @@ function App() {
                           : t.type === "raid"
                             ? "Go straight to County Jail."
                             : t.type === "parking"
-                              ? "Collect the community pot."
+                              ? game?.settings.communityCash === false
+                                ? "Community payouts are off in this room."
+                                : "Land here to collect the community pot."
                               : "Pay $100 into the community pot."}
         </p>
+        {t.type === "parking" && (
+          <div className="detail-stat">
+            <span>Community Plot balance</span>
+            <b>{money(game?.pot || 0)}</b>
+          </div>
+        )}
         {t.price && (
           <>
             <div className="detail-stat">

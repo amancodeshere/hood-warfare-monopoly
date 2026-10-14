@@ -690,6 +690,7 @@ button:hover:not(:disabled) {
   text-align: center;
 }
 .city-art {
+  aspect-ratio: 3 / 2;
   position: absolute;
   top: 25%;
   width: 110%;
@@ -4457,5 +4458,95 @@ button:hover:not(:disabled) {
   }
   .board-viewport.overview .tile:has(.tokens) .tile-name {
     max-width: calc(100% - 22px);
+  }
+}
+
+.city-drawing {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.city-car {
+  transform: var(--car-rest);
+  animation: city-drive var(--car-duration) linear var(--car-delay) infinite;
+}
+.traffic-paused .city-car {
+  animation-play-state: paused;
+}
+@keyframes city-drive {
+  0% {
+    transform: var(--car-from);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  95% {
+    opacity: 1;
+  }
+  100% {
+    transform: var(--car-to);
+    opacity: 0;
+  }
+}
+.city-traffic-toggle {
+  z-index: 3;
+  position: absolute;
+  right: 5%;
+  bottom: 8%;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px;
+  border-radius: 5px;
+  background: #253025;
+  color: #d6e0cb;
+  font-size: 10px;
+  min-height: 32px;
+}
+.studio-preview .city-traffic-toggle {
+  display: none;
+}
+.studio-preview .city-car {
+  animation: none;
+  transform: var(--car-rest);
+}
+@media (prefers-reduced-motion: reduce) {
+  .city-car {
+    animation: none;
+    transform: var(--car-rest);
+  }
+  .city-traffic-toggle {
+    display: none;
+  }
+}
+.community-balance {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  display: block;
+  margin-top: 4px;
+  color: #263326;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+.board-viewport.overview .community-balance {
+  font-size: 9px;
+}
+@media (max-width: 640px) {
+  .entry-city {
+    opacity: 1;
+  }
+  .entry-city .city-drawing {
+    opacity: 0.65;
+  }
+  .entry-city .city-traffic-toggle {
+    top: 0;
+    bottom: auto;
+    right: 25%;
+    min-height: 44px;
+  }
+  .city-traffic-toggle {
+    min-height: 44px;
   }
 }

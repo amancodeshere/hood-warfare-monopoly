@@ -1,62 +1,106 @@
-import React from "react";
-function Building({
-  x,
-  y,
-  w = 40,
-  d = 26,
-  h = 60,
-  color = "#8da89a",
-  roof = "#b6c5b7",
-  label,
-  windows = true,
-}) {
+import React, { useEffect, useId, useRef, useState } from "react";
+import { Pause, Play } from "lucide-react";
+
+const project = (u, v, height = 0) => [
+  300 + (u - v) * 0.63,
+  92 + (u + v) * 0.315 - height,
+];
+const polygon = (points) => points.map((p) => p.join(",")).join(" ");
+const lots = [
+  { u: 22, v: 22, w: 70, d: 64, h: 46, label: "DELI", tone: 0 },
+  { u: 168, v: 20, w: 42, d: 70, h: 83, tone: 1 },
+  { u: 220, v: 22, w: 34, d: 72, h: 106, tone: 2 },
+  { u: 314, v: 20, w: 72, d: 72, h: 68, tone: 0 },
+  { u: 20, v: 168, w: 72, d: 66, h: 62, tone: 2 },
+  { u: 168, v: 168, w: 42, d: 70, h: 110, tone: 1 },
+  { u: 220, v: 170, w: 32, d: 76, h: 78, tone: 0 },
+  { u: 314, v: 168, w: 72, d: 68, h: 50, label: "808", tone: 2 },
+  { u: 22, v: 312, w: 72, d: 72, h: 40, label: "GROVE", tone: 0 },
+  { u: 314, v: 312, w: 38, d: 72, h: 62, tone: 1 },
+  { u: 362, v: 314, w: 30, d: 72, h: 80, label: "ARCADE", tone: 2 },
+];
+const trees = [
+  [108, 30],
+  [108, 88],
+  [30, 108],
+  [190, 108],
+  [380, 108],
+  [108, 190],
+  [108, 242],
+  [258, 198],
+  [394, 236],
+  [30, 394],
+  [100, 390],
+  [260, 338],
+  [260, 388],
+  [394, 394],
+];
+function Building({ u, v, w, d, h, label, tone }) {
+  const a = project(u, v),
+    b = project(u + w, v),
+    c = project(u + w, v + d),
+    e = project(u, v + d);
+  const roof = [a, b, c, e].map(([x, y]) => [x, y - h]);
+  const color = `var(--city-${["one", "two", "three"][tone]}, ${["#a6957c", "#85978e", "#94a9a4"][tone]})`;
+  const floors = Math.max(1, Math.floor((h - 8) / 17));
   return (
-    <g transform={`translate(${x} ${y})`}>
-      <path
-        d={`M0 0L${w} ${-w * 0.5}L${w + d} ${(-w + d) * 0.5}L${d} ${d * 0.5}Z`}
+    <g className="city-building" data-lot={`${u},${v}`}>
+      <polygon
+        points={polygon([a, b, c, e].map(([x, y]) => [x + 9, y + 5]))}
         fill="#111917"
-        opacity=".5"
-        transform="translate(13 10)"
+        opacity=".35"
       />
-      <path
-        d={`M0 ${-h}L${d} ${d * 0.5 - h}V${d * 0.5}L0 0Z`}
-        fill={`var(--city-${Math.abs(Math.round(x / 100)) % 3 === 0 ? "one" : Math.abs(Math.round(x / 100)) % 3 === 1 ? "two" : "three"}, ${color})`}
+      <polygon
+        points={polygon([roof[1], roof[2], c, b])}
+        fill={color}
+        style={{ filter: "brightness(.72)" }}
       />
-      <path
-        d={`M${d} ${d * 0.5 - h}L${w + d} ${(-w + d) * 0.5 - h}V${(-w + d) * 0.5}L${d} ${d * 0.5}Z`}
-        fill={`var(--city-${Math.abs(Math.round(x / 100)) % 3 === 0 ? "one" : Math.abs(Math.round(x / 100)) % 3 === 1 ? "two" : "three"}, ${color})`}
-        style={{ filter: "brightness(.65)" }}
+      <polygon points={polygon([roof[3], roof[2], c, e])} fill={color} />
+      <polygon points={polygon(roof)} fill="var(--city-roof, #b6c5b7)" />
+      <polygon
+        points={polygon([
+          project(u + 4, v + 4, h + 1),
+          project(u + w - 4, v + 4, h + 1),
+          project(u + w - 4, v + d - 4, h + 1),
+          project(u + 4, v + d - 4, h + 1),
+        ])}
+        fill={color}
+        opacity=".35"
       />
-      <path
-        d={`M0 ${-h}L${w} ${-w * 0.5 - h}L${w + d} ${(-w + d) * 0.5 - h}L${d} ${d * 0.5 - h}Z`}
-        fill={`var(--city-roof, ${roof})`}
-      />
-      <path
-        d={`M5 ${-h}L${w} ${-w * 0.5 - h + 3}L${w + d - 5} ${(-w + d) * 0.5 - h}L${d} ${d * 0.5 - h - 3}Z`}
-        fill={`var(--city-${Math.abs(Math.round(x / 100)) % 3 === 0 ? "one" : Math.abs(Math.round(x / 100)) % 3 === 1 ? "two" : "three"}, ${color})`}
-        opacity=".3"
-      />
-      {windows &&
-        Array.from({ length: Math.floor(h / 16) }, (_, i) => (
-          <g key={i} opacity=".8">
-            {[0, 1, 2].map((j) => (
-              <path
-                key={j}
-                d={`M${d + 7 + j * 10} ${d * 0.5 - h + 11 + i * 16 - j * 5}l5 -2.5v7l-5 2.5Z`}
-                fill={(i + j) % 3 === 0 ? "#e7d592" : "#31443b"}
-              />
-            ))}
-          </g>
-        ))}
+      {Array.from({ length: floors }, (_, floor) =>
+        Array.from({ length: Math.max(1, Math.floor(w / 15)) }, (_, col) => {
+          const x = u + 8 + col * 15,
+            level = 12 + floor * 17;
+          return (
+            <polygon
+              key={`${floor}-${col}`}
+              points={polygon([
+                project(x, v + d, level + 7),
+                project(x + 7, v + d, level + 7),
+                project(x + 7, v + d, level),
+                project(x, v + d, level),
+              ])}
+              fill={(floor + col) % 3 === 0 ? "#e7d592" : "#31443b"}
+            />
+          );
+        }),
+      )}
       {label && (
-        <g transform={`translate(${d + 3} ${d * 0.5 - 20}) rotate(-26.5)`}>
-          <rect width={w - 6} height="13" fill="#d9c784" />
+        <g
+          transform={`translate(${project(u + w / 2, v + d, 12).join(" ")}) rotate(26.565)`}
+        >
+          <rect
+            x={-w * 0.29}
+            y="-7"
+            width={w * 0.58}
+            height="11"
+            fill="#d9c784"
+          />
           <text
-            x={(w - 6) / 2}
-            y="9"
             textAnchor="middle"
+            y="1"
             fill="#222c25"
-            fontSize="7"
+            fontSize={label.length > 5 ? "4" : "5"}
             fontWeight="800"
           >
             {label}
@@ -66,20 +110,87 @@ function Building({
     </g>
   );
 }
-function Tree({ x, y }) {
+function Tree({ u, v }) {
+  const [x, y] = project(u, v);
   return (
     <g transform={`translate(${x} ${y})`}>
-      <ellipse cx="4" cy="4" rx="13" ry="6" fill="#101b15" opacity=".4" />
-      <path d="M0 0v-18" stroke="#756c51" strokeWidth="4" />
-      <path d="M-12-13L0-40l13 27Z" fill="#64815c" />
-      <path d="M-9-23L0-45l10 22Z" fill="#81966a" />
+      <ellipse rx="10" ry="4" cy="2" fill="#101b15" opacity=".35" />
+      <path d="M0 0v-15" stroke="#756c51" strokeWidth="3" />
+      <path d="M-10-11L0-34l10 23Z" fill="#64815c" />
+      <path d="M-8-21L0-39l8 18Z" fill="#81966a" />
+    </g>
+  );
+}
+function Car({ from, to, rest, duration, delay, color, vertical, reverse }) {
+  return (
+    <g
+      className="city-car"
+      style={{
+        "--car-from": `translate(${from[0]}px, ${from[1]}px)`,
+        "--car-to": `translate(${to[0]}px, ${to[1]}px)`,
+        "--car-rest": `translate(${rest[0]}px, ${rest[1]}px)`,
+        "--car-duration": `${duration}s`,
+        "--car-delay": `${delay}s`,
+      }}
+    >
+      <g
+        transform={
+          vertical ? "rotate(90)" : reverse ? "rotate(180)" : undefined
+        }
+      >
+        <rect
+          x="-10"
+          y="-4"
+          width="21"
+          height="10"
+          rx="2"
+          fill="#111917"
+          opacity=".4"
+        />
+        <rect x="-10" y="-5" width="20" height="9" rx="2" fill={color} />
+        <rect x="-4" y="-4" width="9" height="7" rx="1" fill="#364d45" />
+        <path d="M-1-4v7" stroke={color} strokeWidth="2" />
+        <path d="M8-3v2M8 1v2" stroke="#eddda1" strokeWidth="1.5" />
+      </g>
     </g>
   );
 }
 export default function City({ palette, theme }) {
+  const id = useId().replaceAll(":", ""),
+    ref = useRef(null);
+  const [paused, setPaused] = useState(false),
+    [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => setVisible(entry.isIntersecting),
+      { threshold: 0.05 },
+    );
+    if (ref.current) observer.observe(ref.current);
+    const visibility = () => {
+      if (document.hidden) setVisible(false);
+      else if (ref.current) {
+        const r = ref.current.getBoundingClientRect();
+        setVisible(r.bottom > 0 && r.top < innerHeight);
+      }
+    };
+    document.addEventListener("visibilitychange", visibility);
+    return () => {
+      observer.disconnect();
+      document.removeEventListener("visibilitychange", visibility);
+    };
+  }, []);
+  const objects = [
+    ...lots.map((lot) => ({
+      depth: lot.u + lot.v + lot.w + lot.d,
+      kind: "building",
+      ...lot,
+    })),
+    ...trees.map(([u, v]) => ({ depth: u + v, kind: "tree", u, v })),
+  ].sort((a, b) => a.depth - b.depth);
   return (
-    <svg
-      className={`city-art city-theme-${theme || "trenches"}`}
+    <div
+      ref={ref}
+      className={`city-art city-theme-${theme || "trenches"}${paused || !visible ? " traffic-paused" : ""}`}
       style={
         palette
           ? {
@@ -90,228 +201,142 @@ export default function City({ palette, theme }) {
             }
           : undefined
       }
-      viewBox="0 0 600 400"
-      role="img"
-      aria-label="An original isometric city with storefronts, towers, a basketball court, and tree-lined streets"
     >
-      <defs>
-        <pattern
-          id="city-grain"
-          width="6"
-          height="6"
-          patternUnits="userSpaceOnUse"
-        >
-          <circle cx="1" cy="2" r=".45" fill="#d1dec5" opacity=".1" />
-        </pattern>
-      </defs>
-      <path d="M35 235L305 100L568 231L298 367Z" fill="#465348" />
-      <path d="M35 235L298 367V377L35 245Z" fill="#29362c" />
-      <path d="M298 367L568 231V241L298 377Z" fill="#202d26" />
-      <path d="M35 235L305 100L568 231L298 367Z" fill="url(#city-grain)" />
-      <path
-        d="M84 259L354 125M190 313L462 178M148 179L410 311M250 128L511 259"
-        stroke="#25322c"
-        strokeWidth="28"
-      />
-      <path
-        d="M84 259L354 125M190 313L462 178M148 179L410 311M250 128L511 259"
-        stroke="#71816b"
-        strokeWidth="1.5"
-        strokeDasharray="8 12"
-      />
-      <path
-        d="M83 247L353 113M178 315L450 179M137 188L397 319M259 119L519 251"
-        stroke="#91a18a"
-        strokeWidth="2"
-        opacity=".5"
-      />
-      <g>
-        <path d="M230 280l67-33 57 28-67 34Z" fill="#759272" />
-        <path d="M241 279l54-27 47 23-54 27Z" fill="#aab78e" />
-        <path
-          d="M268 264l46 23M243 279l54-27 47 23-54 27Z"
-          fill="none"
-          stroke="#e9dfbb"
-          strokeWidth="1.2"
+      <svg
+        className="city-drawing"
+        viewBox="0 0 600 400"
+        role="img"
+        aria-label="An isometric neighborhood with buildings on city blocks, sidewalks, a basketball court, and cars following the streets"
+      >
+        <defs>
+          <pattern
+            id={`${id}-grain`}
+            width="6"
+            height="6"
+            patternUnits="userSpaceOnUse"
+          >
+            <circle cx="1" cy="2" r=".45" fill="#d1dec5" opacity=".1" />
+          </pattern>
+        </defs>
+        <polygon
+          points={polygon([
+            project(0, 0),
+            project(420, 0),
+            project(420, 420),
+            project(0, 420),
+          ])}
+          fill="#465348"
         />
-        <ellipse
-          cx="292"
-          cy="278"
-          rx="9"
-          ry="4.5"
-          fill="none"
-          stroke="#e9dfbb"
-          strokeWidth="1.2"
+        <polygon
+          points={polygon([
+            project(0, 420),
+            project(420, 420),
+            project(420, 420, -9),
+            project(0, 420, -9),
+          ])}
+          fill="#29362c"
         />
-        <path
-          d="M247 278v-17m-6 0h12m73 16v-18m-6 0h12"
-          fill="none"
-          stroke="#ddd6b5"
-          strokeWidth="2"
+        <polygon
+          points={polygon([
+            project(420, 0),
+            project(420, 420),
+            project(420, 420, -9),
+            project(420, 0, -9),
+          ])}
+          fill="#202d26"
         />
-      </g>
-      <Building
-        x={193}
-        y={157}
-        w={40}
-        d={25}
-        h={68}
-        color="#929b7d"
-        roof="#b5b996"
-      />
-      <Building
-        x={234}
-        y={136}
-        w={35}
-        d={24}
-        h={104}
-        color="#85978e"
-        roof="#abb7a0"
-      />
-      <Building
-        x={293}
-        y={168}
-        w={42}
-        d={34}
-        h={128}
-        color="#94a9a4"
-        roof="#bac5b7"
-      />
-      <Building
-        x={342}
-        y={190}
-        w={40}
-        d={25}
-        h={86}
-        color="#8c918e"
-        roof="#b5b5a3"
-      />
-      <Building
-        x={396}
-        y={162}
-        w={31}
-        d={24}
-        h={71}
-        color="#b49b8a"
-        roof="#d2bca0"
-      />
-      <Building
-        x={91}
-        y={239}
-        w={42}
-        d={28}
-        h={45}
-        color="#a9ad84"
-        roof="#c5c5a0"
-        label="DELI"
-      />
-      <Building
-        x={139}
-        y={215}
-        w={37}
-        d={27}
-        h={62}
-        color="#b59d8c"
-        roof="#cdb5a1"
-      />
-      <Building
-        x={223}
-        y={237}
-        w={42}
-        d={28}
-        h={45}
-        color="#9baa92"
-        roof="#b3c0a6"
-        label="808"
-      />
-      <Building
-        x={270}
-        y={213}
-        w={34}
-        d={24}
-        h={72}
-        color="#b0a498"
-        roof="#cebfad"
-      />
-      <Building
-        x={408}
-        y={247}
-        w={41}
-        d={28}
-        h={51}
-        color="#a89e8e"
-        roof="#c7b99f"
-        label="ARCADE"
-      />
-      <Building
-        x={455}
-        y={224}
-        w={36}
-        d={22}
-        h={75}
-        color="#92a498"
-        roof="#bac6ac"
-      />
-      <Building
-        x={139}
-        y={287}
-        w={43}
-        d={31}
-        h={45}
-        color="#a6957c"
-        roof="#bdb296"
-        label="GROVE"
-      />
-      <Building
-        x={349}
-        y={324}
-        w={45}
-        d={29}
-        h={58}
-        color="#9ca58a"
-        roof="#bec4a6"
-      />
-      <Building
-        x={400}
-        y={299}
-        w={30}
-        d={22}
-        h={79}
-        color="#b2a5a0"
-        roof="#cec0b1"
-      />
-      {[
-        { x: 59, y: 232 },
-        { x: 76, y: 224 },
-        { x: 184, y: 263 },
-        { x: 210, y: 249 },
-        { x: 313, y: 334 },
-        { x: 336, y: 322 },
-        { x: 491, y: 257 },
-        { x: 511, y: 247 },
-        { x: 362, y: 223 },
-        { x: 382, y: 212 },
-      ].map((p, i) => (
-        <Tree key={i} {...p} />
-      ))}
-      <g transform="translate(350 145)">
-        <path d="M0 0l18-9 8 4-18 9Z" fill="#dfb770" />
-        <path d="M0 0v6l8 4V4Z" fill="#9d7d4b" />
-        <path d="M8 4l18-9v6l-18 9Z" fill="#bf975a" />
-        <path d="M5-2l9-4 4 2-9 4Z" fill="#364d45" />
-      </g>
-      <g transform="translate(171 299)">
-        <path d="M0 0l14-7 8 4-14 7Z" fill="#bda6cc" />
-        <path d="M0 0v5l8 4V4Z" fill="#8b7497" />
-        <path d="M8 4l14-7v5l-14 7Z" fill="#a589b0" />
-      </g>
-      <path
-        d="M114 252v-28m-4 0h10m307 48v-32m-4 0h10m-89-139V80m-4 0h10"
-        stroke="#bbb79b"
-        strokeWidth="2"
-      />
-      <circle cx="116" cy="224" r="3" fill="#eddda1" />
-      <circle cx="429" cy="240" r="3" fill="#eddda1" />
-    </svg>
+        <g transform="matrix(.63 .315 -.63 .315 300 92)">
+          <rect width="420" height="420" fill={`url(#${id}-grain)`} />
+          {[140, 280].map((n) => (
+            <g key={n}>
+              <path
+                d={`M0 ${n}H420M${n} 0V420`}
+                stroke="#91a18a"
+                strokeWidth="38"
+              />
+              <path
+                d={`M0 ${n}H420M${n} 0V420`}
+                stroke="#25322c"
+                strokeWidth="26"
+              />
+              <path
+                d={`M0 ${n}H420M${n} 0V420`}
+                stroke="#71816b"
+                strokeWidth="1.5"
+                strokeDasharray="9 11"
+              />
+            </g>
+          ))}
+          <rect x="170" y="314" width="80" height="78" fill="#759272" />
+          <path
+            d="M174 318h72v70h-72ZM174 353h72"
+            fill="none"
+            stroke="#e9dfbb"
+            strokeWidth="2"
+          />
+          <circle
+            cx="210"
+            cy="353"
+            r="10"
+            fill="none"
+            stroke="#e9dfbb"
+            strokeWidth="2"
+          />
+          {[140, 280].map((n) => (
+            <g
+              key={`cross-${n}`}
+              stroke="#b6c5b7"
+              strokeWidth="3"
+              opacity=".75"
+            >
+              {[129, 136, 143, 150].map((x) => (
+                <path key={x} d={`M${x} ${n - 25}v12M${n + 21} ${x}h12`} />
+              ))}
+            </g>
+          ))}
+          <Car
+            from={[8, 134]}
+            to={[412, 134]}
+            rest={[70, 134]}
+            duration={20}
+            delay={-6}
+            color="#dfb770"
+          />
+          <Car
+            from={[412, 286]}
+            to={[8, 286]}
+            rest={[350, 286]}
+            duration={24}
+            delay={-15}
+            color="#bda6cc"
+            reverse
+          />
+          <Car
+            from={[274, 8]}
+            to={[274, 412]}
+            rest={[274, 220]}
+            duration={26}
+            delay={-12}
+            color="#a9ad84"
+            vertical
+          />
+        </g>
+        {objects.map((object, i) =>
+          object.kind === "building" ? (
+            <Building key={i} {...object} />
+          ) : (
+            <Tree key={i} {...object} />
+          ),
+        )}
+      </svg>
+      <button
+        className="city-traffic-toggle"
+        onClick={() => setPaused((p) => !p)}
+        aria-label={paused ? "Resume city traffic" : "Pause city traffic"}
+      >
+        {paused ? <Play size={12} /> : <Pause size={12} />}
+        <span>{paused ? "Resume traffic" : "Pause traffic"}</span>
+      </button>
+    </div>
   );
 }
