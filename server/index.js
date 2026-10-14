@@ -366,7 +366,8 @@ function joinRoom(socket, d) {
   return { token, code: g.code, id: p.id };
 }
 io.on("connection", (socket) => {
-  let count = 0,
+  let fpsCount = 0,
+    count = 0,
     window = Date.now(),
     chatAt = [];
   function handle(event, fn) {
@@ -374,6 +375,7 @@ io.on("connection", (socket) => {
       if (Date.now() - window > 10000) {
         window = Date.now();
         count = 0;
+        fpsCount = 0;
       }
       const fps =
         event === "action" &&
@@ -381,7 +383,7 @@ io.on("connection", (socket) => {
         payload.type.startsWith("duel-") &&
         rooms.get(socket.data.code)?.duel?.mode === "fps" &&
         rooms.get(socket.data.code)?.duel?.fighters?.[socket.data.player];
-      if (++count > (fps ? 80 : 30))
+      if (fps ? ++fpsCount > 400 : ++count > 30)
         return (
           typeof ack === "function" &&
           ack({ error: "Too many actions. Wait a moment." })
@@ -723,7 +725,8 @@ io.on("connection", (socket) => {
   handle("action", (d) => {
     const g = session(socket);
     action(g, socket.data.player, d);
-    publish(g);
+    if (!(g.phase === "duel" && g.duel?.arena && d.type !== "duel-ready"))
+      publish(g);
     return {};
   });
   handle("leave", () => {
@@ -781,6 +784,7 @@ const interval = setInterval(() => {
       g.pausedAt ||= Date.now();
       continue;
     }
+    if (g.phase === "duel" && g.duel?.arena) continue;
     if (g.phase === "duel" && g.duel?.mode === "fps") {
       if (tickDuel(g)) publish(g);
       if (g.phase === "duel") {
@@ -874,12 +878,59 @@ const interval = setInterval(() => {
     }
   }
 }, 500);
+// Combat has its own 20 Hz simulation; board turns retain their slower clock.
+// Ten compact snapshots/second avoid sending the board, chat, and profiles per input.
+const arenaInterval = setInterval(() => {
+  const now = Date.now();
+  for (const g of rooms.values()) {
+    if (g.status !== "playing" || g.phase !== "duel" || !g.duel?.arena)
+      continue;
+    if (!g.players.some((p) => !p.bot && p.connected)) {
+      g.pausedAt ||= now;
+      continue;
+    }
+    if (tickDuel(g, now) && g.phase !== "duel") {
+      publish(g);
+      continue;
+    }
+    for (const p of g.players.filter((p) => p.bot && g.duel.fighters[p.id])) {
+      const key = g.code + ":arena:" + p.id;
+      if ((botDue.get(key)?.at || 0) > now) continue;
+      botDue.set(key, { at: now + 200 });
+      try {
+        const a = defaultAction(g, p.id);
+        if (a) {
+          action(g, p.id, a);
+          if (a.type === "duel-ready" || g.phase !== "duel") publish(g);
+        }
+      } catch {
+        /* An input can race settlement or the countdown. */
+      }
+      if (g.phase !== "duel") break;
+    }
+    if (g.phase !== "duel" || g.duel.stage !== "live") continue;
+    if (now - (g.arenaSnapshotAt || 0) >= 95) {
+      g.arenaSnapshotAt = now;
+      const d = g.duel;
+      io.to(g.code).emit("arena-state", {
+        code: g.code,
+        startsAt: d.startsAt,
+        serverNow: now,
+        fighters: d.fighters,
+        projectiles: d.projectiles,
+        shots: d.shots,
+        tickAt: d.tickAt,
+      });
+    }
+  }
+}, 50);
 const port = Number(process.env.PORT) || 3000;
 http.listen(port, "0.0.0.0", () =>
   console.log(`Spin the Block listening on ${port}`),
 );
 function shutdown() {
   clearInterval(interval);
+  clearInterval(arenaInterval);
   clearTimeout(saveTimer);
   try {
     writeFileSync(

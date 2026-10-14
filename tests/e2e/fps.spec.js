@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-test("two browsers ready, dodge and fire an authoritative first-person rent duel", async ({
+test("two browsers move freely and settle a projectile rent duel without blocking inputs", async ({
   page,
   browser,
 }) => {
@@ -15,7 +15,6 @@ test("two browsers ready, dodge and fire an authoritative first-person rent duel
   await rival.goto("/");
   const a = page.getByRole("dialog", { name: "Rent due. Guns up." }),
     b = rival.getByRole("dialog", { name: "Rent due. Guns up." });
-  await expect(a.getByRole("button", { name: "Ready up" })).toBeVisible();
   await expect(
     a.getByText("Win wipes your rent. Lose forfeits your cash and turf."),
   ).toBeVisible();
@@ -32,29 +31,30 @@ test("two browsers ready, dodge and fire an authoritative first-person rent duel
   await expect(
     a.getByRole("button", { name: "Fire", exact: true }),
   ).toBeEnabled({ timeout: 6000 });
-  await b.getByRole("button", { name: "Dodge right" }).click();
-  await expect(a.locator(".fps-opponent")).toHaveAttribute("style", /73%/);
-  const arena = a.locator(".fps-viewport");
-  const bounds = await arena.boundingBox();
-  await arena.click({
-    position: { x: bounds.width * 0.5, y: bounds.height * 0.53 },
-  });
-  await expect(a.getByText("MISSED", { exact: true })).toBeVisible();
-  await expect(b.getByRole("meter", { name: "Your health" })).toHaveAttribute(
-    "value",
-    "100",
-  );
-  await page.waitForTimeout(450);
-  for (let i = 0; i < 3; i++) {
-    await arena.click({
-      position: { x: bounds.width * 0.73, y: bounds.height * 0.35 },
+  const canvas = a.locator(".arena-canvas"),
+    before = await canvas.evaluate((el) => el.toDataURL());
+  await page.keyboard.down("w");
+  await page.waitForTimeout(350);
+  await page.keyboard.up("w");
+  await expect
+    .poll(() => canvas.evaluate((el) => el.toDataURL()))
+    .not.toBe(before);
+  await expect(
+    a.getByRole("button", { name: "Fire", exact: true }),
+  ).toBeEnabled();
+  const output = process.env.STB_SCREENSHOT_DIR;
+  if (output)
+    await page.screenshot({
+      path: output + "/arena-desktop.png",
+      fullPage: false,
     });
-    if (i < 2) {
+  // Body shots need real travel time and four hits; movement inputs stay active between shots.
+  for (let i = 0; i < 4; i++) {
+    await a.getByRole("button", { name: "Fire", exact: true }).click();
+    if (i < 3)
       await expect(
         b.getByRole("meter", { name: "Your health" }),
-      ).toHaveAttribute("value", String(100 - (i + 1) * 40));
-      await page.waitForTimeout(450);
-    }
+      ).toHaveAttribute("value", String(100 - (i + 1) * 25));
   }
   await expect(
     page.getByRole("dialog", { name: "The score is settled." }),
@@ -63,8 +63,60 @@ test("two browsers ready, dodge and fire an authoritative first-person rent duel
     page.getByText("Rent wiped. Live to own another block."),
   ).toBeVisible();
   await page.getByRole("button", { name: "Back to the block" }).click();
-  await expect(page.locator(".fps-viewport")).not.toBeVisible();
+  await expect(canvas).not.toBeVisible();
   expect(errors).toEqual([]);
+  await context.close();
+});
+test("touch arena supports held movement, aiming, ammunition and reload on a narrow screen", async ({
+  page,
+  browser,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.addInitScript(() =>
+    localStorage.setItem("stb-seat", "fps-mobile-ace"),
+  );
+  await page.goto("/");
+  const context = await browser.newContext();
+  await context.addInitScript(() =>
+    localStorage.setItem("stb-seat", "fps-mobile-rival"),
+  );
+  const rival = await context.newPage();
+  await rival.goto("/");
+  await page.getByRole("button", { name: "Ready up" }).click();
+  await rival.getByRole("button", { name: "Ready up" }).click();
+  const fire = page.getByRole("button", { name: "Fire", exact: true });
+  await expect(fire).toBeEnabled({ timeout: 6000 });
+  const canvas = page.locator(".arena-canvas"),
+    before = await canvas.evaluate((el) => el.toDataURL());
+  const forward = page.getByRole("button", {
+    name: "Move forward",
+    exact: true,
+  });
+  await forward.scrollIntoViewIfNeeded();
+  const box = await forward.boundingBox();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.waitForTimeout(300);
+  await page.mouse.up();
+  await expect
+    .poll(() => canvas.evaluate((el) => el.toDataURL()))
+    .not.toBe(before);
+  await fire.click();
+  await expect(page.locator(".arena-hud strong")).toHaveText("5 / 6");
+  await page.getByRole("button", { name: "Reload", exact: true }).click();
+  await expect(page.locator(".arena-hud strong")).toHaveText("RELOADING");
+  await expect(page.locator(".arena-hud strong")).toHaveText("6 / 6");
+  await canvas.scrollIntoViewIfNeeded();
+  if (process.env.STB_SCREENSHOT_DIR)
+    await page.screenshot({
+      path: process.env.STB_SCREENSHOT_DIR + "/arena-mobile.png",
+      fullPage: true,
+    });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBeTruthy();
   await context.close();
 });
 test("mobile ownership badges and large street pieces remain readable and keyboard inspectable", async ({

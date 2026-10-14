@@ -1,31 +1,35 @@
+import { arenaFighters, arenaAction, arenaTick, arenaBot } from "./arena.js";
 // Coordinates are normalized to the alley viewport. The server owns aim checks,
 // ammunition, cooldowns, cover, health, and settlement; clients never send damage.
 const check = (ok, message) => {
   if (!ok) throw new Error(message);
 };
-export function createFPS(ids) {
+export function createFPS(ids, arena = false) {
   return {
     mode: "fps",
+    ...(arena ? { arena: true, projectiles: [], tickAt: 0 } : {}),
     stage: "ready",
     ready: [],
-    fighters: Object.fromEntries(
-      ids.map((id) => [
-        id,
-        {
-          hp: 100,
-          ammo: 6,
-          lane: 0,
-          lastShot: 0,
-          lastMove: 0,
-          duckUntil: 0,
-          duckReady: 0,
-          reloadUntil: 0,
-          damage: 0,
-          shots: 0,
-          hits: 0,
-        },
-      ]),
-    ),
+    fighters: arena
+      ? arenaFighters(ids)
+      : Object.fromEntries(
+          ids.map((id) => [
+            id,
+            {
+              hp: 100,
+              ammo: 6,
+              lane: 0,
+              lastShot: 0,
+              lastMove: 0,
+              duckUntil: 0,
+              duckReady: 0,
+              reloadUntil: 0,
+              damage: 0,
+              shots: 0,
+              hits: 0,
+            },
+          ]),
+        ),
     shots: [],
     sequence: 0,
   };
@@ -71,6 +75,7 @@ export function fpsAction(d, id, action, now = Date.now()) {
     f.ammo = 6;
     f.reloadUntil = 0;
   }
+  if (d.arena) return arenaAction(d, id, action, now);
   if (action.type === "duel-move") {
     check([-1, 0, 1].includes(action.lane), "Choose left, center, or right.");
     check(now - f.lastMove >= 150, "Move again in a moment.");
@@ -133,6 +138,7 @@ export function fpsBot(d, id, rng, now = Date.now()) {
   if (d.stage === "ready")
     return d.ready.includes(id) ? null : { type: "duel-ready" };
   if (now < d.startsAt || now >= d.endsAt) return null;
+  if (d.arena) return arenaBot(d, id, rng, now);
   const f = d.fighters[id],
     rival = d.fighters[id === d.attacker ? d.defender : d.attacker];
   if (f.reloadUntil) return null;
@@ -149,6 +155,7 @@ export function fpsBot(d, id, rng, now = Date.now()) {
   };
 }
 export function fpsTick(d, now = Date.now()) {
+  if (d.arena) return arenaTick(d, now);
   let changed = false;
   for (const f of Object.values(d.fighters)) {
     if (f.reloadUntil && now >= f.reloadUntil) {
@@ -165,9 +172,19 @@ export function fpsTick(d, now = Date.now()) {
 }
 export function shiftFPS(d, delta) {
   if (d?.mode !== "fps") return;
-  for (const key of ["startsAt", "endsAt"]) if (d[key]) d[key] += delta;
+  for (const key of ["startsAt", "endsAt", "tickAt"])
+    if (d[key]) d[key] += delta;
+  if (d.arena) {
+    for (const b of d.projectiles) b.at += delta;
+    for (const s of d.shots) {
+      s.at += delta;
+      if (s.impactAt) s.impactAt += delta;
+    }
+  }
   for (const f of Object.values(d.fighters))
     for (const key of [
+      "lastKick",
+      "inputAt",
       "lastShot",
       "lastMove",
       "duckUntil",

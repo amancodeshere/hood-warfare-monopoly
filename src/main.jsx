@@ -737,6 +737,29 @@ function App() {
       setGame(g);
       setError("");
     }
+    function arenaState(packet) {
+      const g = gameRef.current;
+      if (
+        !g?.duel?.arena ||
+        g.phase !== "duel" ||
+        g.code !== packet.code ||
+        g.duel.startsAt !== packet.startsAt
+      )
+        return;
+      const next = {
+        ...g,
+        serverNow: packet.serverNow,
+        duel: {
+          ...g.duel,
+          fighters: packet.fighters,
+          projectiles: packet.projectiles,
+          shots: packet.shots,
+          tickAt: packet.tickAt,
+        },
+      };
+      gameRef.current = next;
+      setGame(next);
+    }
     function profileState(r) {
       setProfile(r.profile);
       setSocial({
@@ -754,6 +777,7 @@ function App() {
     socket.on("connect", connect);
     socket.on("disconnect", disconnect);
     socket.on("state", state);
+    socket.on("arena-state", arenaState);
     socket.on("connect_error", disconnect);
     socket.connect();
     const timer = setInterval(() => setNow(Date.now()), 1000);
@@ -764,6 +788,7 @@ function App() {
       socket.off("connect", connect);
       socket.off("disconnect", disconnect);
       socket.off("state", state);
+      socket.off("arena-state", arenaState);
       socket.off("connect_error", disconnect);
       socket.disconnect();
     };
@@ -775,11 +800,19 @@ function App() {
         report ? { error: "Connection lost. Wait for reconnect." } : null,
       );
     }
-    setPending(true);
+    const combat =
+      event === "action" &&
+      data.type?.startsWith("duel-") &&
+      data.type !== "duel-ready";
+    if (combat && data.type === "duel-input") {
+      socket.volatile.emit(event, data);
+      return Promise.resolve();
+    }
+    if (!combat) setPending(true);
     setError("");
     return new Promise((resolve) =>
       socket.timeout(8000).emit(event, data, (err, r) => {
-        setPending(false);
+        if (!combat) setPending(false);
         if (err) {
           setError("No response yet. Check your connection and try again.");
           resolve(

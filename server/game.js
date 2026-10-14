@@ -588,7 +588,7 @@ export function action(g, id, a, rng = secureRandom, options = {}) {
     const owner = g.players.find((x) => x.id === g.pending.owner);
     assert(owner && !owner.out, "This landlord is no longer active.");
     g.duel = {
-      ...createFPS([id, owner.id]),
+      ...createFPS([id, owner.id], true),
       attacker: id,
       defender: owner.id,
       debt: g.pending.amount,

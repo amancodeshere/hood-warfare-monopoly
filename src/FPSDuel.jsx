@@ -1,3 +1,4 @@
+import ArenaDuel from "./ArenaDuel.jsx";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Crosshair,
@@ -65,7 +66,14 @@ function Alley() {
     </svg>
   );
 }
-export default function FPSDuel({ game, act, disabled }) {
+export default function FPSDuel(props) {
+  return props.game.duel.arena ? (
+    <ArenaDuel {...props} />
+  ) : (
+    <LegacyFPSDuel {...props} />
+  );
+}
+function LegacyFPSDuel({ game, act, disabled }) {
   const d = game.duel,
     playing = !!d.fighters[game.me],
     mine = d.fighters[game.me] || d.fighters[d.attacker];

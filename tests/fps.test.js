@@ -141,10 +141,16 @@ test("new rent shootouts use FPS; attacker victory wipes debt exactly once and s
   const at = Date.now();
   for (const p of [a, b])
     action(g, p.id, { type: "duel-ready" }, undefined, { now: at });
-  for (let i = 0; i < 3; i++)
-    action(g, a.id, { type: "duel-fire", x: 0.5, y: 0.35 }, undefined, {
-      now: at + 3000 + i * 400,
+  assert.equal(g.duel.arena, true);
+  // Arena projectiles need travel time; no client can assert immediate damage.
+  let shotAt = at + 3000;
+  for (let i = 0; i < 3; i++) {
+    action(g, a.id, { type: "duel-fire", yaw: 0, pitch: 0.015 }, undefined, {
+      now: shotAt,
     });
+    for (let step = 1; step <= 10; step++) tickDuel(g, shotAt + step * 50);
+    shotAt += 600;
+  }
   assert.equal(g.phase, "duel-result");
   assert.equal(g.pending, null);
   assert.equal(g.duel.winner, a.id);
