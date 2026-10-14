@@ -50,6 +50,21 @@ const send = (s, e, d = {}) =>
   new Promise((resolve, reject) =>
     s.timeout(3000).emit(e, d, (err, r) => (err ? reject(err) : resolve(r))),
   );
+function nextState(socket, predicate) {
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      socket.off("state", onState);
+      reject(new Error("Expected multiplayer state did not arrive"));
+    }, 3000);
+    function onState(state) {
+      if (!predicate(state)) return;
+      clearTimeout(timeout);
+      socket.off("state", onState);
+      resolve(state);
+    }
+    socket.on("state", onState);
+  });
+}
 test("real multiplayer: authority, room capacity, reconnect, origin checks, and persistence", async (t) => {
   const captain = player("Captain"),
     finished = room("REPLAY", captain);
@@ -181,11 +196,19 @@ test("real multiplayer: authority, room capacity, reconnect, origin checks, and 
     (await send(watch, "spectate", { code: pub.code, name: "Watcher" })).ok,
   );
   assert((await send(watch, "chat", { text: "Spectator spam" })).error);
+  const secretReceived = nextState(ally, (g) =>
+    g.chat.some((m) => m.text === "Secret plan"),
+  );
   assert((await send(host, "chat", { text: "Secret plan", team: true })).ok);
+  await secretReceived;
   assert(ally.game.chat.some((m) => m.text === "Secret plan"));
   assert(!enemy.game.chat.some((m) => m.text === "Secret plan"));
   assert(!watch.game.chat.some((m) => m.text === "Secret plan"));
+  const publicReceived = nextState(watch, (g) =>
+    g.chat.some((m) => m.text === "Hello table"),
+  );
   await send(host, "chat", { text: "Hello table" });
+  await publicReceived;
   assert(watch.game.chat.some((m) => m.text === "Hello table"));
   const changingRole = await client();
   clients.push(changingRole);
