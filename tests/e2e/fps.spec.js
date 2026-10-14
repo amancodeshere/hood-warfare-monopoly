@@ -36,6 +36,9 @@ test("two browsers move freely and settle a projectile rent duel without blockin
   await expect(
     a.getByRole("button", { name: "Fire", exact: true }),
   ).toBeEnabled({ timeout: 6000 });
+  const initialView = await a
+    .locator(".arena-canvas")
+    .evaluate((el) => el.toDataURL());
   await page.bringToFront();
   await a.getByRole("button", { name: "Capture mouse" }).click();
   const captured = a.getByRole("button", {
@@ -50,6 +53,9 @@ test("two browsers move freely and settle a projectile rent duel without blockin
   ).toBeVisible();
   if (await captured.isVisible()) await page.keyboard.press("Escape");
   await expect(a.getByRole("button", { name: "Capture mouse" })).toBeVisible();
+  await expect
+    .poll(() => a.locator(".arena-canvas").evaluate((el) => el.toDataURL()))
+    .toBe(initialView);
   const canvas = a.locator(".arena-canvas"),
     before = await canvas.evaluate((el) => el.toDataURL());
   await page.keyboard.down("w");

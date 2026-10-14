@@ -41,6 +41,7 @@ export default function ArenaDuel({ game, act, disabled }) {
     lastKick = useRef(0),
     audio = useRef(null),
     look = useRef(null),
+    mouseReady = useRef(Infinity),
     firing = useRef(false);
   const [now, setNow] = useState(Date.now()),
     [locked, setLocked] = useState(false),
@@ -213,11 +214,15 @@ export default function ArenaDuel({ game, act, disabled }) {
       look.current = null;
     }
     function lock() {
-      setLocked(document.pointerLockElement === canvas.current);
+      const captured = document.pointerLockElement === element;
+      // Native cursor recentering is not player aim. Let the lock transition settle.
+      mouseReady.current = captured ? performance.now() + 120 : Infinity;
+      setLocked(captured);
       stop();
     }
     function key(e) {
       if (e.key === "Escape" && document.pointerLockElement === element) {
+        mouseReady.current = Infinity;
         document.exitPointerLock();
         stop();
         return;
@@ -257,7 +262,10 @@ export default function ArenaDuel({ game, act, disabled }) {
       keys.current.delete(e.key.toLowerCase());
     }
     function mouse(e) {
-      if (document.pointerLockElement === canvas.current)
+      if (
+        document.pointerLockElement === element &&
+        performance.now() >= mouseReady.current
+      )
         current.current.aim(e.movementX, e.movementY);
     }
     document.addEventListener("keydown", key);
@@ -352,10 +360,12 @@ export default function ArenaDuel({ game, act, disabled }) {
   }
   async function capture() {
     if (document.pointerLockElement === canvas.current) {
+      mouseReady.current = Infinity;
       document.exitPointerLock();
       return;
     }
     canvas.current?.focus();
+    mouseReady.current = Infinity;
     try {
       await canvas.current.requestPointerLock();
       setNotice("");
