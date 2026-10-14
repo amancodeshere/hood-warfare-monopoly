@@ -3347,16 +3347,24 @@ button:hover:not(:disabled) {
   margin: 0 0 8px;
 }
 .inline-form {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
   align-items: center;
 }
-.inline-form input {
+.inline-form input,
+.modal .inline-form input {
   min-width: 0;
-  flex: 1;
+  margin: 0;
 }
 .inline-form .button {
+  width: auto;
+  margin: 0;
   white-space: nowrap;
+}
+.verification-box label,
+.verified-line {
+  overflow-wrap: anywhere;
 }
 .verified-line {
   display: flex;
@@ -3652,10 +3660,7 @@ button:hover:not(:disabled) {
     grid-template-columns: 1fr;
   }
   .inline-form {
-    flex-wrap: wrap;
-  }
-  .inline-form input {
-    flex-basis: 180px;
+    grid-template-columns: minmax(0, 1fr);
   }
   .studio-preview {
     height: 150px;

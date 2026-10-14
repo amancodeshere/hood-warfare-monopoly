@@ -53,6 +53,32 @@ test("login page welcomes guests on mobile and gated maps explain verification",
   ).toBeVisible();
   await expect(page.getByText("Email delivery is being set up.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Send code" })).toBeDisabled();
+  const email = page.getByLabel("Email address", { exact: true });
+  await email.fill("long.street.name@example.com");
+  await expect(email).toHaveValue("long.street.name@example.com");
+  for (const width of [390, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    expect((await email.boundingBox()).width).toBeGreaterThan(200);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBeTruthy();
+  }
+  await page.getByRole("button", { name: "Enter the city" }).click();
+  await page.getByRole("button", { name: "Profile and friends" }).click();
+  await page.getByRole("button", { name: "Account", exact: true }).click();
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    expect((await email.boundingBox()).width).toBeGreaterThan(200);
+    await email.fill("modal.street.name@example.com");
+    await expect(email).toHaveValue("modal.street.name@example.com");
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBeTruthy();
+  }
 });
 test("verified map studio saves, selects and shares a custom map with guests; edits do not mutate a running map", async ({
   page,

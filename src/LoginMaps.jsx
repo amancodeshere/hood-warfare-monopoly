@@ -71,13 +71,14 @@ export function Verification({ profile, emit }) {
             id="verify-email"
             type="email"
             autoComplete="email"
+            placeholder="you@example.com"
             required
             maxLength={254}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
           <button
-            className="button secondary"
+            className={`button${profile.pendingEmail ? " secondary" : ""}`}
             disabled={busy || !profile.emailAvailable}
           >
             Send code
@@ -100,6 +101,7 @@ export function Verification({ profile, emit }) {
               id="verify-code"
               inputMode="numeric"
               autoComplete="one-time-code"
+              placeholder="000000"
               pattern="[0-9]{6}"
               maxLength={6}
               required
