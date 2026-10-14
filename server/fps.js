@@ -175,6 +175,11 @@ export function shiftFPS(d, delta) {
   for (const key of ["startsAt", "endsAt", "tickAt"])
     if (d[key]) d[key] += delta;
   if (d.arena) {
+    // Resume clocks and airborne bullets, never a key held before disconnect.
+    for (const f of Object.values(d.fighters)) {
+      f.input = { forward: 0, strafe: 0 };
+      f.inputAt = 0;
+    }
     for (const b of d.projectiles) b.at += delta;
     for (const s of d.shots) {
       s.at += delta;
@@ -184,7 +189,6 @@ export function shiftFPS(d, delta) {
   for (const f of Object.values(d.fighters))
     for (const key of [
       "lastKick",
-      "inputAt",
       "lastShot",
       "lastMove",
       "duckUntil",

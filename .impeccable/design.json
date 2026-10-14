@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-13T23:45:01.489660+00:00",
+  "generatedAt": "2026-10-14T04:16:53.720133+00:00",
   "title": "Design System: Spin the Block",
   "extensions": {
     "colorMeta": {
@@ -1263,6 +1263,174 @@
           "oklch(83.57% 0.035 155)",
           "oklch(95% 0.035 155)"
         ]
+      },
+      "arena-red": {
+        "role": "primary",
+        "displayName": "Arena Red",
+        "tonalRamp": [
+          "oklch(15.00% 0.2239 28.09)",
+          "oklch(26.43% 0.2239 28.09)",
+          "oklch(37.86% 0.2239 28.09)",
+          "oklch(49.29% 0.2239 28.09)",
+          "oklch(60.71% 0.2239 28.09)",
+          "oklch(72.14% 0.2239 28.09)",
+          "oklch(83.57% 0.2239 28.09)",
+          "oklch(95.00% 0.2239 28.09)"
+        ]
+      },
+      "arena-red-hover": {
+        "role": "primary",
+        "displayName": "Arena Red Hover",
+        "tonalRamp": [
+          "oklch(15.00% 0.2064 28.26)",
+          "oklch(26.43% 0.2064 28.26)",
+          "oklch(37.86% 0.2064 28.26)",
+          "oklch(49.29% 0.2064 28.26)",
+          "oklch(60.71% 0.2064 28.26)",
+          "oklch(72.14% 0.2064 28.26)",
+          "oklch(83.57% 0.2064 28.26)",
+          "oklch(95.00% 0.2064 28.26)"
+        ]
+      },
+      "arena-paper": {
+        "role": "neutral",
+        "displayName": "Arena Paper",
+        "tonalRamp": [
+          "oklch(15.00% 0.0066 106.52)",
+          "oklch(26.43% 0.0066 106.52)",
+          "oklch(37.86% 0.0066 106.52)",
+          "oklch(49.29% 0.0066 106.52)",
+          "oklch(60.71% 0.0066 106.52)",
+          "oklch(72.14% 0.0066 106.52)",
+          "oklch(83.57% 0.0066 106.52)",
+          "oklch(95.00% 0.0066 106.52)"
+        ]
+      },
+      "arena-floor": {
+        "role": "neutral",
+        "displayName": "Arena Floor",
+        "tonalRamp": [
+          "oklch(15.00% 0.0000 89.88)",
+          "oklch(26.43% 0.0000 89.88)",
+          "oklch(37.86% 0.0000 89.88)",
+          "oklch(49.29% 0.0000 89.88)",
+          "oklch(60.71% 0.0000 89.88)",
+          "oklch(72.14% 0.0000 89.88)",
+          "oklch(83.57% 0.0000 89.88)",
+          "oklch(95.00% 0.0000 89.88)"
+        ]
+      },
+      "arena-ceiling": {
+        "role": "neutral",
+        "displayName": "Arena Ceiling",
+        "tonalRamp": [
+          "oklch(15.00% 0.0000 89.88)",
+          "oklch(26.43% 0.0000 89.88)",
+          "oklch(37.86% 0.0000 89.88)",
+          "oklch(49.29% 0.0000 89.88)",
+          "oklch(60.71% 0.0000 89.88)",
+          "oklch(72.14% 0.0000 89.88)",
+          "oklch(83.57% 0.0000 89.88)",
+          "oklch(95.00% 0.0000 89.88)"
+        ]
+      },
+      "arena-ink": {
+        "role": "neutral",
+        "displayName": "Arena Ink",
+        "tonalRamp": [
+          "oklch(15.00% 0.0000 89.88)",
+          "oklch(26.43% 0.0000 89.88)",
+          "oklch(37.86% 0.0000 89.88)",
+          "oklch(49.29% 0.0000 89.88)",
+          "oklch(60.71% 0.0000 89.88)",
+          "oklch(72.14% 0.0000 89.88)",
+          "oklch(83.57% 0.0000 89.88)",
+          "oklch(95.00% 0.0000 89.88)"
+        ]
+      },
+      "arena-control": {
+        "role": "neutral",
+        "displayName": "Arena Control",
+        "tonalRamp": [
+          "oklch(15.00% 0.0000 89.88)",
+          "oklch(26.43% 0.0000 89.88)",
+          "oklch(37.86% 0.0000 89.88)",
+          "oklch(49.29% 0.0000 89.88)",
+          "oklch(60.71% 0.0000 89.88)",
+          "oklch(72.14% 0.0000 89.88)",
+          "oklch(83.57% 0.0000 89.88)",
+          "oklch(95.00% 0.0000 89.88)"
+        ]
+      },
+      "arena-control-hover": {
+        "role": "neutral",
+        "displayName": "Arena Control Hover",
+        "tonalRamp": [
+          "oklch(15.00% 0.0000 89.88)",
+          "oklch(26.43% 0.0000 89.88)",
+          "oklch(37.86% 0.0000 89.88)",
+          "oklch(49.29% 0.0000 89.88)",
+          "oklch(60.71% 0.0000 89.88)",
+          "oklch(72.14% 0.0000 89.88)",
+          "oklch(83.57% 0.0000 89.88)",
+          "oklch(95.00% 0.0000 89.88)"
+        ]
+      },
+      "arena-control-border": {
+        "role": "neutral",
+        "displayName": "Arena Control Border",
+        "tonalRamp": [
+          "oklch(15.00% 0.0000 89.88)",
+          "oklch(26.43% 0.0000 89.88)",
+          "oklch(37.86% 0.0000 89.88)",
+          "oklch(49.29% 0.0000 89.88)",
+          "oklch(60.71% 0.0000 89.88)",
+          "oklch(72.14% 0.0000 89.88)",
+          "oklch(83.57% 0.0000 89.88)",
+          "oklch(95.00% 0.0000 89.88)"
+        ]
+      },
+      "arena-message": {
+        "role": "neutral",
+        "displayName": "Arena Message",
+        "tonalRamp": [
+          "oklch(15.00% 0.0000 89.88)",
+          "oklch(26.43% 0.0000 89.88)",
+          "oklch(37.86% 0.0000 89.88)",
+          "oklch(49.29% 0.0000 89.88)",
+          "oklch(60.71% 0.0000 89.88)",
+          "oklch(72.14% 0.0000 89.88)",
+          "oklch(83.57% 0.0000 89.88)",
+          "oklch(95.00% 0.0000 89.88)"
+        ]
+      },
+      "arena-copy": {
+        "role": "neutral",
+        "displayName": "Arena Copy",
+        "tonalRamp": [
+          "oklch(15.00% 0.0054 106.51)",
+          "oklch(26.43% 0.0054 106.51)",
+          "oklch(37.86% 0.0054 106.51)",
+          "oklch(49.29% 0.0054 106.51)",
+          "oklch(60.71% 0.0054 106.51)",
+          "oklch(72.14% 0.0054 106.51)",
+          "oklch(83.57% 0.0054 106.51)",
+          "oklch(95.00% 0.0054 106.51)"
+        ]
+      },
+      "arena-hud": {
+        "role": "neutral",
+        "displayName": "Arena Hud",
+        "tonalRamp": [
+          "oklch(15.00% 0.0000 89.88)",
+          "oklch(26.43% 0.0000 89.88)",
+          "oklch(37.86% 0.0000 89.88)",
+          "oklch(49.29% 0.0000 89.88)",
+          "oklch(60.71% 0.0000 89.88)",
+          "oklch(72.14% 0.0000 89.88)",
+          "oklch(83.57% 0.0000 89.88)",
+          "oklch(95.00% 0.0000 89.88)"
+        ]
       }
     },
     "typographyMeta": {
@@ -1417,6 +1585,22 @@
       "board-overview-count": {
         "displayName": "Board Overview Count",
         "purpose": "Compact stack and building counts"
+      },
+      "arena-message": {
+        "displayName": "Arena Message",
+        "purpose": "Current rent arena only."
+      },
+      "arena-clock": {
+        "displayName": "Arena Clock",
+        "purpose": "Current rent arena only."
+      },
+      "arena-ammo": {
+        "displayName": "Arena Ammo",
+        "purpose": "Current rent arena only."
+      },
+      "arena-control": {
+        "displayName": "Arena Control",
+        "purpose": "Current rent arena only."
       }
     },
     "shadows": [
@@ -1473,7 +1657,7 @@
       {
         "name": "foreground-pistol",
         "value": "drop-shadow(0 5px 4px #10181470)",
-        "purpose": "First-person arena foreground"
+        "purpose": "Persisted lane FPS foreground only; current arena has crisp pixel contours."
       }
     ],
     "motion": [
@@ -1523,9 +1707,34 @@
         "purpose": "Percentage-loss dial reveal; reduced motion removes the transition."
       },
       {
-        "name": "shootout-fire-feedback",
+        "name": "legacy-shootout-fire-feedback",
         "value": "90ms",
-        "purpose": "Pistol muzzle flash; incoming hit outline lasts 350ms and impact marks expire at 500ms."
+        "purpose": "Persisted lane FPS muzzle flash; incoming hit outline 350ms and impact marks 500ms."
+      },
+      {
+        "name": "arena-recoil",
+        "value": "150ms",
+        "purpose": "Current weapon recoil; disabled with reduced motion, along with walking bob."
+      },
+      {
+        "name": "arena-muzzle",
+        "value": "65ms",
+        "purpose": "Current muzzle flash."
+      },
+      {
+        "name": "arena-kick",
+        "value": "280ms",
+        "purpose": "Kick presentation; cooldown is independently authoritative."
+      },
+      {
+        "name": "arena-damage",
+        "value": "170ms",
+        "purpose": "Damage tint."
+      },
+      {
+        "name": "arena-hit",
+        "value": "180ms",
+        "purpose": "Hit reticle feedback."
       }
     ],
     "breakpoints": [
@@ -1552,6 +1761,14 @@
       {
         "name": "entry-compact",
         "value": "900px"
+      },
+      {
+        "name": "arena-narrow",
+        "value": "600px"
+      },
+      {
+        "name": "arena-smallest-ready",
+        "value": "360px"
       }
     ]
   },
@@ -1560,8 +1777,8 @@
       "name": "Primary action",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "The cabinet’s main room or turn action.",
-      "html": "<button class=\"ds-button ds-primary\">Create a private room <span aria-hidden=\"true\">→</span></button>",
+      "description": "The cabinet\u2019s main room or turn action.",
+      "html": "<button class=\"ds-button ds-primary\">Create a private room <span aria-hidden=\"true\">\u2192</span></button>",
       "css": ".ds-button{display:flex;align-items:center;justify-content:space-between;gap:9px;width:100%;min-height:45px;padding:12px 13px;font-family:\"Barlow\",sans-serif;font-size:12px;font-weight:600;border-radius:5px;cursor:pointer;transition:background .15s ease,color .15s ease,opacity .15s ease}.ds-button:disabled{opacity:.42;cursor:not-allowed}.ds-button:focus-visible{outline:2px solid var(--lime,#c6ed72);outline-offset:4px;}@media(prefers-reduced-motion:reduce){.ds-button{transition:none}}.ds-primary{background:var(--lime,#c6ed72);border:1px solid var(--lime,#c6ed72);color:#1c2b19}.ds-primary:hover:not(:disabled){background:#d8f899}"
     },
     {
@@ -1569,7 +1786,7 @@
       "kind": "button",
       "refersTo": "button-secondary",
       "description": "A supporting or alternate game action.",
-      "html": "<button class=\"ds-button ds-secondary\">Keep my cash <span aria-hidden=\"true\">→</span></button>",
+      "html": "<button class=\"ds-button ds-secondary\">Keep my cash <span aria-hidden=\"true\">\u2192</span></button>",
       "css": ".ds-button{display:flex;align-items:center;justify-content:space-between;gap:9px;width:100%;min-height:45px;padding:12px 13px;font-family:\"Barlow\",sans-serif;font-size:12px;font-weight:600;border-radius:5px;cursor:pointer;transition:background .15s ease,color .15s ease,opacity .15s ease}.ds-button:disabled{opacity:.42;cursor:not-allowed}.ds-button:focus-visible{outline:2px solid var(--lime,#c6ed72);outline-offset:4px;}@media(prefers-reduced-motion:reduce){.ds-button{transition:none}}.ds-secondary{background:transparent;border:1px solid #52634b;color:#d6e0cb}.ds-secondary:hover:not(:disabled){background:#354630}"
     },
     {
@@ -1577,7 +1794,7 @@
       "kind": "button",
       "refersTo": "button-danger",
       "description": "A consequential action paired with explanatory copy.",
-      "html": "<button class=\"ds-button ds-danger\">Challenge to a shootout <span aria-hidden=\"true\">→</span></button>",
+      "html": "<button class=\"ds-button ds-danger\">Challenge to a shootout <span aria-hidden=\"true\">\u2192</span></button>",
       "css": ".ds-button{display:flex;align-items:center;justify-content:space-between;gap:9px;width:100%;min-height:45px;padding:12px 13px;font-family:\"Barlow\",sans-serif;font-size:12px;font-weight:600;border-radius:5px;cursor:pointer;transition:background .15s ease,color .15s ease,opacity .15s ease}.ds-button:disabled{opacity:.42;cursor:not-allowed}.ds-button:focus-visible{outline:2px solid var(--lime,#c6ed72);outline-offset:4px;}@media(prefers-reduced-motion:reduce){.ds-button{transition:none}}.ds-danger{background:#ecaa7c;border:1px solid #ecaa7c;color:#30251e}.ds-danger:hover:not(:disabled){filter:brightness(1.1)}"
     },
     {
@@ -1608,7 +1825,7 @@
       "name": "Active crew card",
       "kind": "card",
       "refersTo": "crew-card",
-      "description": "The current player’s roster surface and cash balance.",
+      "description": "The current player\u2019s roster surface and cash balance.",
       "html": "<article class=\"ds-crew-card\"><div class=\"ds-crew-name\">Your crew<small>Grove Collective</small></div><strong>$1,500</strong><span class=\"ds-in-play\">IN PLAY</span></article>",
       "css": ".ds-crew-card{position:relative;padding:15px 13px 13px;background:#253024;border:1px solid var(--lime,#c6ed72);border-radius:7px;color:#edf0e6;font-family:\"Barlow\",sans-serif}.ds-crew-name{font-size:13px;font-weight:600;line-height:1.1}.ds-crew-name small{display:block;margin-top:5px;color:#a8b29f;font-size:10px;font-weight:400}.ds-crew-card strong{display:block;margin-top:13px;font-size:18px;font-weight:600;letter-spacing:-.02em}.ds-in-play{position:absolute;right:11px;bottom:11px;color:var(--lime,#c6ed72);font-size:8px;letter-spacing:.1em}"
     },
@@ -1617,7 +1834,7 @@
       "kind": "custom",
       "refersTo": "board-tile-selected",
       "description": "Named ownership and a single hooded resident with a stack count preserve the district strip; inspected details list every resident.",
-      "html": "<button class=\"ds-tile\" aria-label=\"Auntie’s Bodega, owned by Grove, 3 crews\"><span class=\"ds-stripe\"></span><span class=\"ds-tile-name\">Auntie’s Bodega</span><span class=\"ds-resident\"><svg class=\"ds-figure\" viewBox=\"0 0 100 220\" aria-hidden=\"true\"><ellipse cx=\"50\" cy=\"210\" rx=\"38\" ry=\"7\" fill=\"#101814\" opacity=\".45\"/><path d=\"M30 138L29 198 45 199 51 153 57 199 74 198 70 138Z\" fill=\"#26342c\" stroke=\"#101814\" stroke-width=\"4\"/><path d=\"M25 194H45L47 208H19Q17 197 25 194M57 194H77L84 206Q69 212 56 207Z\" fill=\"#ece8d8\" stroke=\"#101814\" stroke-width=\"4\"/><path d=\"M27 73Q50 61 73 73L86 103 75 145H25L14 103Z\" fill=\"#c6ed72\" stroke=\"#101814\" stroke-width=\"4\"/><path d=\"M28 47Q24 11 50 8Q80 10 73 48L67 73H33Z\" fill=\"#c6ed72\" stroke=\"#101814\" stroke-width=\"4\"/><path d=\"M33 34Q49 15 68 34L65 57Q50 71 36 57Z\" fill=\"#a67857\" stroke=\"#101814\" stroke-width=\"3\"/><path d=\"M35 40H64L63 49H53L50 43 47 49H36Z\" fill=\"#101814\"/><path d=\"M34 52H66L61 66H40Z\" fill=\"#c6ed72\" stroke=\"#101814\" stroke-width=\"2\"/><path d=\"M37 74L42 95H58L64 74\" fill=\"none\" stroke=\"#e2c76e\" stroke-width=\"5\"/></svg><b class=\"ds-stack\">+2</b></span><span class=\"ds-owner\"><small>YOU OWN</small><b>Grove</b></span></button>",
+      "html": "<button class=\"ds-tile\" aria-label=\"Auntie\u2019s Bodega, owned by Grove, 3 crews\"><span class=\"ds-stripe\"></span><span class=\"ds-tile-name\">Auntie\u2019s Bodega</span><span class=\"ds-resident\"><svg class=\"ds-figure\" viewBox=\"0 0 100 220\" aria-hidden=\"true\"><ellipse cx=\"50\" cy=\"210\" rx=\"38\" ry=\"7\" fill=\"#101814\" opacity=\".45\"/><path d=\"M30 138L29 198 45 199 51 153 57 199 74 198 70 138Z\" fill=\"#26342c\" stroke=\"#101814\" stroke-width=\"4\"/><path d=\"M25 194H45L47 208H19Q17 197 25 194M57 194H77L84 206Q69 212 56 207Z\" fill=\"#ece8d8\" stroke=\"#101814\" stroke-width=\"4\"/><path d=\"M27 73Q50 61 73 73L86 103 75 145H25L14 103Z\" fill=\"#c6ed72\" stroke=\"#101814\" stroke-width=\"4\"/><path d=\"M28 47Q24 11 50 8Q80 10 73 48L67 73H33Z\" fill=\"#c6ed72\" stroke=\"#101814\" stroke-width=\"4\"/><path d=\"M33 34Q49 15 68 34L65 57Q50 71 36 57Z\" fill=\"#a67857\" stroke=\"#101814\" stroke-width=\"3\"/><path d=\"M35 40H64L63 49H53L50 43 47 49H36Z\" fill=\"#101814\"/><path d=\"M34 52H66L61 66H40Z\" fill=\"#c6ed72\" stroke=\"#101814\" stroke-width=\"2\"/><path d=\"M37 74L42 95H58L64 74\" fill=\"none\" stroke=\"#e2c76e\" stroke-width=\"5\"/></svg><b class=\"ds-stack\">+2</b></span><span class=\"ds-owner\"><small>YOU OWN</small><b>Grove</b></span></button>",
       "css": ".ds-tile{position:relative;width:88px;height:88px;padding:9px 3px 21px;background:#e1e6cc;border:1px solid #5a6854;border-radius:2px;color:#263326;font-family:\"Barlow\",sans-serif;box-shadow:inset 0 0 0 2px #c6ed72;cursor:pointer}.ds-stripe{position:absolute;left:0;right:0;top:0;height:6px;background:#a3ba86}.ds-tile-name{display:block;text-align:left;max-width:calc(100% - 36px);font-size:8px;font-weight:700;line-height:1.15}.ds-resident{position:absolute;right:2px;bottom:20px;display:flex;align-items:flex-end}.ds-figure{width:25px;height:40px;filter:drop-shadow(0 2px 1px #10181460)}.ds-stack{padding:2px 3px;margin-left:-1px;margin-bottom:5px;background:#263326;color:#edf0e6;border-radius:3px;font-size:9px}.ds-owner{position:absolute;bottom:0;left:0;right:0;min-height:17px;display:flex;flex-direction:column;justify-content:center;padding:2px;background:#c6ed72;color:#192019;line-height:1.05}.ds-owner small{font-size:5px;font-weight:800;letter-spacing:.05em}.ds-owner b{font-size:8px}.ds-tile:hover{background:#e0e3cf}.ds-tile:focus-visible{outline:2px solid var(--lime,#c6ed72);outline-offset:4px}"
     },
     {
@@ -1633,7 +1850,7 @@
       "kind": "custom",
       "refersTo": "modal",
       "description": "The shared dark, bordered, scrollable surface for rules, settings, rooms, auctions, Stoppa, social, and profiles; 490px default and 610px wide.",
-      "html": "<section class=\"ds-modal\" aria-label=\"Street rules\"><h2>Street rules</h2><p>Claim your blocks. Collect the rent. Keep your crew in play.</p><button class=\"ds-button ds-primary\">Let’s play <span aria-hidden=\"true\">→</span></button></section>",
+      "html": "<section class=\"ds-modal\" aria-label=\"Street rules\"><h2>Street rules</h2><p>Claim your blocks. Collect the rent. Keep your crew in play.</p><button class=\"ds-button ds-primary\">Let\u2019s play <span aria-hidden=\"true\">\u2192</span></button></section>",
       "css": ".ds-button{display:flex;align-items:center;justify-content:space-between;gap:9px;width:100%;min-height:45px;padding:12px 13px;font-family:\"Barlow\",sans-serif;font-size:12px;font-weight:600;border-radius:5px;cursor:pointer;transition:background .15s ease,color .15s ease,opacity .15s ease}.ds-button:disabled{opacity:.42;cursor:not-allowed}.ds-button:focus-visible{outline:2px solid var(--lime,#c6ed72);outline-offset:4px;}@media(prefers-reduced-motion:reduce){.ds-button{transition:none}}.ds-modal{max-width:490px;padding:28px;background:#253025;border:1px solid #637d51;border-radius:10px;color:#edf0e6;box-shadow:0 24px 80px #0009;font-family:\"Barlow\",sans-serif}.ds-modal h2{margin:0 0 20px;font-family:\"Barlow Condensed\",sans-serif;font-size:42px;font-weight:700;line-height:1.02;letter-spacing:-.015em}.ds-modal p{margin:0 0 20px;color:#c0d0b3;font-size:12px;line-height:1.6}.ds-primary{background:var(--lime,#c6ed72);border:1px solid var(--lime,#c6ed72);color:#1c2b19}.ds-primary:hover:not(:disabled){background:#d8f899}.ds-modal{max-height:90dvh;overflow:auto;overscroll-behavior:contain}.ds-modal.ds-wide{max-width:610px}.ds-modal label{display:block;font-size:14px;color:#d7dfce}.ds-modal p{line-height:1.5}"
     },
     {
@@ -1641,7 +1858,7 @@
       "kind": "card",
       "refersTo": "map-choice",
       "description": "Painted district silhouette, readable name, gold selected stroke and native pressed state.",
-      "html": "<button class=\"ds-map\" aria-pressed=\"true\"><span class=\"ds-roofs\"></span><strong>The Trenches ✓</strong><small>40 blocks. Three Oppa Stoppas. No quiet corners.</small></button>",
+      "html": "<button class=\"ds-map\" aria-pressed=\"true\"><span class=\"ds-roofs\"></span><strong>The Trenches \u2713</strong><small>40 blocks. Three Oppa Stoppas. No quiet corners.</small></button>",
       "css": ".ds-map{background:#253027;color:#ece8d8;border:1px solid #566048;padding:12px;text-align:left;cursor:pointer}.ds-map[aria-pressed=\"true\"]{border-color:#d9c784;box-shadow:inset 0 0 0 1px #d9c784}.ds-map strong{display:block;font-family:\"Barlow Condensed\",sans-serif;font-size:21px;line-height:1.15;margin:10px 0 5px}.ds-map small{display:block;font-family:Barlow,sans-serif;font-size:11px;line-height:1.5;color:#bec5b0}.ds-roofs{display:block;height:48px;background:linear-gradient(90deg,#a3ba86 0 12.5%,#95bdd2 12.5% 25%,#d8a580 25% 37.5%,#b3a0cc 37.5% 50%,#d399b2 50% 62.5%,#d9c784 62.5% 75%,#86bfa4 75% 87.5%,#c4ad80 87.5%);clip-path:polygon(0 35%,12.5% 0,25% 35%,37.5% 0,50% 35%,62.5% 0,75% 35%,87.5% 0,100% 35%,100% 100%,0 100%)}.ds-map:hover{filter:brightness(1.08)}.ds-map:focus-visible{outline:2px solid var(--lime,#c6ed72);outline-offset:4px}"
     },
     {
@@ -1657,39 +1874,60 @@
       "kind": "custom",
       "refersTo": "studio-row",
       "description": "District-colored index and editable block name with fixed-space metadata.",
-      "html": "<div class=\"ds-block\"><span>01</span><input aria-label=\"Block 1 name\" value=\"Auntie’s Bodega\" /><small>property</small></div>",
+      "html": "<div class=\"ds-block\"><span>01</span><input aria-label=\"Block 1 name\" value=\"Auntie\u2019s Bodega\" /><small>property</small></div>",
       "css": ".ds-block{display:flex;gap:6px;align-items:center;padding:8px;border:1px solid #45503c;background:#263127;font-family:Barlow,sans-serif}.ds-block span{background:#a3ba86;color:#192019;padding:4px;font-size:11px;font-weight:700}.ds-block input{flex:1;min-width:0;width:100%;font:12px Barlow,sans-serif;padding:8px;background:#171e19;border:1px solid #465043;border-radius:6px;color:#f0f2e8;min-height:45px}.ds-block small{width:50px;font-size:10px;color:#b7bfa7}.ds-block input:focus-visible{outline:2px solid var(--lime,#c6ed72);outline-offset:2px}"
-    },
-    {
-      "name": "Shootout health and controls",
-      "kind": "custom",
-      "refersTo": "shootout-arena",
-      "description": "Native health meters, visible HP and time, and wrapping labelled live actions accompany the SVG alley.",
-      "html": "<section class=\"ds-shootout\"><div class=\"ds-hud\"><div><strong>You</strong><meter min=\"0\" max=\"100\" value=\"75\" aria-label=\"Your health\"></meter><span>75 HP</span></div><b class=\"ds-clock\">30</b><div><strong>Sunset</strong><meter min=\"0\" max=\"100\" value=\"50\" aria-label=\"Opponent health\"></meter><span>50 HP</span></div></div><div class=\"ds-actions\"><button>Dodge left</button><button>Duck</button><button>Dodge right</button><button>Reload</button><button>Fire</button></div><p>30 seconds; higher health wins. An exact tie protects the landlord.</p></section>",
-      "css": ".ds-shootout{max-width:560px;background:#253025;color:#edf0e6;padding:20px;font-family:\"Barlow\",sans-serif}.ds-hud{display:grid;grid-template-columns:1fr 76px 1fr;gap:18px;align-items:center}.ds-hud>div{display:grid;gap:5px}.ds-hud strong{font-size:14px;color:#c6ed72}.ds-hud>div:last-child strong{color:#ecaa7c}.ds-hud meter{width:100%;height:14px;accent-color:#c6ed72}.ds-hud meter::-webkit-meter-bar{background:#192019;border:1px solid #465043;border-radius:0}.ds-hud meter::-webkit-meter-optimum-value{background:#c6ed72}.ds-hud span{font-size:10px}.ds-clock{text-align:center;font-family:\"Barlow Condensed\",sans-serif;font-size:32px}.ds-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}.ds-actions button{flex:1;min-height:44px;padding:12px 8px;background:#192019;color:#d6e0cb;border:1px solid #52634b;font-family:\"Barlow\",sans-serif;font-size:12px;white-space:nowrap}.ds-actions button:last-child{background:#c6ed72;color:#192019;font-weight:700}.ds-actions button:hover{filter:brightness(1.08)}.ds-actions button:focus-visible{outline:2px solid var(--lime,#c6ed72);outline-offset:4px}.ds-shootout p{font-size:11px;line-height:1.6;color:#c0cfb3}"
     },
     {
       "name": "Trade review",
       "kind": "custom",
       "description": "Stacked give/receive assets with list price, mortgage consequence, cash, escape cards, and projected cash; reused for drafts and incoming/outgoing offers.",
-      "html": "<div class=\"ds-deal\"><section><h4>You give</h4><ul><li>Auntie’s Bodega<small>$60 list price · mortgaged; no rent</small></li><li>$100 cash</li></ul></section><section><h4>You receive</h4><ul><li>1 escape card</li></ul></section><p>Your cash after this deal: $1,400. Mortgages stay with the property.</p></div>",
+      "html": "<div class=\"ds-deal\"><section><h4>You give</h4><ul><li>Auntie\u2019s Bodega<small>$60 list price \u00b7 mortgaged; no rent</small></li><li>$100 cash</li></ul></section><section><h4>You receive</h4><ul><li>1 escape card</li></ul></section><p>Your cash after this deal: $1,400. Mortgages stay with the property.</p></div>",
       "css": ".ds-deal{display:grid;grid-template-columns:1fr;gap:14px;margin:14px 0 20px;color:#edf0e6;font-family:\"Barlow\",sans-serif}.ds-deal section{border-top:1px solid var(--secondary-border,#52634b);padding-top:10px;min-width:0}.ds-deal h4{font-size:16px;color:var(--lime,#c6ed72);margin:0 0 8px}.ds-deal ul{list-style:none;margin:0;padding:0}.ds-deal li{font-size:16px;margin:8px 0;overflow-wrap:anywhere}.ds-deal small{display:block;margin-top:4px;font-size:14px;line-height:1.4;color:var(--secondary-text,#d6e0cb)}.ds-deal p{font-size:14px;line-height:1.5;color:var(--secondary-text,#d6e0cb)}"
+    },
+    {
+      "name": "Arena combat action",
+      "kind": "button",
+      "refersTo": "arena-control",
+      "description": "Labelled 44px combat action with disabled and focus states.",
+      "html": "<button class=\"ds-arena-control\">Reload</button>",
+      "css": ".ds-arena-control { display:flex; align-items:center; justify-content:center; gap:7px; min-height:44px; border:1px solid #797979; background:#282828; color:#f2f2ed; padding:8px 12px; font:13px \"Barlow\",sans-serif; touch-action:none; user-select:none; } .ds-arena-control:hover:not(:disabled) { background:#444; } .ds-arena-control:focus-visible { outline:2px solid #fff; outline-offset:2px; } .ds-arena-control:disabled { opacity:.6; }"
+    },
+    {
+      "name": "Arena ready action",
+      "kind": "button",
+      "refersTo": "arena-ready-action",
+      "description": "Red readiness commitment after stakes are explained.",
+      "html": "<button class=\"ds-arena-ready\">Ready up</button>",
+      "css": ".ds-arena-ready { min-width:180px; min-height:45px; background:#ed302a; color:#fff; border:1px solid #ed302a; border-radius:5px; padding:12px 13px; font:600 12px \"Barlow\",sans-serif; } .ds-arena-ready:hover:not(:disabled) { background:#ce211d; } .ds-arena-ready:focus-visible { outline:2px solid #c6ed72; outline-offset:4px; } .ds-arena-ready:disabled { opacity:.42; } @media (max-width:600px) { .ds-arena-ready { min-height:44px; } }"
+    },
+    {
+      "name": "Arena ammunition HUD",
+      "kind": "custom",
+      "refersTo": "arena-hud",
+      "description": "Static preview of numeric ammunition and shot feedback; actual game HUD is not a live region.",
+      "html": "<div class=\"ds-arena-hud\"><strong>6 / 6</strong><span>MOVE. AIM. SETTLE IT.</span></div>",
+      "css": ".ds-arena-hud { display:grid; gap:3px; color:#fff; background:#171717e6; padding:10px 14px; font-family:\"Barlow\",sans-serif; } .ds-arena-hud strong { font:700 32px/1 \"Barlow Condensed\",sans-serif; } .ds-arena-hud span { font-size:12px; font-weight:700; }"
     }
   ],
   "narrative": {
     "northStar": "Street game cabinet",
-    "overview": "This documents the implemented direction recorded in `index.html`: a street game table where land, luck, and duels meet. Dark asphalt surfaces surround a pale square board, painted district strips, condensed sporting type, lime controls, and an original isometric city. The cabinet carries the visual identity; the room and turn controls make the game playable. The expanded board, eight crews, and supporting settings, room, social, and profile panels continue this same world. Live first-person shootouts, original hooded crew figures, named ownership badges, and illustrated buildings bring the same street materials to combat and property play. The login front desk, six-city collection, and personal Map Studio extend the same street table: an authored city welcomes the player, painted district swatches distinguish maps, and compact editing rows make the board personal. Persistent board-side chat, readable trade reviews, and an optional eliminated-crew exit extend this same cabinet with direct operational controls.\n\nThe interface is dense around the board and more spacious around consequential actions. Friendly crew symbols and muted city colors give the original setting character without making players decode decoration. This is a record of the built system under the user's creative liberty. No approved visual comparisons, reference images, or image-generation assets were supplied.",
+    "overview": "This documents the implemented direction recorded in `index.html`: a street game table where land, luck, and duels meet. Dark asphalt surfaces surround a pale square board, painted district strips, condensed sporting type, lime controls, and an original isometric city. The cabinet carries the visual identity; the room and turn controls make the game playable. The expanded board, eight crews, and supporting settings, room, social, and profile panels continue this same world. Original hooded crew figures, named ownership badges, and illustrated buildings bring the same street materials to property play. Current rent arenas form a scoped Red Handed-inspired exception: gray outlined corridors, original black-and-white pixel fighters, red weaponry and visible red projectiles, inside the existing game dialog. The login front desk, six-city collection, and personal Map Studio extend the same street table: an authored city welcomes the player, painted district swatches distinguish maps, and compact editing rows make the board personal. Persistent board-side chat, readable trade reviews, and an optional eliminated-crew exit extend this same cabinet with direct operational controls.\n\nThe interface is dense around the board and more spacious around consequential actions. Friendly crew symbols and muted city colors give the original setting character without making players decode decoration. This is a record of the built system under the user's creative liberty. The user pinned Red Handed as the current rent-arena reference; this governs that combat surface only. No image-generation assets were supplied.",
     "keyCharacteristics": [
       "Asphalt and olive surfaces with pale, readable board pieces.",
       "Condensed display type paired with direct, compact interface text.",
       "Lime action and focus treatments; crew and district colors carry game meaning.",
       "An authored vector city inside a real, interactive perimeter board.",
       "Responsive controls-first play and explicit keyboard focus.",
-      "Original vector street figures and first-person alley art, with health, ammunition, ownership, and building states expressed in words.",
+      "Original vector board figures and pixel rent-arena fighters, with health, ammunition, ownership, and building states expressed in words.",
       "A city-led entry, painted map collection, and practical editing surface within the incumbent identity.",
       "Board-side conversation, explicit give/receive trade reviews, and a visible optional exit for eliminated crews."
     ],
     "rules": [
+      {
+        "name": "The Arena Boundary Rule",
+        "body": "Arena Red marks current combat actions and weapon feedback; the board, city, login, and map surfaces retain their existing lime and district identities.",
+        "section": "colors"
+      },
       {
         "name": "The Ownership Rule",
         "body": "Keep district and crew identity separate: a property's upper strip shows its district, its bottom strip shows its owner, and its hooded figures show occupants.",
@@ -1705,6 +1943,8 @@
       "Do state game consequences beside risky actions and outcomes.",
       "Do keep owner names, mortgage words, building counts, and full resident lists alongside the illustrated board pieces.",
       "Do retain visible health, ammunition, timer, live control labels, and ready/result copy in the shootout.",
+      "Do preserve crisp pixel scaling, outlined gray corridor geometry, free movement, and mouse-capture alternatives within the rent arena.",
+      "Do keep the arena reference scoped to combat and preserve persisted lane/tactic compatibility.",
       "Do extend account and map surfaces with the same Barlow families, asphalt/olive layers, visible labels, and authored city geometry.",
       "Do pair map selection, verification, and locks with explicit text or icons and preserve the sticky editor action surface on narrow screens.",
       "Do keep board-side chat available, give and receive summaries readable, and the eliminated-crew exit visible above play controls."

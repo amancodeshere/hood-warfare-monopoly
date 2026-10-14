@@ -92,6 +92,18 @@ colors:
   street-skin: "#a67857"
   street-chain: "#e2c76e"
   alley-backdrop: "#26372d"
+  arena-red: "#ed302a"
+  arena-red-hover: "#ce211d"
+  arena-paper: "#f2f2ed"
+  arena-floor: "#747474"
+  arena-ceiling: "#bcbcbc"
+  arena-ink: "#161616"
+  arena-control: "#282828"
+  arena-control-hover: "#444"
+  arena-control-border: "#797979"
+  arena-message: "#111111e8"
+  arena-copy: "#e3e3df"
+  arena-hud: "#171717e6"
 typography:
   display:
     fontFamily: '"Barlow Condensed", sans-serif'
@@ -251,6 +263,21 @@ typography:
   board-overview-count:
     fontFamily: '"Barlow", sans-serif'
     fontSize: "6px"
+  arena-message:
+    fontFamily: '"Barlow Condensed", sans-serif'
+    fontSize: "clamp(34px, 6vw, 66px)"
+    lineHeight: "0.95"
+  arena-clock:
+    fontFamily: '"Barlow Condensed", sans-serif'
+    fontSize: "36px"
+    lineHeight: "1"
+  arena-ammo:
+    fontFamily: '"Barlow Condensed", sans-serif'
+    fontSize: "32px"
+    lineHeight: "1"
+  arena-control:
+    fontFamily: '"Barlow", sans-serif'
+    fontSize: "13px"
 rounded:
   tile: "2px"
   compact-chip: "3px"
@@ -336,7 +363,24 @@ components:
     textColor: "{colors.ink}"
     padding: "2px"
   shootout-arena:
-    backgroundColor: "{colors.alley-backdrop}"
+    backgroundColor: "{colors.arena-floor}"
+  arena-control:
+    backgroundColor: "{colors.arena-control}"
+    textColor: "{colors.arena-paper}"
+    typography: "{typography.arena-control}"
+    padding: "8px 12px"
+  arena-control-hover:
+    backgroundColor: "{colors.arena-control-hover}"
+  arena-ready-action:
+    backgroundColor: "{colors.arena-red}"
+    textColor: "#fff"
+    rounded: "{rounded.button}"
+  arena-ready-action-hover:
+    backgroundColor: "{colors.arena-red-hover}"
+  arena-hud:
+    backgroundColor: "{colors.arena-hud}"
+    textColor: "#fff"
+    padding: "10px 14px"
   entry-field:
     backgroundColor: "{colors.entry-field}"
     textColor: "{colors.entry-paper}"
@@ -350,9 +394,9 @@ components:
 
 **Creative North Star: "Street game cabinet"**
 
-This documents the implemented direction recorded in `index.html`: a street game table where land, luck, and duels meet. Dark asphalt surfaces surround a pale square board, painted district strips, condensed sporting type, lime controls, and an original isometric city. The cabinet carries the visual identity; the room and turn controls make the game playable. The expanded board, eight crews, and supporting settings, room, social, and profile panels continue this same world. Live first-person shootouts, original hooded crew figures, named ownership badges, and illustrated buildings bring the same street materials to combat and property play. The login front desk, six-city collection, and personal Map Studio extend the same street table: an authored city welcomes the player, painted district swatches distinguish maps, and compact editing rows make the board personal. Persistent board-side chat, readable trade reviews, and an optional eliminated-crew exit extend this same cabinet with direct operational controls.
+This documents the implemented direction recorded in `index.html`: a street game table where land, luck, and duels meet. Dark asphalt surfaces surround a pale square board, painted district strips, condensed sporting type, lime controls, and an original isometric city. The cabinet carries the visual identity; the room and turn controls make the game playable. The expanded board, eight crews, and supporting settings, room, social, and profile panels continue this same world. Original hooded crew figures, named ownership badges, and illustrated buildings bring the same street materials to property play. Current rent arenas form a scoped Red Handed-inspired exception: gray outlined corridors, original black-and-white pixel fighters, red weaponry and visible red projectiles, inside the existing game dialog. The login front desk, six-city collection, and personal Map Studio extend the same street table: an authored city welcomes the player, painted district swatches distinguish maps, and compact editing rows make the board personal. Persistent board-side chat, readable trade reviews, and an optional eliminated-crew exit extend this same cabinet with direct operational controls.
 
-The interface is dense around the board and more spacious around consequential actions. Friendly crew symbols and muted city colors give the original setting character without making players decode decoration. This is a record of the built system under the user's creative liberty. No approved visual comparisons, reference images, or image-generation assets were supplied.
+The interface is dense around the board and more spacious around consequential actions. Friendly crew symbols and muted city colors give the original setting character without making players decode decoration. This is a record of the built system under the user's creative liberty. The user pinned Red Handed as the current rent-arena reference; this governs that combat surface only. No image-generation assets were supplied.
 
 **Key Characteristics:**
 
@@ -361,7 +405,7 @@ The interface is dense around the board and more spacious around consequential a
 - Lime action and focus treatments; crew and district colors carry game meaning.
 - An authored vector city inside a real, interactive perimeter board.
 - Responsive controls-first play and explicit keyboard focus.
-- Original vector street figures and first-person alley art, with health, ammunition, ownership, and building states expressed in words.
+- Original vector board figures and pixel rent-arena fighters, with health, ammunition, ownership, and building states expressed in words.
 - A city-led entry, painted map collection, and practical editing surface within the incumbent identity.
 - Board-side conversation, explicit give/receive trade reviews, and a visible optional exit for eliminated crews.
 
@@ -372,6 +416,8 @@ The palette combines desaturated street materials with clear painted accents. Fr
 ### Primary
 
 - **Lime:** Primary actions, current navigation, selected tiles, focus outlines, presence, and Grove Collective. The lighter hover tone belongs to primary buttons.
+
+- **Arena Red:** Ready and fire actions and the rival health meter in the current rent arena. Weapon, projectile, and reticle art use nearby local red fills; these are renderer materials rather than replacements for the cabinet accent.
 
 ### Secondary
 
@@ -384,7 +430,10 @@ The palette combines desaturated street materials with clear painted accents. Fr
 
 ### Neutral
 
-- **Street Outline / Skin / Chain / Alley Backdrop:** Repeated source-authored figure and shootout materials. The dark outline makes silhouettes readable, the skin and chain accents give figures character, and the alley backdrop remains within the asphalt/olive world. The alley’s perspective faces, cover, gun metal, and muzzle flash use local illustration colors; they are artwork fills rather than new shared action or status colors.
+- **Street Outline / Skin / Chain / Alley Backdrop:** Source-authored board figure materials and the legacy lane-shootout backdrop. The dark outline makes board silhouettes readable; skin and chain accents give figures character. The olive alley remains available to persisted lane duels.
+- **Arena Floor / Ceiling / Ink / Paper:** The current rent arena uses grayscale perspective geometry, crisp dark contours, and pale fighter silhouettes and health. Wall faces are distance-shaded grays calculated by the raycaster. The control, translucent HUD, and message surfaces keep operational text distinct from moving geometry.
+
+**The Arena Boundary Rule.** Arena Red marks current combat actions and weapon feedback; the board, city, login, and map surfaces retain their existing lime and district identities.
 
 - **Asphalt / Panel / Action Panel / Crew Surface:** The page and functional surfaces. Active crews use a distinct olive surface and crew-colored border.
 - **Text / Muted / Line:** Primary text, lower-emphasis text, and structural separation.
@@ -418,7 +467,9 @@ Both families are self-hosted through local `@fontsource` package imports in `sr
 
 - **Entry and maps:** The front desk display uses the entry-display role and its explicit mobile variant; its final desktop clamp ends at 88px. Entry branding uses 29px desktop and 23px mobile condensed type. Account headings use 48px desktop and 38px mobile. Introductory copy uses 17px desktop and 12px mobile; account copy is 13px on mobile. Verification titles use 25px; collection headings use 28px; map names use 21px desktop and 18px mobile; map descriptions and studio metadata use 11px. Studio section titles and preview names use 24px. Entry divider copy uses 10px and the small mobile brand tagline uses 8px; both are supplementary to visible headings and controls. The entry action overrides the shared button size to 14px.
 
-Shootout stakes use 24px condensed text (20px on mobile), the clock 32px (24px on mobile), and ammunition 28px (22px on mobile). Ready/result messages use 36px (26px on mobile), and the start countdown uses 90px with a 16px tracked caption. Live action labels finish at 11px on mobile, overriding the earlier 10px declaration. Owner names use 8px, owner state labels 5px, and mortgage state labels 7px; compact overview owner names use 5px and stack/build counts 6px. These small board labels supplement the full property panel and are not instruction typography.
+Legacy lane-shootout stakes use 24px condensed text (20px on mobile), the clock 32px (24px on mobile), and ammunition 28px (22px on mobile). Ready/result messages use 36px (26px on mobile), and the start countdown uses 90px with a 16px tracked caption. Live action labels finish at 11px on mobile, overriding the earlier 10px declaration. Owner names use 8px, owner state labels 5px, and mortgage state labels 7px; compact overview owner names use 5px and stack/build counts 6px. These small board labels supplement the full property panel and are not instruction typography.
+
+The current arena uses the arena typography roles above: ready/result titles become 42px below 600px, the clock becomes 28px, and ammunition becomes 27px. Names use 18px desktop and 15px narrow-screen Barlow; numeric health and labels use 12px. Ready/result copy is 16px at 1.4 line height and 14px below 600px. The countdown is 100px condensed with a 14px Barlow caption. Controls remain 13px.
 
 The one-time detector reported early entry sizes (a 112px clamp endpoint and 58px mobile display) from declarations superseded by the final cascade. Those are not active design tokens. The removed entry and collection eyebrow spans are not part of the built hierarchy.
 
@@ -440,6 +491,8 @@ The entry uses a two-column city/front-desk composition (`1.25fr` and `0.8fr`, w
 
 The city picker stays two columns on mobile, with 8px gaps and 10px card padding instead of desktop 12px. Its heading and Studio action wrap when space is constrained. Map Studio inherits the 610px wide, viewport-constrained scrolling dialog. District and block grids use two columns with 8px gaps and become one column below 640px. Color inputs remain 42px wide. The preview is 190px tall, reducing to 150px on mobile; its SVG is deliberately cropped. Save/use/delete actions wrap inside a sticky bottom surface so long block lists retain their primary action. Verification forms wrap their input and button rather than widening the viewport.
 
+The rent-arena dialog is a scoped exception to standard dialog width: `min(1000px, 96vw)`, `calc(100dvh - 24px)` maximum height, and 22px/24px padding. Below 600px it uses `calc(100vw - 20px)` width and 16px padding. The live canvas is 16:9 with a 50dvh height cap on desktop; narrow screens use 4:3 without that cap. Ready/result overlays require minimum canvas heights of 440px, 370px below 600px, and 430px below 360px so copy and the ready action fit; the modal retains internal scrolling. Combat actions wrap at 8px gaps, then form a two-column grid below 600px. Movement buttons use six columns on desktop and two below 600px.
+
 ## Elevation & Depth
 
 Depth combines dark tonal layers, fine green borders, and restrained object shadows. The board feels like a physical game surface; dice, tokens, and street cards sit above it. Modals use a dark translucent backdrop with 5px blur and a heavier shadow. Ordinary crew and action panels rely on surface and border changes instead of floating-card shadows.
@@ -451,7 +504,7 @@ The entry city uses a static radial olive light within its flat world surface. M
 - **Board:** `0 17px 32px #0c120f66` beneath the cabinet.
 - **Street figure:** `drop-shadow(0 2px 1px #10181460)` beneath the hooded SVG figure. The earlier circular marker shadow is superseded.
 - **Street building:** `drop-shadow(0 2px 1px #26332640)` under house and hotel art.
-- **Foreground pistol:** `drop-shadow(0 5px 4px #10181470)` inside the shootout viewport.
+- **Legacy lane pistol:** `drop-shadow(0 5px 4px #10181470)` inside persisted lane-shootout viewports. The current pixel weapon uses crisp outlines rather than a drop shadow.
 - **Dice:** `0 3px 5px #111a1160` beneath the dice.
 - **Street card:** `0 9px 18px #11181166` beneath the tilted card.
 - **Toast:** `0 8px 20px #10151070` beneath the temporary status surface.
@@ -461,7 +514,7 @@ The entry city uses a static radial olive light within its flat world surface. M
 
 ## Shapes
 
-Use small radii for precise game surfaces and modest radii for larger containers: tiles are nearly square, controls are gently rounded, and the cabinet has a softer outer frame. The frontmatter captures observed radii, not a new abstract scale. Crew marks, earned emblems, dice pips, and the roulette and Stoppa wheels are circular. Auction participant chips and panel textareas use the compact 3px radius. The header mark is a pointed shield silhouette, the roulette pointer a clipped triangle, and legacy saved tactic-duel score pips are skewed rectangles. Current board occupants have hooded SVG silhouettes; the shootout uses an alley perspective, a visible foreground pistol, and a matching armed rival.
+Use small radii for precise game surfaces and modest radii for larger containers: tiles are nearly square, controls are gently rounded, and the cabinet has a softer outer frame. The frontmatter captures observed radii, not a new abstract scale. Crew marks, earned emblems, dice pips, and the roulette and Stoppa wheels are circular. Auction participant chips and panel textareas use the compact 3px radius. The header mark is a pointed shield silhouette, the roulette pointer a clipped triangle, and legacy saved tactic-duel score pips are skewed rectangles. Current board occupants have hooded SVG silhouettes; the current shootout uses a raycast corridor perspective with an original pixel foreground pistol and pixel rival. Its stage and native health meters are square-cornered, with heavy dark contours. Fighter sprites are cached at 32 × 60 pixels, and the weapon layer renders at one-third canvas resolution; both are enlarged with image smoothing disabled.
 
 District strips and ownership bars stay flush to tile edges. Street cards tilt by −2 degrees; the board brand tilts by −5 degrees. These fixed poses communicate printed game material without moving the surrounding control layout.
 
@@ -499,13 +552,15 @@ Street cards are pale, slightly tilted printed surfaces with an icon, condensed 
 
 Dialogs are labelled modal regions. They receive initial focus, loop Tab and Shift+Tab among controls, support Escape when a close callback exists, and restore the previously focused element on unmount. Rules are dismissible; active roulette and duel decisions are resolved through their game actions. Roulette is a labelled radial game object with a pointer and explicit outcome caption. Saved legacy tactic duels retain named crew emblems, score pips, and three native tactic buttons. Current rent duels use the live first-person shootout pattern below.
 
-### Live First-Person Shootout
+### Live First-Person Rent Arena
 
-The wide decision dialog keeps rent stakes above two crew-colored native health meters with numeric HP and a central timer. The arena is an original SVG alley, an armed hooded opponent, a crosshair, and a foreground pistol. Desktop uses a 16:9 arena; mobile uses 4:3. Ready and result screens place readable copy and a primary action over the arena, while a large countdown introduces live play. The Ready copy explains the rent and forfeiture stakes before either player commits.
+The current arena is a first-person 2.5D canvas raycaster in `src/ArenaDuel.jsx` and `src/arenaRenderer.js`, with grayscale outlined corridors, original black-and-white pixel fighters, a red foreground pistol, visible traveling projectiles, and a centered reticle. Cover is collision geometry that the player moves around; depth-tested sprite clipping keeps rivals behind walls. The scoreboard presents two named native health meters with numeric HP, pale local health, red rival health, and a central rent amount before play or seconds remaining during play. The in-arena HUD shows ammunition or RELOADING and explicit SHOT AWAY, HIT, HEADSHOT, MISSED, or KICK MISSED feedback. Ready copy explains both the rent benefit and the challenger's cash/turf forfeiture before commitment; results name the winner and consequence.
 
-Pointer aim and click/tap fire coexist with native Dodge left, Duck, Dodge right, Reload, Fire, and four directional aiming buttons. Live controls have a 44px minimum height; the smaller aim adjustments have 32px minimum height. The final mobile action labels are 11px. A/D dodge, S centers, Space ducks, R reloads, and Enter fires at the crosshair; labelled buttons remain available for keyboard aiming. Inactive, reloading, cover, cooldown, and empty-ammunition states disable the relevant controls. Ammo, IN COVER, RELOADING, HIT, HEADSHOT, and MISSED use explicit words beside the visual feedback. Both health and the 30-second limit are visible; exact ties protect the landlord, and the ready deadline is explained in the help copy. Spectators receive the challenger view and named health bars without playable controls.
+WASD / ZQSD provide free forward, backward, and strafe movement. Mouse capture supplies continuous aim, with Escape releasing it; drag-to-aim and arrow keys remain usable when capture is unavailable. Hold click or Enter to fire, Space to kick, and R to reload. Labelled Fire, Kick, Reload, and Sound controls have 44px minimum height and explicit disabled states. Movement controls are initially visible for coarse pointers or screens at or below 600px; desktop offers a Movement controls toggle. Touch players drag the arena to aim and hold movement buttons. Sound is optional synthesized audio and starts off. Spectators see the challenger view and named health without playable controls.
 
-The HUD stays inside the arena; controls wrap below it. Cover raises an opaque foreground ledge, firing briefly moves the pistol and flashes, hit/miss marks expire, and incoming damage outlines the arena. These signals belong to the game state, not ambient decoration. Keep the existing modal focus handling and visible focus treatment; avoid announcing every clock tick through the global status region.
+Shared collision functions support immediate movement prediction and reconciliation against acknowledged inputs. Combat simulation runs at 20 Hz, compact authoritative snapshots at 10 Hz, and presentation at requestAnimationFrame cadence with remote position interpolation and short projectile extrapolation. The server checks combat and settles rent. Each magazine has six rounds, shots recover in 280ms, reloads take 1100ms, and kicks recover in 850ms. Body hits deal 25, headshots 40, and kicks 30 damage. The 30-second limit and exact-tie landlord protection remain explicit in help copy. Persisted lane FPS and tactic duels retain their original renderers and rules.
+
+Recoil lasts 150ms, muzzle flash 65ms, kick presentation 280ms, damage tint 170ms, and hit reticle feedback 180ms. Reduced motion disables weapon recoil and walking bob; gameplay timing, reload and kick cues remain. Keep existing dialog focus handling, the canvas's inset pale focus outline, and visible focus on combat buttons. Do not announce the continuously changing timer and HUD through live regions; capture fallback notices use a status message.
 
 ### Expanded Panels / Settings / Social
 
@@ -541,7 +596,7 @@ The editor is a labelled wide dialog with the incumbent focus loop, Escape and f
 
 Control state transitions use 0.15s ease. Dice rattle lasts 0.6s ease-out; modal entry lasts 0.25s ease-out; waiting dots pulse over 1.4s with staggered delays. The current hooded figures explicitly disable the former 0.14s token-arrival animation; movement advances through board positions every 45ms. Oppa Stoppa turns over 1.75s with `cubic-bezier(0.16, 1, 0.3, 1)`. The wheel decelerates over 2.5s using `cubic-bezier(0.1, 0.8, 0.16, 1)`. The reduced-motion media query disables all CSS animations and transitions and uses automatic scrolling. The roulette result still waits for its existing 2.6-second result gate; the preference removes visual movement, not game timing.
 
-The city is original source-authored SVG in `src/City.jsx`: isometric building faces, window grids, storefront signs, tree-lined roads, cars, street lamps, and a basketball court. It has an explicit image role and descriptive accessible label. The favicon is a source-authored SVG with a dark geometric glyph on a rounded lime square in `public/favicon.svg`; the header uses a separate shield silhouette. Interface and crew symbols come from the Lucide icon library; they are not claimed as original artwork. The alley and foreground pistol in `src/FPSDuel.jsx` and hooded figures, houses, and hotels in `src/StreetPieces.jsx` are also original source-authored SVG. There are no supplied photographs, generated raster assets, or external image dependencies. Extend the city through its existing vector geometry and muted material palette.
+The city is original source-authored SVG in `src/City.jsx`: isometric building faces, window grids, storefront signs, tree-lined roads, cars, street lamps, and a basketball court. It has an explicit image role and descriptive accessible label. The favicon is a source-authored SVG with a dark geometric glyph on a rounded lime square in `public/favicon.svg`; the header uses a separate shield silhouette. Interface and crew symbols come from the Lucide icon library; they are not claimed as original artwork. The persisted lane alley and pistol in `src/FPSDuel.jsx` and hooded figures, houses, and hotels in `src/StreetPieces.jsx` are also original source-authored SVG. The current rent arena in `src/arenaRenderer.js` uses source-authored canvas geometry and generated-at-runtime pixel sprite caches, with no external sprite assets. There are no supplied photographs, generated raster assets, or external image dependencies. Extend the city through its existing vector geometry and muted material palette.
 
 ## Do's and Don'ts
 
@@ -555,6 +610,8 @@ The city is original source-authored SVG in `src/City.jsx`: isometric building f
 - **Do** state game consequences beside risky actions and outcomes.
 - **Do** keep owner names, mortgage words, building counts, and full resident lists alongside the illustrated board pieces.
 - **Do** retain visible health, ammunition, timer, live control labels, and ready/result copy in the shootout.
+- **Do** preserve crisp pixel scaling, outlined gray corridor geometry, free movement, and mouse-capture alternatives within the rent arena.
+- **Do** keep the arena reference scoped to combat and preserve persisted lane/tactic compatibility.
 - **Do** extend account and map surfaces with the same Barlow families, asphalt/olive layers, visible labels, and authored city geometry.
 - **Do** pair map selection, verification, and locks with explicit text or icons and preserve the sticky editor action surface on narrow screens.
 - **Do** keep board-side chat available, give and receive summaries readable, and the eliminated-crew exit visible above play controls.

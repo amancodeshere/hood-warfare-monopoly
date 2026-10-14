@@ -113,7 +113,11 @@ test("arena pauses shift inputs and airborne bullets, and bots complete with val
   fpsTick(d, 4050);
   shiftFPS(d, 10000);
   assert.equal(d.tickAt, 14050);
-  assert.equal(d.fighters.a.inputAt, 14000);
+  assert.equal(d.fighters.a.inputAt, 0);
+  assert.deepEqual(d.fighters.a.input, { forward: 0, strafe: 0 });
+  const pausedPosition = d.fighters.a.x;
+  fpsTick(d, 14100);
+  assert.equal(d.fighters.a.x, pausedPosition);
   assert.equal(d.projectiles[0].at, 14000);
   let pick = 0;
   const rng = (n) => (pick++ * 7 + 3) % n;
