@@ -1,0 +1,184 @@
+{
+  "desktop_1920x1080": {
+    "simulatedTouch": false,
+    "loadMs": 4132,
+    "landingOverflowX": 0,
+    "lobbyOverflowX": 0,
+    "gameOverflowX": 0,
+    "gamePageHeight": 1578,
+    "smallTargets": [
+      "BUTTON:How to play:98x18",
+      "BUTTON:Resp_deskto:75x14",
+      "BUTTON:Show street activity:131x18",
+      "BUTTON:ROOM 2127E4:101x15",
+      "BUTTON:House rules:71x14",
+      "BUTTON:Play fair. Play smart.:108x15"
+    ],
+    "targetsUnder44": 17,
+    "totalInteractive": 61,
+    "axe": [
+      {
+        "id": "aria-prohibited-attr",
+        "impact": "serious",
+        "nodes": 4,
+        "help": "Elements must only use permitted ARIA attributes",
+        "sample": [
+          ".board-dice > .die[aria-label=\"Dice 1\"]:nth-child(1)",
+          ".board-dice > .die[aria-label=\"Dice 1\"]:nth-child(2)"
+        ]
+      },
+      {
+        "id": "landmark-unique",
+        "impact": "moderate",
+        "nodes": 1,
+        "help": "Landmarks should have a unique role or role/label/title (i.e. accessible name) combination",
+        "sample": [
+          ".crew-sidebar"
+        ]
+      },
+      {
+        "id": "page-has-heading-one",
+        "impact": "moderate",
+        "nodes": 1,
+        "help": "Page should contain a level-one heading",
+        "sample": [
+          "html"
+        ]
+      }
+    ],
+    "consoleErrors": []
+  },
+  "laptop_1366x768": {
+    "simulatedTouch": false,
+    "loadMs": 4743,
+    "landingOverflowX": 0,
+    "lobbyOverflowX": 0,
+    "gameOverflowX": 0,
+    "gamePageHeight": 1402,
+    "smallTargets": [
+      "BUTTON:How to play:98x18",
+      "BUTTON:Resp_laptop:72x14",
+      "BUTTON:Show street activity:131x18",
+      "BUTTON:ROOM 204B13:102x15",
+      "BUTTON:House rules:71x14",
+      "BUTTON:Play fair. Play smart.:108x15"
+    ],
+    "targetsUnder44": 17,
+    "totalInteractive": 61,
+    "consoleErrors": []
+  },
+  "tablet_768x1024": {
+    "simulatedTouch": true,
+    "loadMs": 4476,
+    "landingOverflowX": 0,
+    "lobbyOverflowX": 0,
+    "gameOverflowX": 0,
+    "gamePageHeight": 1203,
+    "smallTargets": [
+      "BUTTON:How to play:98x18",
+      "BUTTON:Resp_tablet:64x13",
+      "BUTTON:Show street activity:122x18",
+      "BUTTON:ROOM 24C32E:104x15",
+      "BUTTON:House rules:71x14",
+      "BUTTON:Play fair. Play smart.:108x15"
+    ],
+    "targetsUnder44": 57,
+    "totalInteractive": 61,
+    "consoleErrors": []
+  },
+  "mobile_390x844": {
+    "simulatedTouch": true,
+    "loadMs": 4189,
+    "landingOverflowX": 0,
+    "lobbyOverflowX": 0,
+    "gameOverflowX": 0,
+    "gamePageHeight": 2358,
+    "smallTargets": [
+      "BUTTON:Resp_mobile:57x11",
+      "BUTTON:Show street activity:122x18",
+      "BUTTON:ROOM EE9894:90x15",
+      "BUTTON:House rules:63x11",
+      "BUTTON:Play fair. Play smart.:99x15"
+    ],
+    "targetsUnder44": 16,
+    "totalInteractive": 61,
+    "axe": [
+      {
+        "id": "aria-prohibited-attr",
+        "impact": "serious",
+        "nodes": 4,
+        "help": "Elements must only use permitted ARIA attributes",
+        "sample": [
+          ".board-dice > .die[aria-label=\"Dice 1\"]:nth-child(1)",
+          ".board-dice > .die[aria-label=\"Dice 1\"]:nth-child(2)"
+        ]
+      },
+      {
+        "id": "landmark-unique",
+        "impact": "moderate",
+        "nodes": 1,
+        "help": "Landmarks should have a unique role or role/label/title (i.e. accessible name) combination",
+        "sample": [
+          ".crew-sidebar"
+        ]
+      },
+      {
+        "id": "page-has-heading-one",
+        "impact": "moderate",
+        "nodes": 1,
+        "help": "Page should contain a level-one heading",
+        "sample": [
+          "html"
+        ]
+      }
+    ],
+    "consoleErrors": []
+  },
+  "small_360x640": {
+    "simulatedTouch": true,
+    "loadMs": 4692,
+    "landingOverflowX": 0,
+    "lobbyOverflowX": 0,
+    "gameOverflowX": 0,
+    "gamePageHeight": 2358,
+    "smallTargets": [
+      "BUTTON:Resp_small_:55x11",
+      "BUTTON:Show street activity:122x18",
+      "BUTTON:ROOM C2D86B:91x15",
+      "BUTTON:House rules:63x11",
+      "BUTTON:Play fair. Play smart.:99x15"
+    ],
+    "targetsUnder44": 16,
+    "totalInteractive": 61,
+    "consoleErrors": []
+  },
+  "navigationTiming": {
+    "domContentLoaded": 1946,
+    "loadEvent": 1947,
+    "resources": 14,
+    "transferKB": 236,
+    "decodedKB": 517,
+    "biggest": [
+      "index-C5khovBy.js:107KB",
+      "barlow-latin-700-normal-A9pxMQ4z.woff2:23KB",
+      "barlow-latin-600-normal-DILqtrty.woff2:23KB",
+      "barlow-condensed-latin-800-normal-BKzMuPgK.woff2:22KB",
+      "barlow-condensed-latin-700-normal-v1xN8_Wq.woff2:22KB"
+    ]
+  },
+  "landingTabOrder": [
+    "A:SPIN THE BLOCK\nPROPERTY.  outline=solid/2px boxShadow=false",
+    "BUTTON:Continue as guest outline=solid/2px boxShadow=false",
+    "BUTTON:Sign in outline=solid/2px boxShadow=false",
+    "BUTTON:Create account outline=solid/2px boxShadow=false",
+    "INPUT:entry-user outline=solid/2px boxShadow=false",
+    "INPUT:entry-password outline=solid/2px boxShadow=false",
+    "BUTTON:Sign in outline=solid/2px boxShadow=false",
+    "BODY:SPIN THE BLOCK\nPROPERTY.  outline=none/3px boxShadow=false",
+    "A:SPIN THE BLOCK\nPROPERTY.  outline=solid/2px boxShadow=false",
+    "BUTTON:Continue as guest outline=solid/2px boxShadow=false",
+    "BUTTON:Sign in outline=solid/2px boxShadow=false",
+    "BUTTON:Create account outline=solid/2px boxShadow=false"
+  ],
+  "reducedMotionAnimations": 0
+}

@@ -1,0 +1,121 @@
+[
+  {
+    "k": "T1 name input maxlength-enforced value",
+    "v": "<img src=x onerror=a"
+  },
+  {
+    "k": "T1 lobby shows literal name (escaped)",
+    "v": false
+  },
+  {
+    "k": "T1 dialog fired",
+    "v": false
+  },
+  {
+    "k": "T1 room code",
+    "v": "FE059B"
+  },
+  {
+    "k": "T2 empty-name solo start -> heading/body",
+    "v": "SPIN THE BLOCK HOOD WARFARE MONOPOLY Game table How to play CONNECTED New crew’s turn. roll. At Home Base. The block is open. Every crew starts with $1500. Your competition 4 / 4 New crewYOU Grove Col"
+  },
+  {
+    "k": "T3 invalid code message",
+    "v": "That room does not exist or has expired."
+  },
+  {
+    "k": "T4 rapid 8x roll: log lines",
+    "v": [
+      "rolled 11"
+    ]
+  },
+  {
+    "k": "T4 after reload: in game?",
+    "v": {
+      "room": "ROOM 84C886",
+      "heading": "YOUR TURN\n2:22"
+    }
+  },
+  {
+    "k": "T4 after browser Back: url",
+    "v": "https://spin-the-block.up.railway.app/?room=5158FB"
+  },
+  {
+    "k": "T4 after Back: still in game?",
+    "v": 0
+  },
+  {
+    "k": "T5 offline indicator text",
+    "v": "SPIN THE BLOCK HOOD WARFARE MONOPOLY Game table How to play RECONNECTING"
+  },
+  {
+    "k": "T5 after reconnect header",
+    "v": "SPIN THE BLOCK HOOD WARFARE MONOPOLY Game table How to play CONNECTED"
+  },
+  {
+    "k": "T5 after reconnect: in game",
+    "v": 0
+  },
+  {
+    "k": "T6 first 25 tab stops in-game",
+    "v": [
+      "How to play",
+      "Profile and friends",
+      "Enable sound",
+      "Show street activity",
+      "Home Base",
+      "Auntie’s Bodega, $60",
+      "Street Luck",
+      "Broke Boy Blvd, $80",
+      "Flex Tax",
+      "Spin the Bus, $200",
+      "No Cap Cuts, $100",
+      "Oppa Stoppa",
+      "Caught Lackin Lane, $120",
+      "Backdoor Alley, $140",
+      "County Jail",
+      "The Trenches, $160",
+      "The Power Plug, $150",
+      "Trap House Towers, $180",
+      "Rent Due Lil Bro, $200",
+      "Slide Thru Station, $200",
+      "Cookout Corner, $220",
+      "Street Luck",
+      "Hit a Lick Heights, $240",
+      "Chain Snatch City, $260",
+      "Community Plot, community bala"
+    ]
+  },
+  {
+    "k": "T7 zoom200 horizontal overflow px",
+    "v": 0
+  },
+  {
+    "k": "T7 zoom400 horizontal overflow px",
+    "v": 0
+  },
+  {
+    "k": "T8 guest sees",
+    "v": "SPIN THE BLOCK HOOD WARFARE MONOPOLY Game table How to play CONNECTED Room BCE0FA. 2 crews joined. Your competition 2 / 4 HostH Grove Collective $1,500 0 blocks GuestGYOU Eastside Royals $1,500 0 blocks Add a bot to the "
+  },
+  {
+    "k": "T8 guest (off turn) sees Roll button?",
+    "v": 0
+  },
+  {
+    "k": "T8 guest view after host offline 6s",
+    "v": "SPIN THE BLOCK HOOD WARFARE MONOPOLY Game table How to play CONNECTED HostH’s turn. roll. At Home Base. The block is open. Every crew starts with $1500. Your competition 4 / 4 HostH Grove Collective $1,500 0 blocks GuestGYOU Eastside Royals $1,500 0 blocks Remy Sunset Syndicate BOT $1,500 0 blocks Jax Harbor Union BOT $1,500 0 blocks THE NEIGHBORHOODS The Bodega Belt Caught Lackin The Trenches Hit"
+  },
+  {
+    "k": "T8 host reconnect state",
+    "v": "YOUR TURN 2:19"
+  },
+  {
+    "k": "console/page errors",
+    "v": [
+      "error: Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "error: Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "error: Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+    ]
+  }
+]
