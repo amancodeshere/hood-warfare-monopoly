@@ -201,7 +201,7 @@ export function EntryPage({ profile, emit, authenticated, enter, disabled }) {
                 if (r) {
                   authenticated(r);
                   setPassword("");
-                  enter();
+                  if (mode === "login") enter();
                 }
               }}
             >

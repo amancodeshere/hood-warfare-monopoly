@@ -149,17 +149,23 @@ function Die({ value }) {
     6: [0, 2, 3, 5, 6, 8],
   };
   return (
-    <span className="die" aria-label={`Dice ${value}`}>
+    <span className="die" role="img" aria-label={`Die showing ${value}`}>
       {Array.from({ length: 9 }, (_, i) => (
         <i key={i} className={sets[value].includes(i) ? "dot" : ""} />
       ))}
     </span>
   );
 }
-function Button({ children, secondary = false, danger = false, ...props }) {
+function Button({
+  children,
+  secondary = false,
+  danger = false,
+  className = "",
+  ...props
+}) {
   return (
     <button
-      className={`button ${secondary ? "secondary" : ""} ${danger ? "danger" : ""}`}
+      className={`button ${secondary ? "secondary" : ""} ${danger ? "danger" : ""} ${className}`.trim()}
       {...props}
     >
       {children}
@@ -1134,9 +1140,11 @@ function App() {
               <Die value={game.dice[0]} />
               <Die value={game.dice[1]} />
             </div>
-            <Button disabled={disabled} onClick={() => act({ type: "roll" })}>
-              Roll the dice <Dice5 size={20} />
-            </Button>
+            <div className="action-panel-sticky">
+              <Button disabled={disabled} onClick={() => act({ type: "roll" })}>
+                Roll the dice <Dice5 size={20} />
+              </Button>
+            </div>
             <p className="micro-note">Pass Home Base → collect $200</p>
           </>
         );
@@ -1175,21 +1183,23 @@ function App() {
               {money(t.price)}
               <span>PURCHASE PRICE</span>
             </div>
-            <Button
-              disabled={disabled || me.cash < t.price}
-              onClick={() => act({ type: "buy" })}
-            >
-              Claim this block <Plus size={18} />
-            </Button>
-            <Button
-              secondary
-              disabled={disabled}
-              onClick={() => act({ type: "skip" })}
-            >
-              {game.settings.auctions
-                ? "Put it up for auction"
-                : "Pass on this block"}
-            </Button>
+            <div className="action-panel-sticky">
+              <Button
+                disabled={disabled || me.cash < t.price}
+                onClick={() => act({ type: "buy" })}
+              >
+                Claim this block <Plus size={18} />
+              </Button>
+              <Button
+                secondary
+                disabled={disabled}
+                onClick={() => act({ type: "skip" })}
+              >
+                {game.settings.auctions
+                  ? "Put it up for auction"
+                  : "Pass on this block"}
+              </Button>
+            </div>
             {me.cash < t.price && (
               <p className="micro-note">
                 Short on cash? Open My turf to mortgage a block.
@@ -1223,21 +1233,23 @@ function App() {
                 {short ? `${money(d.amount - me.cash)} SHORT` : "RENT DUE"}
               </span>
             </div>
-            <Button
-              disabled={disabled || short}
-              onClick={() => act({ type: "pay" })}
-            >
-              Pay {money(d.amount)} <ArrowRight size={18} />
-            </Button>
-            {short && owner && (
+            <div className="action-panel-sticky">
               <Button
-                danger
-                disabled={disabled}
-                onClick={() => act({ type: "shootout" })}
+                disabled={disabled || short}
+                onClick={() => act({ type: "pay" })}
               >
-                Challenge to a shootout <Crosshair size={18} />
+                Pay {money(d.amount)} <ArrowRight size={18} />
               </Button>
-            )}
+              {short && owner && (
+                <Button
+                  danger
+                  disabled={disabled}
+                  onClick={() => act({ type: "shootout" })}
+                >
+                  Challenge to a shootout <Crosshair size={18} />
+                </Button>
+              )}
+            </div>
             {short && (
               <>
                 <Button secondary onClick={() => setTab("turf")}>
@@ -1272,9 +1284,11 @@ function App() {
                 <Crosshair size={25} />
               </span>
             </div>
-            <Button disabled={disabled} onClick={() => act({ type: "card" })}>
-              Play this card <ArrowRight size={18} />
-            </Button>
+            <div className="action-panel-sticky">
+              <Button disabled={disabled} onClick={() => act({ type: "card" })}>
+                Play this card <ArrowRight size={18} />
+              </Button>
+            </div>
           </>
         );
       case "jail":
@@ -1292,33 +1306,35 @@ function App() {
                 use an escape card, or sit this one out.
               </p>
             </div>
-            <Button
-              disabled={disabled || me.cash < 100}
-              onClick={() => act({ type: "jail-pay" })}
-            >
-              Post bail · $100 <KeyRound size={18} />
-            </Button>
-            <Button
-              secondary
-              disabled={disabled || !me.escapes}
-              onClick={() => act({ type: "jail-card" })}
-            >
-              Use escape card ({me.escapes})
-            </Button>
-            <Button
-              secondary
-              disabled={disabled}
-              onClick={() => act({ type: "jail-roll" })}
-            >
-              Roll for doubles <Dice5 size={18} />
-            </Button>
-            <Button
-              secondary
-              disabled={disabled}
-              onClick={() => act({ type: "jail-wait" })}
-            >
-              Serve a turn
-            </Button>
+            <div className="action-panel-sticky">
+              <Button
+                disabled={disabled || me.cash < 100}
+                onClick={() => act({ type: "jail-pay" })}
+              >
+                Post bail · $100 <KeyRound size={18} />
+              </Button>
+              <Button
+                secondary
+                disabled={disabled || !me.escapes}
+                onClick={() => act({ type: "jail-card" })}
+              >
+                Use escape card ({me.escapes})
+              </Button>
+              <Button
+                secondary
+                disabled={disabled}
+                onClick={() => act({ type: "jail-roll" })}
+              >
+                Roll for doubles <Dice5 size={18} />
+              </Button>
+              <Button
+                secondary
+                disabled={disabled}
+                onClick={() => act({ type: "jail-wait" })}
+              >
+                Serve a turn
+              </Button>
+            </div>
           </>
         );
       case "end":
@@ -1341,9 +1357,11 @@ function App() {
               <strong>{money(me.cash)}</strong>
               <span>{owned.length} blocks in your pocket</span>
             </div>
-            <Button disabled={disabled} onClick={() => act({ type: "end" })}>
-              End your turn <ArrowRight size={18} />
-            </Button>
+            <div className="action-panel-sticky">
+              <Button disabled={disabled} onClick={() => act({ type: "end" })}>
+                End your turn <ArrowRight size={18} />
+              </Button>
+            </div>
           </>
         );
       default:
@@ -1360,13 +1378,12 @@ function App() {
         );
     }
   }
-  const authenticated = (r) => {
+  const authenticated = (r, autoEnter = false) => {
     persist("stb-profile", r.token);
     setProfile(r.profile);
     setName(r.profile.name);
     persist("stb-name", r.profile.name);
-    persist("stb-entry", "yes");
-    setEntry(false);
+    if (autoEnter) enter();
   };
   const enter = () => {
     persist("stb-entry", "yes");
@@ -1462,7 +1479,7 @@ function App() {
               : "Create or join a private room to play."}
       </div>
       <main className="game-layout">
-        <aside className="crew-sidebar">
+        <aside className="crew-sidebar" aria-label="Crews and standings">
           <div className="section-heading">
             <h2>Your competition</h2>
             <span>
@@ -1693,7 +1710,10 @@ function App() {
             </section>
           )}
         </section>
-        <aside className="action-sidebar">
+        <aside
+          className="action-sidebar"
+          aria-label="Turn actions and block details"
+        >
           {game?.status === "playing" && me?.out && (
             <section className="eliminated-exit" aria-label="Your crew is out">
               <h2>Your crew is out.</h2>
