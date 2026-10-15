@@ -53,6 +53,7 @@ import {
 } from "../shared/board.js";
 import { DISTRICTS as LEGACY_DISTRICTS } from "../shared/legacy-board.js";
 import { Modal } from "./Modal.jsx";
+import { CashDeltaBadge } from "./CashDelta.jsx";
 import {
   SettingsPanel,
   RoomsPanel,
@@ -187,14 +188,16 @@ function Board({ game, selected, setSelected, rolling, highlight }) {
     lastMove.current = m.id;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     let step = 0;
-    setWalking({ id: m.player, pos: m.from });
+    setWalking({ id: m.player, pos: m.from, step: 0 });
     const timer = setInterval(() => {
       step++;
       if (step >= m.steps) {
         setWalking(null);
         clearInterval(timer);
-      } else setWalking({ id: m.player, pos: (m.from + step) % BOARD.length });
-    }, 45);
+      } else {
+        setWalking({ id: m.player, pos: (m.from + step) % BOARD.length, step });
+      }
+    }, 130);
     return () => {
       clearInterval(timer);
       setWalking(null);
@@ -301,8 +304,8 @@ function Board({ game, selected, setSelected, rolling, highlight }) {
                 >
                   {tokenPlayers.map((p) => (
                     <span
-                      className="token"
-                      key={p.id}
+                      className={`token ${walking?.id === p.id ? "hopping" : ""}`}
+                      key={`${p.id}-${walking?.id === p.id ? walking.step : "idle"}`}
                       style={{
                         "--crew":
                           COSMETICS.find((x) => x.id === p.appearance)?.color ||
@@ -1556,6 +1559,7 @@ function App() {
                 </div>
                 <div className="crew-balance">
                   <strong>{p.out ? "OUT" : money(p.cash)}</strong>
+                  <CashDeltaBadge cash={p.cash} />
                   <span>
                     {game
                       ? BOARD.filter((t) => game.props[t.id]?.owner === p.id)

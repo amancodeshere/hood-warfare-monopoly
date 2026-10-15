@@ -366,6 +366,43 @@ button:hover:not(:disabled) {
   align-items: baseline;
   gap: 10px;
   padding: 13px 0 0 44px;
+  position: relative;
+}
+.cash-delta {
+  position: absolute;
+  top: -4px;
+  right: 14px;
+  font-family: var(--font-condensed);
+  font-size: 14px;
+  font-weight: 800;
+  pointer-events: none;
+  animation: floatCashDelta 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  z-index: 50;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.85);
+}
+.cash-delta.gain {
+  color: var(--lime);
+}
+.cash-delta.loss {
+  color: #ff5252;
+}
+@keyframes floatCashDelta {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.85);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(0) scale(1.1);
+  }
+  75% {
+    opacity: 1;
+    transform: translateY(-10px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-18px) scale(0.95);
+  }
 }
 .crew-balance strong {
   font-size: 18px;
@@ -2498,6 +2535,24 @@ button:hover:not(:disabled) {
   to {
     transform: translateY(0) scale(1);
   }
+}
+@keyframes tokenHop {
+  0% {
+    transform: translateY(0) scale(1, 1);
+  }
+  40% {
+    transform: translateY(-9px) scale(0.92, 1.12);
+  }
+  80% {
+    transform: translateY(0) scale(1.08, 0.92);
+  }
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+}
+.token.hopping {
+  animation: tokenHop 130ms cubic-bezier(0.25, 1, 0.5, 1);
+  z-index: 10;
 }
 .player-name {
   padding: 0;
