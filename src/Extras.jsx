@@ -850,8 +850,8 @@ export function Auction({ game, act, disabled, now }) {
         </p>
       )}
       <p className="micro-note">
-        A bid resets the 20-second clock. Cash moves only when the auction
-        closes.
+        Bids accelerate the countdown (8s max, 5s grace). Cash moves only when
+        the auction closes.
       </p>
     </Modal>
   );

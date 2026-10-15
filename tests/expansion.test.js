@@ -116,6 +116,28 @@ test("auction is open to every alive seat, validates bids and transfers once", (
   assert.equal(g.phase, "end");
   assert.throws(() => action(g, b.id, { type: "auction-bid", amount: 50 }));
 });
+test("auction countdown starts at 15s, decays on consecutive bids, and enforces 5s minimum grace", () => {
+  const { g, p, b, c } = game();
+  p.pos = 1;
+  land(g);
+  action(g, p.id, { type: "skip" });
+  assert.equal(g.phase, "auction");
+  assert.equal(g.auction.clock, 15);
+  const now = Date.now();
+  assert(g.deadline <= now + 15100 && g.deadline >= now + 14900);
+
+  // A bid when 15s remain clamps timer to 8s
+  action(g, b.id, { type: "auction-bid", amount: 20 });
+  assert.equal(g.auction.clock, 8);
+  assert(g.deadline <= Date.now() + 8100 && g.deadline >= Date.now() + 7900);
+
+  // Manipulate deadline to simulate 2s remaining
+  g.deadline = Date.now() + 2000;
+  action(g, c.id, { type: "auction-bid", amount: 30 });
+  // Under 5s grace rule, timer resets up to 5s
+  assert.equal(g.auction.clock, 5);
+  assert(g.deadline <= Date.now() + 5100 && g.deadline >= Date.now() + 4900);
+});
 test("doubles grant extra rolls, third consecutive doubles jail the player", () => {
   const { g, p } = game();
   for (let i = 0; i < 3; i++) {

@@ -124,7 +124,7 @@ export function phase(g, value) {
     value === "duel"
       ? Date.now() + 25000
       : value === "auction"
-        ? Date.now() + 20000
+        ? Date.now() + 15000
         : g.turnDeadline || Date.now() + (g.settings?.turnSeconds || 90) * 1000;
 }
 export function fullSet(g, t, id) {
@@ -566,6 +566,7 @@ export function action(g, id, a, rng = secureRandom, options = {}) {
         highBidder: null,
         passed: [],
         startedAt: Date.now(),
+        clock: 15,
       };
       phase(g, "auction");
     } else phase(g, "end");

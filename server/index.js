@@ -5,7 +5,7 @@ import rateLimit from "express-rate-limit";
 import { createServer } from "node:http";
 import { Server } from "socket.io";
 import { randomBytes } from "node:crypto";
-import { mkdirSync, readFileSync, writeFileSync, renameSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync, promises as fsp } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -61,22 +61,32 @@ try {
   if (e.code !== "ENOENT") console.error("Room restore failed:", e.message);
 }
 let saveTimer;
+let saving = false;
+let pendingSave = false;
 function save() {
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => {
+  saveTimer = setTimeout(async () => {
+    if (saving) {
+      pendingSave = true;
+      return;
+    }
+    saving = true;
     try {
-      writeFileSync(
-        file + ".tmp",
-        JSON.stringify({
-          savedAt: Date.now(),
-          rooms: [...rooms.values()],
-          sessions: [...sessions],
-        }),
-        { mode: 0o600 },
-      );
-      renameSync(file + ".tmp", file);
+      const payload = JSON.stringify({
+        savedAt: Date.now(),
+        rooms: [...rooms.values()],
+        sessions: [...sessions],
+      });
+      await fsp.writeFile(file + ".tmp", payload, { mode: 0o600 });
+      await fsp.rename(file + ".tmp", file);
     } catch (e) {
       console.error("Persistence failed:", e.message);
+    } finally {
+      saving = false;
+      if (pendingSave) {
+        pendingSave = false;
+        save();
+      }
     }
   }, 100);
 }

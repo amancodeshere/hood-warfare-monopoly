@@ -75,7 +75,10 @@ export function extendedAction(g, id, a, rng) {
       g.auction.highBid = a.amount;
       assert(g.auction.highBidder !== id, "You already hold the highest bid.");
       g.auction.highBidder = id;
-      g.deadline = Date.now() + 20000;
+      const remainingSec = Math.max(0, (g.deadline - Date.now()) / 1000);
+      const newSec = Math.max(5, Math.min(remainingSec, 8));
+      g.deadline = Date.now() + Math.round(newSec * 1000);
+      g.auction.clock = Math.round(newSec);
       log(
         g,
         `${p.name} bids $${a.amount} on ${board(g)[g.auction.tile].name}.`,

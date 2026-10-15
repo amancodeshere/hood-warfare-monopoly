@@ -1365,6 +1365,8 @@ function App() {
     setProfile(r.profile);
     setName(r.profile.name);
     persist("stb-name", r.profile.name);
+    persist("stb-entry", "yes");
+    setEntry(false);
   };
   const enter = () => {
     persist("stb-entry", "yes");
