@@ -2023,6 +2023,65 @@ function App() {
                     </div>
                   ))}
               </div>
+              <div className="match-accolades">
+                <h3>MATCH ACCOLADES</h3>
+                <div className="accolade-grid">
+                  <div className="accolade-card">
+                    <Crown size={20} className="accolade-icon gold" />
+                    <div>
+                      <strong>The Kingpin</strong>
+                      <span>
+                        {winner
+                          ? `${winner.name} · ${money(propertyValue(game, winner))}`
+                          : "Uncontested"}
+                      </span>
+                    </div>
+                  </div>
+                  {(() => {
+                    const topPropPlayer = [...game.players].sort((a, b) => {
+                      const aC = BOARD.filter(
+                        (t) => game.props[t.id]?.owner === a.id,
+                      ).length;
+                      const bC = BOARD.filter(
+                        (t) => game.props[t.id]?.owner === b.id,
+                      ).length;
+                      return bC - aC;
+                    })[0];
+                    const count = topPropPlayer
+                      ? BOARD.filter(
+                          (t) => game.props[t.id]?.owner === topPropPlayer.id,
+                        ).length
+                      : 0;
+                    if (count === 0) return null;
+                    return (
+                      <div className="accolade-card">
+                        <Building2 size={20} className="accolade-icon green" />
+                        <div>
+                          <strong>Block Boss</strong>
+                          <span>{topPropPlayer.name} · {count} blocks owned</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                  {(() => {
+                    const topCashPlayer = [...game.players].sort(
+                      (a, b) => b.cash - a.cash,
+                    )[0];
+                    if (!topCashPlayer || topCashPlayer.cash <= 0) return null;
+                    return (
+                      <div className="accolade-card">
+                        <CircleDollarSign size={20} className="accolade-icon lime" />
+                        <div>
+                          <strong>Cash Heavyweight</strong>
+                          <span>
+                            {topCashPlayer.name} · {money(topCashPlayer.cash)} liquid
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
               <p className="micro-note">
                 Final ranking by net worth. Cash, turf, and businesses.
               </p>

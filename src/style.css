@@ -4956,3 +4956,51 @@ button:hover:not(:disabled) {
     padding-bottom: 74px;
   }
 }
+
+/* Post-Match Accolades & Highlights (GAME-011) */
+.match-accolades {
+  margin: 18px 0;
+  padding: 14px;
+  background: #1c231d;
+  border: 1px solid #334033;
+  border-radius: 8px;
+}
+.match-accolades h3 {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--lime);
+  margin-bottom: 10px;
+}
+.accolade-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.accolade-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #253026;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #364437;
+}
+.accolade-card strong {
+  display: block;
+  font-size: 13px;
+  color: #edf0e6;
+}
+.accolade-card span {
+  font-size: 11px;
+  color: #aab39f;
+}
+.accolade-icon.gold {
+  color: #f59e0b;
+}
+.accolade-icon.green {
+  color: #10b981;
+}
+.accolade-icon.lime {
+  color: var(--lime);
+}
