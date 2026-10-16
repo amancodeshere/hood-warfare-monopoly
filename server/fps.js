@@ -4,19 +4,21 @@ import { arenaFighters, arenaAction, arenaTick, arenaBot } from "./arena.js";
 const check = (ok, message) => {
   if (!ok) throw new Error(message);
 };
-export function createFPS(ids, arena = false) {
+export function createFPS(ids, arena = false, options = {}) {
+  const defenderId = options.defender ?? ids[1];
   return {
     mode: "fps",
     ...(arena ? { arena: true, projectiles: [], tickAt: 0 } : {}),
+    ...(options.highStakes ? { highStakes: true } : {}),
     stage: "ready",
     ready: [],
     fighters: arena
-      ? arenaFighters(ids)
+      ? arenaFighters(ids, options)
       : Object.fromEntries(
           ids.map((id) => [
             id,
             {
-              hp: 100,
+              hp: options.highStakes && id === defenderId ? 115 : 100,
               ammo: 6,
               lane: 0,
               lastShot: 0,
@@ -57,6 +59,7 @@ export function fpsAction(d, id, action, now = Date.now()) {
     d.ready.push(id);
     if (d.ready.length === 2) {
       d.stage = "live";
+      d.liveAt = now;
       d.startsAt = now + 3000;
       d.endsAt = d.startsAt + 30000;
     }

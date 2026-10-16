@@ -11,7 +11,7 @@ import {
 import { Modal } from "./Modal.jsx";
 import { money } from "../shared/board.js";
 import { move, angle, clamp, SHOT_DELAY } from "../shared/arena.js";
-import { renderArena } from "./arenaRenderer.js";
+import { renderArena, spawnArenaSparks } from "./arenaRenderer.js";
 export default function ArenaDuel({ game, act, disabled }) {
   const d = game.duel,
     playing = !!d.fighters[game.me],
@@ -33,6 +33,7 @@ export default function ArenaDuel({ game, act, disabled }) {
     speed: 0,
     reduced: false,
     reloadUntil: 0,
+    sparks: [],
   });
   const remote = useRef({ ...rival });
   const seq = useRef(mine.inputSeq || 0),
@@ -42,11 +43,18 @@ export default function ArenaDuel({ game, act, disabled }) {
     audio = useRef(null),
     look = useRef(null),
     mouseReady = useRef(Infinity),
-    firing = useRef(false);
+    firing = useRef(false),
+    seenImpacts = useRef(new Set());
   const [now, setNow] = useState(Date.now()),
     [locked, setLocked] = useState(false),
     [sound, setSound] = useState(false),
     [notice, setNotice] = useState(""),
+    [damagePulse, setDamagePulse] = useState({
+      active: false,
+      dir: "front",
+      key: 0,
+    }),
+    [sparkBurst, setSparkBurst] = useState({ active: false, key: 0 }),
     [showMovement, setShowMovement] = useState(
       () => matchMedia("(pointer: coarse), (max-width: 600px)").matches,
     );
@@ -58,6 +66,14 @@ export default function ArenaDuel({ game, act, disabled }) {
   const live =
     playing && d.stage === "live" && !countdown && time < d.endsAt && !disabled;
   const reloading = mine.reloadUntil > time;
+  const myBet = d.bets?.find((b) => b.player === game.me),
+    hasBet = !!myBet,
+    bettingOpen =
+      !playing &&
+      !result &&
+      (ready ||
+        (d.stage === "live" &&
+          (d.liveAt ? time - d.liveAt <= 5000 : countdown > 0)));
   current.current = {
     game,
     d,
@@ -91,14 +107,53 @@ export default function ArenaDuel({ game, act, disabled }) {
     }
     fx.current.snapshotAt = Date.now();
     fx.current.reloadUntil = f.reloadUntil - offset;
-    if (f.hp < (fx.current.hp ?? 100)) fx.current.hurt = Date.now();
+    if (f.hp < (fx.current.hp ?? f.hp)) {
+      fx.current.hurt = Date.now();
+      const rivalPos = d.fighters[rivalId] || { x: cam.x + 1, y: cam.y };
+      const attackerBearing = Math.atan2(rivalPos.y - cam.y, rivalPos.x - cam.x);
+      const relAngle = angle(attackerBearing - cam.yaw);
+      let dir = "front";
+      if (Math.abs(relAngle) > (3 * Math.PI) / 4) dir = "back";
+      else if (relAngle > Math.PI / 4) dir = "right";
+      else if (relAngle < -Math.PI / 4) dir = "left";
+      setDamagePulse({ active: true, dir, key: Date.now() });
+    }
     fx.current.hp = f.hp;
     const shot = d.shots.findLast((s) => s.player === viewer && s.damage);
     if (shot && shot.id !== fx.current.hitId) {
       fx.current.hit = Date.now();
       fx.current.hitId = shot.id;
     }
-  }, [d.fighters, d.shots, viewer, playing, offset]);
+    for (const s of d.shots || []) {
+      if (s.impactAt && !seenImpacts.current.has(s.id)) {
+        seenImpacts.current.add(s.id);
+        const rivalPos = d.fighters[rivalId] || { x: cam.x, y: cam.y };
+        const ix =
+          s.impactX ?? (s.damage ? rivalPos.x : cam.x + Math.cos(cam.yaw) * 3);
+        const iy =
+          s.impactY ?? (s.damage ? rivalPos.y : cam.y + Math.sin(cam.yaw) * 3);
+        const iz = s.impactZ ?? (s.head ? 0.95 : 0.6);
+        spawnArenaSparks(fx.current, ix, iy, iz, s.damage ? 18 : 10);
+        setSparkBurst({ active: true, key: Date.now() });
+      }
+    }
+  }, [d.fighters, d.shots, viewer, playing, offset, rivalId]);
+  useEffect(() => {
+    if (!damagePulse.active) return;
+    const t = setTimeout(
+      () => setDamagePulse((p) => ({ ...p, active: false })),
+      450,
+    );
+    return () => clearTimeout(t);
+  }, [damagePulse.key, damagePulse.active]);
+  useEffect(() => {
+    if (!sparkBurst.active) return;
+    const t = setTimeout(
+      () => setSparkBurst((s) => ({ ...s, active: false })),
+      350,
+    );
+    return () => clearTimeout(t);
+  }, [sparkBurst.key, sparkBurst.active]);
   useEffect(() => {
     if (live) canvas.current?.focus({ preventScroll: true });
     if (!live) {
@@ -200,6 +255,7 @@ export default function ArenaDuel({ game, act, disabled }) {
           c.viewer,
           Date.now(),
           fx.current,
+          c.game?.mapTheme || c.game?.settings?.map,
         );
       }
       if (stamp - lastHud > 100) {
@@ -417,10 +473,13 @@ export default function ArenaDuel({ game, act, disabled }) {
             <meter
               aria-label={playing ? "Your health" : "Challenger health"}
               min="0"
-              max="100"
+              max={d.highStakes ? 115 : 100}
               value={mine.hp}
             />
-            <span>{mine.hp} HP</span>
+            <span>
+              {mine.hp} HP
+              {d.highStakes && viewer === d.defender ? " · ARMOR" : ""}
+            </span>
           </div>
           <div className="arena-clock">
             <strong>
@@ -429,17 +488,29 @@ export default function ArenaDuel({ game, act, disabled }) {
                 : Math.max(0, Math.ceil(((d.endsAt || time) - time) / 1000)) +
                   "s"}
             </strong>
-            <span>{ready ? "RENT AT STAKE" : "HIGHER HP WINS"}</span>
+            <span>
+              {ready
+                ? d.highStakes
+                  ? "HIGH-STAKES RENT"
+                  : "RENT AT STAKE"
+                : "HIGHER HP WINS"}
+            </span>
+            {d.highStakes && (
+              <small className="arena-bounty-tag">+$200 BOUNTY</small>
+            )}
           </div>
           <div>
             <strong>{game.players.find((p) => p.id === rivalId)?.name}</strong>
             <meter
               aria-label="Rival health"
               min="0"
-              max="100"
+              max={d.highStakes ? 115 : 100}
               value={rival.hp}
             />
-            <span>{rival.hp} HP</span>
+            <span>
+              {rival.hp} HP
+              {d.highStakes && rivalId === d.defender ? " · ARMOR" : ""}
+            </span>
           </div>
         </div>
         <div className="arena-stage">
@@ -480,6 +551,36 @@ export default function ArenaDuel({ game, act, disabled }) {
               look.current = null;
             }}
           />
+          {damagePulse.active && (
+            <div
+              key={`vignette-${damagePulse.key}`}
+              className={`arena-damage-vignette active from-${damagePulse.dir}`}
+              aria-hidden="true"
+            />
+          )}
+          {damagePulse.active && (
+            <div
+              key={`indicator-${damagePulse.key}`}
+              className={`arena-hit-indicator dir-${damagePulse.dir}`}
+              aria-hidden="true"
+            />
+          )}
+          {sparkBurst.active && (
+            <div
+              key={`spark-${sparkBurst.key}`}
+              className="arena-spark-burst"
+              aria-hidden="true"
+            >
+              <span className="spark s1" />
+              <span className="spark s2" />
+              <span className="spark s3" />
+              <span className="spark s4" />
+              <span className="spark s5" />
+              <span className="spark s6" />
+              <span className="spark s7" />
+              <span className="spark s8" />
+            </div>
+          )}
           <div className="arena-hud" aria-live="off">
             <strong>{reloading ? "RELOADING" : mine.ammo + " / 6"}</strong>
             <span>
@@ -505,6 +606,12 @@ export default function ArenaDuel({ game, act, disabled }) {
                 Move through the alley. Dodge red bullets. Six shots, then
                 reload. Get close and kick.
               </p>
+              {d.highStakes && (
+                <p className="arena-high-stakes-notice">
+                  ⚡ <strong>HIGH-STAKES DUEL:</strong> Landlord starts with 115
+                  HP (+15 Armor). Challenger victory loots a $200 Street Bounty!
+                </p>
+              )}
               <p>
                 {game.me === d.attacker
                   ? "Win wipes your rent. Lose forfeits your cash and turf."
@@ -524,7 +631,46 @@ export default function ArenaDuel({ game, act, disabled }) {
                   <Crosshair size={18} />
                 </button>
               ) : (
-                <p>Waiting for both crews.</p>
+                <div className="spectator-betting">
+                  <p>Spectator Side-Bets (2x Payout):</p>
+                  <div style={{ display: "flex", gap: "8px", justifyContent: "center", flexWrap: "wrap", marginTop: "8px" }}>
+                    <button
+                      className="button secondary"
+                      disabled={disabled || d.bets?.some((b) => b.player === game.me) || (game.players.find((p) => p.id === game.me)?.cash || 0) < 50}
+                      onClick={() => act({ type: "duel-bet", amount: 50, pick: d.attacker })}
+                    >
+                      $50 on {game.players.find((p) => p.id === d.attacker)?.name || "Challenger"}
+                    </button>
+                    <button
+                      className="button secondary"
+                      disabled={disabled || d.bets?.some((b) => b.player === game.me) || (game.players.find((p) => p.id === game.me)?.cash || 0) < 50}
+                      onClick={() => act({ type: "duel-bet", amount: 50, pick: d.defender })}
+                    >
+                      $50 on {game.players.find((p) => p.id === d.defender)?.name || "Landlord"}
+                    </button>
+                    <button
+                      className="button secondary"
+                      disabled={disabled || d.bets?.some((b) => b.player === game.me) || (game.players.find((p) => p.id === game.me)?.cash || 0) < 100}
+                      onClick={() => act({ type: "duel-bet", amount: 100, pick: d.attacker })}
+                    >
+                      $100 on {game.players.find((p) => p.id === d.attacker)?.name || "Challenger"}
+                    </button>
+                    <button
+                      className="button secondary"
+                      disabled={disabled || d.bets?.some((b) => b.player === game.me) || (game.players.find((p) => p.id === game.me)?.cash || 0) < 100}
+                      onClick={() => act({ type: "duel-bet", amount: 100, pick: d.defender })}
+                    >
+                      $100 on {game.players.find((p) => p.id === d.defender)?.name || "Landlord"}
+                    </button>
+                  </div>
+                  {d.bets?.some((b) => b.player === game.me) && (
+                    <p style={{ marginTop: "6px", color: "var(--lime, #c6ed72)", fontSize: "12px" }}>
+                      Bet placed! Backing{" "}
+                      {game.players.find((p) => p.id === d.bets.find((b) => b.player === game.me)?.pick)?.name} for{" "}
+                      ${d.bets.find((b) => b.player === game.me)?.amount} (2x payout).
+                    </p>
+                  )}
+                </div>
               )}
             </div>
           )}
@@ -541,7 +687,9 @@ export default function ArenaDuel({ game, act, disabled }) {
               </strong>
               <p>
                 {d.winner === d.attacker
-                  ? "Rent wiped. Live to own another block."
+                  ? d.highStakes
+                    ? `Rent wiped and $${d.bounty ?? 200} Street Bounty looted! Live to own another block.`
+                    : "Rent wiped. Live to own another block."
                   : "The challenger is out. Cash and turf pass to a living teammate, otherwise the landlord."}
               </p>
               {game.me === d.attacker &&
@@ -617,6 +765,112 @@ export default function ArenaDuel({ game, act, disabled }) {
               </div>
             )}
           </>
+        )}
+        {!playing && !ready && !result && (bettingOpen || hasBet) && (
+          <div
+            className="spectator-betting-bar"
+            style={{
+              padding: "10px 14px",
+              background: "rgba(0, 0, 0, 0.45)",
+              borderTop: "1px solid rgba(255, 255, 255, 0.1)",
+              textAlign: "center",
+            }}
+          >
+            <p
+              style={{
+                margin: "0 0 6px",
+                fontSize: "12px",
+                fontWeight: "bold",
+                color: "#fce7b0",
+              }}
+            >
+              {bettingOpen && !hasBet
+                ? "🎲 Spectator Side-Bets Open (First 5s of Shootout · 2x Payout):"
+                : "🎲 Active Shootout Side-Bet:"}
+            </p>
+            {bettingOpen && !hasBet && (
+              <div
+                style={{
+                  display: "flex",
+                  gap: "8px",
+                  justifyContent: "center",
+                  flexWrap: "wrap",
+                }}
+              >
+                <button
+                  className="button secondary"
+                  disabled={
+                    disabled ||
+                    (game.players.find((p) => p.id === game.me)?.cash || 0) < 50
+                  }
+                  onClick={() =>
+                    act({ type: "duel-bet", amount: 50, pick: d.attacker })
+                  }
+                >
+                  $50 on{" "}
+                  {game.players.find((p) => p.id === d.attacker)?.name ||
+                    "Challenger"}
+                </button>
+                <button
+                  className="button secondary"
+                  disabled={
+                    disabled ||
+                    (game.players.find((p) => p.id === game.me)?.cash || 0) < 50
+                  }
+                  onClick={() =>
+                    act({ type: "duel-bet", amount: 50, pick: d.defender })
+                  }
+                >
+                  $50 on{" "}
+                  {game.players.find((p) => p.id === d.defender)?.name ||
+                    "Landlord"}
+                </button>
+                <button
+                  className="button secondary"
+                  disabled={
+                    disabled ||
+                    (game.players.find((p) => p.id === game.me)?.cash || 0) < 100
+                  }
+                  onClick={() =>
+                    act({ type: "duel-bet", amount: 100, pick: d.attacker })
+                  }
+                >
+                  $100 on{" "}
+                  {game.players.find((p) => p.id === d.attacker)?.name ||
+                    "Challenger"}
+                </button>
+                <button
+                  className="button secondary"
+                  disabled={
+                    disabled ||
+                    (game.players.find((p) => p.id === game.me)?.cash || 0) < 100
+                  }
+                  onClick={() =>
+                    act({ type: "duel-bet", amount: 100, pick: d.defender })
+                  }
+                >
+                  $100 on{" "}
+                  {game.players.find((p) => p.id === d.defender)?.name ||
+                    "Landlord"}
+                </button>
+              </div>
+            )}
+            {hasBet && (
+              <p
+                style={{
+                  margin: "4px 0 0",
+                  color: "var(--lime, #c6ed72)",
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                }}
+              >
+                Bet placed! Backing{" "}
+                {game.players.find((p) => p.id === myBet.pick)?.name ||
+                  "Shooter"}{" "}
+                for ${myBet.amount} (pays ${myBet.amount * 2}).
+              </p>
+            )}
+          </div>
         )}
         {notice && (
           <p role="status" className="arena-notice">

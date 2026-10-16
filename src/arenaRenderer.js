@@ -3,6 +3,109 @@ const FOV = 1.16;
 const INK = "#161616";
 const fighterSprites = new Map();
 let weaponLayer;
+
+export const ARENA_THEMES = {
+  "snow-day": {
+    ceiling: "#d6e8f5",
+    floor: "#6a8296",
+    grid: "#9dc2dc",
+    trim: "#507898",
+    ink: "#162230",
+    wall: (shade) =>
+      `rgb(${Math.round(shade * 0.88)}, ${Math.round(shade * 0.98)}, ${Math.min(255, Math.round(shade * 1.15))})`,
+  },
+  "cold-streets": {
+    ceiling: "#d6e8f5",
+    floor: "#6a8296",
+    grid: "#9dc2dc",
+    trim: "#507898",
+    ink: "#162230",
+    wall: (shade) =>
+      `rgb(${Math.round(shade * 0.88)}, ${Math.round(shade * 0.98)}, ${Math.min(255, Math.round(shade * 1.15))})`,
+  },
+  neon: {
+    ceiling: "#130924",
+    floor: "#1d1233",
+    grid: "#00f0ff",
+    trim: "#00f0ff",
+    ink: "#150524",
+    wall: (shade) =>
+      `rgb(${Math.min(255, Math.round(shade * 1.25))}, ${Math.round(shade * 0.45)}, ${Math.min(255, Math.round(shade * 1.15))})`,
+  },
+  "night-shift": {
+    ceiling: "#0b101c",
+    floor: "#161c28",
+    grid: "#263044",
+    trim: "#ffaa00",
+    ink: "#0c1018",
+    wall: (shade) =>
+      `rgb(${Math.round(shade * 0.72)}, ${Math.round(shade * 0.78)}, ${Math.round(shade * 0.92)})`,
+  },
+  boardwalk: {
+    ceiling: "#d8e8ee",
+    floor: "#8e7a62",
+    grid: "#6e5d48",
+    trim: "#14b8a6",
+    ink: "#241e18",
+    wall: (shade) =>
+      `rgb(${Math.min(255, Math.round(shade * 1.08))}, ${Math.round(shade * 0.98)}, ${Math.round(shade * 0.85)})`,
+  },
+  festival: {
+    ceiling: "#361d24",
+    floor: "#6d3d34",
+    grid: "#522b24",
+    trim: "#f59e0b",
+    ink: "#221010",
+    wall: (shade) =>
+      `rgb(${Math.min(255, Math.round(shade * 1.2))}, ${Math.round(shade * 0.75)}, ${Math.round(shade * 0.62)})`,
+  },
+  trenches: {
+    ceiling: "#262428",
+    floor: "#3c3a42",
+    grid: "#2c2a32",
+    trim: "#782c28",
+    ink: "#161616",
+    wall: (shade) =>
+      `rgb(${Math.min(255, Math.round(shade * 1.12))}, ${Math.round(shade * 0.72)}, ${Math.round(shade * 0.68)})`,
+  },
+};
+
+export function resolveArenaTheme(themeKey) {
+  if (themeKey && ARENA_THEMES[themeKey]) return ARENA_THEMES[themeKey];
+  if (typeof themeKey === "string") {
+    const k = themeKey.toLowerCase();
+    if (k.includes("snow") || k.includes("cold")) return ARENA_THEMES["snow-day"];
+    if (k.includes("neon")) return ARENA_THEMES.neon;
+    if (k.includes("night")) return ARENA_THEMES["night-shift"];
+    if (k.includes("boardwalk") || k.includes("beach"))
+      return ARENA_THEMES.boardwalk;
+    if (k.includes("festival") || k.includes("cookout"))
+      return ARENA_THEMES.festival;
+  }
+  return ARENA_THEMES.trenches;
+}
+
+export function spawnArenaSparks(effects, x, y, z, count = 14) {
+  effects.sparks = effects.sparks || [];
+  const now = Date.now();
+  for (let i = 0; i < count; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const speed = 1.0 + Math.random() * 2.5;
+    effects.sparks.push({
+      x,
+      y,
+      z,
+      vx: Math.cos(a) * speed,
+      vy: Math.sin(a) * speed,
+      vz: -0.4 + Math.random() * 2.0,
+      at: now,
+      life: 250 + Math.random() * 300,
+      size: 2.5 + Math.random() * 3,
+      color: Math.random() > 0.35 ? "#ffea00" : "#fff9b0",
+    });
+  }
+}
+
 function cast(x, y, dx, dy) {
   let mx = Math.floor(x),
     my = Math.floor(y),
@@ -27,17 +130,21 @@ function cast(x, y, dx, dy) {
   }
   return { distance: Math.max(0.01, side ? ty - ddy : tx - ddx), side, mx, my };
 }
-export function renderArena(ctx, camera, d, viewer, now, effects) {
+export function renderArena(ctx, camera, d, viewer, now, effects, themeOverride) {
+  const theme = resolveArenaTheme(
+    themeOverride || d?.mapTheme || d?.map || effects?.mapTheme || "trenches",
+  );
+  const themeInk = theme.ink || INK;
   const w = ctx.canvas.width,
     h = ctx.canvas.height,
     focal = w / (2 * Math.tan(FOV / 2));
   const horizon = h * 0.5 + Math.tan(camera.pitch) * focal;
-  ctx.fillStyle = "#bcbcbc";
+  ctx.fillStyle = theme.ceiling;
   ctx.fillRect(0, 0, w, h);
-  ctx.fillStyle = "#747474";
+  ctx.fillStyle = theme.floor;
   ctx.fillRect(0, horizon, w, h - horizon);
   // A floor grid gives movement a readable, stable frame of reference.
-  ctx.strokeStyle = "#636363";
+  ctx.strokeStyle = theme.grid;
   ctx.lineWidth = 1;
   for (let z = 1; z < 15; z++) {
     const y = horizon + (0.8 * focal) / z;
@@ -61,9 +168,9 @@ export function renderArena(ctx, camera, d, viewer, now, effects) {
       83,
       Math.round((hit.side ? 166 : 193) - distance * 3),
     );
-    ctx.fillStyle = `rgb(${shade},${shade},${shade})`;
+    ctx.fillStyle = theme.wall(shade);
     ctx.fillRect(x, top, 2, bottom - top);
-    ctx.fillStyle = INK;
+    ctx.fillStyle = themeInk;
     ctx.fillRect(x, top, 2, 4);
     ctx.fillRect(x, bottom - 4, 2, 4);
     // Outline geometry rather than blurring it; panels remain anchored to walls.
@@ -72,7 +179,7 @@ export function renderArena(ctx, camera, d, viewer, now, effects) {
       ctx.fillRect(x, top, 4, bottom - top);
       previous = key;
     }
-    ctx.fillStyle = "#535353";
+    ctx.fillStyle = theme.trim;
     ctx.fillRect(x, horizon + 0.38 * scale, 2, Math.max(1, scale * 0.015));
   }
   const objects = Object.entries(d.fighters)
@@ -121,6 +228,39 @@ export function renderArena(ctx, camera, d, viewer, now, effects) {
     ctx.scale(bodyW / 64, (bottom - top) / 120);
     drawFighter(ctx, o.hp <= 0, now - o.lastShot < 100);
     ctx.restore();
+  }
+  if (effects?.sparks?.length) {
+    for (let i = effects.sparks.length - 1; i >= 0; i--) {
+      const sp = effects.sparks[i];
+      const age = now - sp.at;
+      if (age >= sp.life) {
+        effects.sparks.splice(i, 1);
+        continue;
+      }
+      const t = age / 1000;
+      const px = sp.x + sp.vx * t;
+      const py = sp.y + sp.vy * t;
+      const pz = sp.z + sp.vz * t - 3.2 * t * t;
+      const dx = px - camera.x;
+      const dy = py - camera.y;
+      const off = angle(Math.atan2(dy, dx) - camera.yaw);
+      const distance = Math.hypot(dx, dy) * Math.cos(off);
+      if (distance < 0.06 || Math.abs(off) > FOV * 0.7) continue;
+      const scale = focal / distance;
+      const cx = w / 2 + Math.tan(off) * focal;
+      const cy = horizon + (0.8 - pz) * scale;
+      const colX = Math.floor(cx);
+      if (cx >= 0 && cx < w && distance < (depth[colX] || Infinity)) {
+        const alpha = Math.max(0, 1 - age / sp.life);
+        const sz = Math.max(2, Math.round(sp.size * scale * 0.035));
+        ctx.fillStyle = sp.color || "#ffea00";
+        ctx.globalAlpha = alpha;
+        ctx.fillRect(cx - sz / 2, cy - sz / 2, sz, sz);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(cx - sz / 4, cy - sz / 4, sz / 2, sz / 2);
+        ctx.globalAlpha = 1;
+      }
+    }
   }
   drawWeapon(ctx, w, h, now, effects);
   if (now - effects.hurt < 170) {

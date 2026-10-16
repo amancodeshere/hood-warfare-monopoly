@@ -11,12 +11,13 @@ import {
 const check = (ok, message) => {
   if (!ok) throw new Error(message);
 };
-export function arenaFighters(ids) {
+export function arenaFighters(ids, options = {}) {
+  const defenderId = options.defender ?? ids[1];
   return Object.fromEntries(
     ids.map((id, i) => [
       id,
       {
-        hp: 100,
+        hp: options.highStakes && id === defenderId ? 115 : 100,
         ammo: 6,
         x: i ? 9.5 : 2.5,
         y: 6.5,
@@ -113,9 +114,10 @@ export function arenaAction(d, id, a, now) {
       Math.hypot(rival.x - f.x, rival.y - f.y) < 1.4 &&
       Math.abs(angle(bearing - f.yaw)) < 0.65 &&
       sight(f.x, f.y, rival.x, rival.y);
+    const kickDamage = 30 + (f.kickBonus || 0);
     if (hit) {
-      rival.hp = Math.max(0, rival.hp - 30);
-      f.damage += 30;
+      rival.hp = Math.max(0, rival.hp - kickDamage);
+      f.damage += kickDamage;
       f.hits++;
       const yaw = rival.yaw;
       rival.yaw = bearing;
@@ -126,7 +128,7 @@ export function arenaAction(d, id, a, now) {
       id: ++d.sequence,
       player: id,
       at: now,
-      damage: hit ? 30 : 0,
+      damage: hit ? kickDamage : 0,
       kick: true,
     });
     d.shots = d.shots.slice(-12);
@@ -180,7 +182,16 @@ export function arenaTick(d, now) {
   });
   function finish(b, damage, head) {
     const s = d.shots.find((s) => s.id === b.id);
-    if (s) Object.assign(s, { damage, head, pending: false, impactAt: end });
+    if (s)
+      Object.assign(s, {
+        damage,
+        head,
+        pending: false,
+        impactAt: end,
+        impactX: b.x,
+        impactY: b.y,
+        impactZ: b.z,
+      });
   }
   return true;
 }
