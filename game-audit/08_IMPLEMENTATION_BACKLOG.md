@@ -6,20 +6,20 @@ This document defines the actionable, prioritized technical and design backlog f
 
 ## Backlog Priority Matrix
 
-| Ticket ID | Title | Category | Priority | Effort | Complexity | Impact |
+| Ticket ID | Title | Category | Priority | Effort | Status | Impact |
 |---|---|---|---|---|---|---|
-| **GAME-001** | Fix Post-Auth Transition Directly to Main Lobby | UI / UX | **P0** | 1h | Low | High |
-| **GAME-002** | Accelerate Auction Bidding Countdown to Prevent Stalling | Gameplay | **P1** | 2h | Low | High |
-| **GAME-003** | Sticky Bottom Action Bar for Mobile Viewports | UI / Responsive | **P1** | 4h | Medium | High |
-| **GAME-004** | Step-by-Step Perimeter Token Walking Animation | VFX / Motion | **P1** | 5h | Medium | High |
-| **GAME-005** | Floating Cash Transaction Delta VFX | VFX / UI | **P1** | 3h | Low | High |
-| **GAME-006** | Modular Decomposition of Monolithic `src/main.jsx` | Engineering | **P1** | 6h | Medium | High |
-| **GAME-007** | WCAG 2.2 AA ARIA and Landmark Accessibility Remediation | Accessibility | **P2** | 2h | Low | Medium |
-| **GAME-008** | Utility Monopoly Overhaul: City Grid Lockdown | Game Design | **P2** | 4h | Medium | Medium |
-| **GAME-009** | Interactive Tactical Action Cards (Street Luck 2.0) | Game Design | **P2** | 6h | Medium | High |
-| **GAME-010** | High-Stakes First-Person Shootout Modifiers & VFX | VFX / Combat | **P2** | 5h | Medium | High |
-| **GAME-011** | Post-Match Statistics Summary & Highlight Celebration | UI / Retention | **P2** | 5h | Medium | High |
-| **GAME-012** | Non-Blocking Asynchronous Persistence IO | Engineering | **P2** | 3h | Low | Medium |
+| **GAME-001** | Fix Post-Auth Transition Directly to Main Lobby | UI / UX | **P0** | 1h | **Completed** | High |
+| **GAME-002** | Accelerate Auction Bidding Countdown to Prevent Stalling | Gameplay | **P1** | 2h | **Completed** | High |
+| **GAME-003** | Sticky Bottom Action Bar for Mobile Viewports | UI / Responsive | **P1** | 4h | **Completed** | High |
+| **GAME-004** | Step-by-Step Perimeter Token Walking Animation | VFX / Motion | **P1** | 5h | **Completed** | High |
+| **GAME-005** | Floating Cash Transaction Delta VFX | VFX / UI | **P1** | 3h | **Completed** | High |
+| **GAME-006** | Modular Decomposition of Monolithic `src/main.jsx` | Engineering | **P1** | 6h | In Progress | High |
+| **GAME-007** | WCAG 2.2 AA ARIA and Landmark Accessibility Remediation | Accessibility | **P2** | 2h | **Completed** | Medium |
+| **GAME-008** | Utility Monopoly Overhaul: City Grid Lockdown & City Heat | Game Design | **P2** | 4h | **Completed** | Medium |
+| **GAME-009** | Interactive Tactical Action Cards & Spectator Duel Side-Bets | Game Design | **P2** | 6h | **Completed** | High |
+| **GAME-010** | High-Stakes Shootout Tiers, Map Arenas & Combat VFX | VFX / Combat | **P2** | 5h | **Completed** | High |
+| **GAME-011** | Post-Match Statistics Summary & Highlight Celebration | UI / Retention | **P2** | 5h | **Completed** | High |
+| **GAME-012** | Non-Blocking Asynchronous Persistence IO | Engineering | **P2** | 3h | **Completed** | Medium |
 
 ---
 
