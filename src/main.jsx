@@ -978,7 +978,7 @@ function App() {
               : t.type === "stoppa"
                 ? "Spin away 1–10% of cash into the Community Plot."
                 : t.type === "utility"
-                  ? "Rent is 4× dice, or 10× when your side owns both plugs."
+                  ? "Rent is 4× dice, or 15× when your side owns both plugs."
                   : t.type === "roulette"
                     ? "Six outcomes. One free spin."
                     : t.type === "card"
@@ -1011,7 +1011,7 @@ function App() {
               <span>Base rent</span>
               <b>
                 {t.type === "utility"
-                  ? "4× / 10× dice"
+                  ? "4× / 15× dice"
                   : t.type === "transit"
                     ? "$25 / $50 / $100 / $200"
                     : money(t.rent)}
@@ -1323,6 +1323,15 @@ function App() {
               >
                 Use escape card ({me.escapes})
               </Button>
+              {me.tacticals?.includes("bailout") && (
+                <Button
+                  secondary
+                  disabled={disabled}
+                  onClick={() => act({ type: "tactical-use", card: "bailout" })}
+                >
+                  Use Bailout card <KeyRound size={18} />
+                </Button>
+              )}
               <Button
                 secondary
                 disabled={disabled}
@@ -2247,6 +2256,72 @@ function App() {
                     <br />
                     Escape cards: {me?.escapes || 0}
                   </p>
+                  {me?.tacticals?.length > 0 && (
+                    <div style={{ margin: "10px 0" }}>
+                      <strong style={{ fontSize: "12px" }}>Tactical Cards ({me.tacticals.length}/2):</strong>
+                      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginTop: "6px" }}>
+                        {me.tacticals.map((card, idx) => {
+                          const id = typeof card === "string" ? card : card.id;
+                          if (id === "getaway") {
+                            return (
+                              <div key={idx} style={{ display: "flex", alignItems: "center", gap: "4px", flexWrap: "wrap", width: "100%" }}>
+                                <span style={{ fontSize: "11px" }}>Getaway (move):</span>
+                                {[1, 2, 3, 4, 5, 6].map((s) => (
+                                  <button
+                                    key={s}
+                                    className="button secondary"
+                                    disabled={disabled}
+                                    style={{ fontSize: "11px", padding: "2px 6px", minWidth: "22px" }}
+                                    onClick={() => act({ type: "tactical-use", card: id, spaces: s })}
+                                    aria-label={`Use Getaway to move ${s} spaces`}
+                                  >
+                                    {s}
+                                  </button>
+                                ))}
+                              </div>
+                            );
+                          }
+                          const names = {
+                            switchblade: "Switchblade (+15 Kick)",
+                            bailout: "Bailout (Free County Jail)",
+                            scanner: "Police Scanner (Halve Rent/Tax)",
+                          };
+                          return (
+                            <button
+                              key={idx}
+                              className="button secondary"
+                              disabled={disabled}
+                              style={{ fontSize: "11px", padding: "4px 8px" }}
+                              onClick={() => act({ type: "tactical-use", card: id })}
+                            >
+                              Use {names[id] || id}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  {me?.activeEffects && Object.keys(me.activeEffects).length > 0 && (
+                    <div style={{ margin: "8px 0" }}>
+                      <strong style={{ fontSize: "11px", color: "var(--lime, #c6ed72)" }}>Primed Tactical Effects:</strong>
+                      <div style={{ display: "flex", gap: "4px", flexWrap: "wrap", marginTop: "4px" }}>
+                        {me.activeEffects.switchblade && (
+                          <span className="badge" style={{ fontSize: "10px", padding: "2px 6px" }}>🗡️ Switchblade (+15 Kick)</span>
+                        )}
+                        {me.activeEffects.getaway && (
+                          <span className="badge" style={{ fontSize: "10px", padding: "2px 6px" }}>
+                            🚗 Getaway ({typeof me.activeEffects.getaway === "number" ? `${me.activeEffects.getaway} spaces` : "Active"})
+                          </span>
+                        )}
+                        {me.activeEffects.bailout && (
+                          <span className="badge" style={{ fontSize: "10px", padding: "2px 6px" }}>🗝️ Bailout (Arrest Shield)</span>
+                        )}
+                        {me.activeEffects.scanner && (
+                          <span className="badge" style={{ fontSize: "10px", padding: "2px 6px" }}>📡 Scanner (Halve Next Rent/Tax)</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </>
               ) : (
                 <ExchangePanel

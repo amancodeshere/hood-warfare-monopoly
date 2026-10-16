@@ -9,6 +9,7 @@ import {
 import { BOARD as LEGACY_BOARD } from "../shared/legacy-board.js";
 import { DEFAULT_SETTINGS } from "../shared/settings.js";
 import { extendedAction } from "./features.js";
+import { handleStreetLuck, settleDuelBets } from "./tacticals.js";
 export const board = (g) => g.board || DEFAULT_BOARD;
 export const allied = (g, a, b) =>
   a === b ||
@@ -35,7 +36,14 @@ export function migrate(g) {
     p.reserve ??= 60;
     p.afk ??= 0;
     p.team ??= null;
+    p.tacticals ||= [];
+    p.activeEffects ||= {};
   });
+  g.heatLevel ??= 0;
+  g.blackoutDistrict ??= null;
+  g.blackoutUntilRound ??= null;
+  g.blackoutExpiresOnPlayer ??= null;
+  g.lockdownUsedRound ??= null;
   return g;
 }
 export const secureRandom = (n) => randomInt(n);
@@ -60,6 +68,8 @@ export function player(name, bot = false) {
     pos: 0,
     jail: 0,
     escapes: 0,
+    tacticals: [],
+    activeEffects: {},
     out: false,
     connected: bot,
     team: null,
@@ -77,6 +87,11 @@ export function room(code, p) {
     turn: 0,
     round: 1,
     limit: null,
+    heatLevel: 0,
+    blackoutDistrict: null,
+    blackoutUntilRound: null,
+    blackoutExpiresOnPlayer: null,
+    lockdownUsedRound: null,
     schemaVersion: 2,
     board: makeBoard(),
     settings: { ...DEFAULT_SETTINGS },
@@ -139,6 +154,11 @@ export function fullSet(g, t, id) {
     )
   );
 }
+export function updateHeat(g) {
+  g.heatLevel =
+    g.round >= 15 ? Math.min(4, Math.floor((g.round - 15) / 5) + 1) : 0;
+  return g.heatLevel;
+}
 export function rent(g, t) {
   const BOARD = board(g);
   const q = g.props[t.id];
@@ -159,7 +179,7 @@ export function rent(g, t) {
           allied(g, g.props[x.id].owner, q.owner) &&
           !g.props[x.id].mortgaged,
       ).length >= 2
-        ? 10
+        ? 15
         : 4)
     );
   if (t.type === "transit")
@@ -179,14 +199,20 @@ export function rent(g, t) {
           ).length -
             1))
     );
-  return (
+  const calculatedRent =
     t.rent *
     (q.level
       ? [1, 3, 6, 10, 16, 25][q.level]
       : fullSet(g, t, q.owner) && g.settings?.doubleRent !== false
         ? 2
-        : 1)
-  );
+        : 1);
+  if (
+    g.blackoutDistrict != null &&
+    g.blackoutDistrict === t.group
+  ) {
+    return Math.floor(calculatedRent * 0.5);
+  }
+  return calculatedRent;
 }
 export function start(g, id) {
   assert(g.status === "lobby" && g.host === id, "Only the host can start.");
@@ -216,6 +242,11 @@ export function start(g, id) {
   );
 }
 function jail(g, p) {
+  if (p.activeEffects?.bailout) {
+    delete p.activeEffects.bailout;
+    log(g, `${p.name} used a Bailout card to stay out of County Jail!`, "good");
+    return;
+  }
   p.pos = board(g).findIndex((t) => t.type === "jail");
   g.extraRoll = false;
   g.doubleCount = 0;
@@ -236,6 +267,7 @@ function charge(g, p, amount, owner = null) {
   }
 }
 export function land(g, rng = secureRandom) {
+  updateHeat(g);
   const BOARD = board(g);
   const p = active(g),
     t = BOARD[p.pos];
@@ -245,17 +277,40 @@ export function land(g, rng = secureRandom) {
     if (!q) {
       phase(g, "buy");
     } else if (!allied(g, q.owner, p.id) && rent(g, t) > 0) {
-      const amount = rent(g, t);
+      let amount = rent(g, t);
+      if (p.activeEffects?.scanner) {
+        amount = Math.floor(amount / 2);
+        delete p.activeEffects.scanner;
+        log(
+          g,
+          `${p.name} used Police Scanner to halve the rent to $${amount}!`,
+          "good",
+        );
+      }
       g.pending = { amount, owner: q.owner, tile: t.id };
       phase(g, "rent");
     } else phase(g, "end");
   } else if (t.type === "card") {
-    g.pending = { card: structuredClone(CARDS[rng(CARDS.length)]) };
-    phase(g, "card");
+    if (!handleStreetLuck(g, p, rng)) {
+      g.pending = { card: structuredClone(CARDS[rng(CARDS.length)]) };
+      phase(g, "card");
+    }
   } else if (t.type === "roulette") phase(g, "roulette");
   else if (t.type === "stoppa") phase(g, "stoppa");
-  else if (t.type === "tax") charge(g, p, 100);
-  else if (t.type === "raid") {
+  else if (t.type === "tax") {
+    let taxAmount =
+      g.round >= 15 ? Math.round(100 * (1 + g.heatLevel * 0.2)) : 100;
+    if (p.activeEffects?.scanner) {
+      taxAmount = Math.floor(taxAmount / 2);
+      delete p.activeEffects.scanner;
+      log(
+        g,
+        `${p.name} used Police Scanner to halve the tax to $${taxAmount}!`,
+        "good",
+      );
+    }
+    charge(g, p, taxAmount);
+  } else if (t.type === "raid") {
     jail(g, p);
     phase(g, "end");
   } else if (t.type === "parking") {
@@ -274,7 +329,10 @@ function cardEffect(g, c) {
   if (c.escape) p.escapes++;
   if (c.home) {
     p.pos = 0;
-    p.cash += 200;
+    updateHeat(g);
+    const bonus =
+      g.round >= 15 ? Math.max(100, 200 - g.heatLevel * 25) : 200;
+    p.cash += bonus;
   }
   phase(g, "end");
   if (c.amount > 0) p.cash += c.amount;
@@ -383,7 +441,17 @@ export function next(g) {
   g.duel = null;
   do {
     g.turn = (g.turn + 1) % g.players.length;
-    if (g.turn === 0) g.round++;
+    if (g.turn === 0) {
+      g.round++;
+      updateHeat(g);
+    }
+    if (
+      g.blackoutExpiresOnPlayer &&
+      g.players[g.turn].id === g.blackoutExpiresOnPlayer
+    ) {
+      g.blackoutDistrict = null;
+      g.blackoutExpiresOnPlayer = null;
+    }
   } while (g.players[g.turn].out);
   if (victory(g)) return;
   prepareTurn(g);
@@ -396,13 +464,22 @@ function settleDuel(g, winner) {
   const p = g.players.find((p) => p.id === d.attacker),
     owner = g.players.find((p) => p.id === d.defender);
   if (d.winner === d.attacker) {
+    let bountyMsg = "";
+    if ((d.highStakes || d.debt >= 500) && owner) {
+      const bounty = Math.min(200, Math.max(0, owner.cash));
+      owner.cash -= bounty;
+      p.cash += bounty;
+      d.bounty = bounty;
+      bountyMsg = ` and looted a $${bounty} Street Bounty`;
+    }
     log(
       g,
-      `${p.name} wins the shootout. The $${d.debt} rent is wiped.`,
+      `${p.name} wins the shootout. The $${d.debt} rent is wiped${bountyMsg}.`,
       "good",
     );
     g.pending = null;
   } else eliminate(g, p, owner);
+  settleDuelBets(g, winner);
   if (g.status !== "finished") phase(g, "duel-result");
 }
 export function tickDuel(g, now = Date.now()) {
@@ -457,6 +534,7 @@ export function action(g, id, a, rng = secureRandom, options = {}) {
           ["end", "duel-result"].includes(g.phase))),
     "You are not an active player.",
   );
+  updateHeat(g);
   if (
     g.phase === "duel" &&
     g.duel?.mode === "fps" &&
@@ -532,19 +610,30 @@ export function action(g, id, a, rng = secureRandom, options = {}) {
       phase(g, "end");
       return;
     }
+    let steps = g.dice[0] + g.dice[1];
+    if (p.activeEffects?.getaway) {
+      const chosen = Number.isInteger(p.activeEffects.getaway)
+        ? p.activeEffects.getaway
+        : (Number.isInteger(a.spaces) ? a.spaces : Number.isInteger(a.steps) ? a.steps : 6);
+      steps = Math.max(1, Math.min(6, chosen));
+      delete p.activeEffects.getaway;
+    }
     const old = p.pos;
-    p.pos = (p.pos + g.dice[0] + g.dice[1]) % BOARD.length;
+    p.pos = (p.pos + steps) % BOARD.length;
     if (p.pos < old) {
-      p.cash += 200;
-      log(g, `${p.name} passed Home Base. +$200.`, "good");
+      updateHeat(g);
+      const bonus =
+        g.round >= 15 ? Math.max(100, 200 - g.heatLevel * 25) : 200;
+      p.cash += bonus;
+      log(g, `${p.name} passed Home Base. +$${bonus}.`, "good");
     }
     g.lastMove = {
       id: randomUUID(),
       player: p.id,
       from: old,
-      steps: g.dice[0] + g.dice[1],
+      steps,
     };
-    log(g, `${p.name} rolled ${g.dice[0] + g.dice[1]} → ${BOARD[p.pos].name}.`);
+    log(g, `${p.name} rolled ${steps} → ${BOARD[p.pos].name}.`);
     land(g, rng);
   } else if (a.type === "buy") {
     assert(g.phase === "buy", "Nothing to buy.");
@@ -588,18 +677,43 @@ export function action(g, id, a, rng = secureRandom, options = {}) {
     );
     const owner = g.players.find((x) => x.id === g.pending.owner);
     assert(owner && !owner.out, "This landlord is no longer active.");
+    const landlordHasHotels = Object.values(g.props).some(
+      (q) =>
+        q.owner === owner.id &&
+        (q.level >= 5 || (g.schemaVersion === 1 && q.level >= 3)),
+    );
+    const highStakes = g.pending.amount >= 500 || landlordHasHotels;
     g.duel = {
-      ...createFPS([id, owner.id], true),
+      ...createFPS([id, owner.id], true, { highStakes, defender: owner.id }),
       attacker: id,
       defender: owner.id,
       debt: g.pending.amount,
+      ...(highStakes ? { highStakes: true } : {}),
       scores: { [id]: 0, [owner.id]: 0 },
       choices: {},
       history: [],
       winner: null,
+      mapTheme: g.mapTheme || g.settings?.map || "trenches",
     };
+    if (highStakes) {
+      g.duel.fighters[owner.id].hp = 115;
+    }
+    if (p.activeEffects?.switchblade) {
+      g.duel.fighters[id].kickBonus = 15;
+      delete p.activeEffects.switchblade;
+    }
+    if (owner.activeEffects?.switchblade) {
+      g.duel.fighters[owner.id].kickBonus = 15;
+      delete owner.activeEffects.switchblade;
+    }
     phase(g, "duel");
-    log(g, `${p.name} challenged ${owner.name} to a shootout!`, "bad");
+    log(
+      g,
+      highStakes
+        ? `${p.name} challenged ${owner.name} to a HIGH-STAKES shootout ($${g.pending.amount} rent, $200 bounty)!`
+        : `${p.name} challenged ${owner.name} to a shootout!`,
+      "bad",
+    );
   } else if (a.type === "surrender") {
     assert(
       g.phase === "rent" && g.pending && p.cash < g.pending.amount,

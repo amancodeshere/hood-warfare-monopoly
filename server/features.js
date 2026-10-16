@@ -8,7 +8,9 @@ import {
   eliminate,
   finishAuction,
   land,
+  allied,
 } from "./game.js";
+import { tacticalAction } from "./tacticals.js";
 const movable = (g) => ["roll", "end", "rent", "buy"].includes(g.phase);
 function available(g, tile, id) {
   const q = g.props[tile],
@@ -57,7 +59,8 @@ function checkTrade(g, tr) {
     }
   }
 }
-export function extendedAction(g, id, a, rng) {
+export function extendedAction(g, id, a, rng, options) {
+  if (tacticalAction(g, id, a, rng, options)) return true;
   const p = g.players.find((x) => x.id === id);
   if (a.type === "auction-bid" || a.type === "auction-pass") {
     assert(g.phase === "auction" && g.auction, "No auction is open.");
@@ -298,6 +301,45 @@ export function extendedAction(g, id, a, rng) {
       log(g, `${from.name} and ${p.name} made a block deal.`, "good");
     } else log(g, `${p.name} declined the trade offer.`);
     g.trade = null;
+    return true;
+  }
+  if (a.type === "grid-lockdown") {
+    assert(
+      !["duel", "duel-result", "auction", "stoppa-result"].includes(g.phase),
+      "Finish the current showdown or auction first.",
+    );
+    const utilities = board(g).filter((x) => x.type === "utility");
+    assert(
+      utilities.length >= 2 &&
+        utilities.every(
+          (u) => g.props[u.id]?.owner === id && !g.props[u.id].mortgaged,
+        ),
+      "You must own both unmortgaged utilities to activate grid lockdown.",
+    );
+    assert(
+      g.lockdownUsedRound !== g.round,
+      "Grid lockdown can only be activated once per round.",
+    );
+    assert(p.cash >= 100, "Grid lockdown requires $100 maintenance cost.");
+    assert(
+      Number.isInteger(a.district) && a.district >= 0 && a.district <= 7,
+      "Choose a valid district (0-7).",
+    );
+    const districtTiles = board(g).filter((x) => x.group === a.district);
+    assert(districtTiles.length > 0, "Invalid district.");
+    const ownedByTeam = districtTiles.every(
+      (x) => g.props[x.id] && allied(g, g.props[x.id].owner, id),
+    );
+    assert(!ownedByTeam, "Targeted district cannot be owned by your team.");
+    p.cash -= 100;
+    g.lockdownUsedRound = g.round;
+    g.blackoutDistrict = a.district;
+    g.blackoutExpiresOnPlayer = id;
+    log(
+      g,
+      `${p.name} activated City Grid Lockdown on District ${a.district}. Rent halved!`,
+      "good",
+    );
     return true;
   }
   return false;
