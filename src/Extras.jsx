@@ -20,6 +20,12 @@ import { Modal } from "./Modal.jsx";
 import { DEFAULT_SETTINGS, RULE_OPTIONS } from "../shared/settings.js";
 import { BOARD, MAPS, money, CREWS } from "../shared/board.js";
 import { COSMETICS } from "../shared/cosmetics.js";
+import { play } from "./audio.js";
+import {
+  SpectatorReactionPills,
+  FloatingReactions,
+  useSpectatorReactions,
+} from "./SpectatorReactions.jsx";
 const Btn = ({ secondary = false, children, ...props }) => (
   <button className={`button ${secondary ? "secondary" : ""}`} {...props}>
     {children}
@@ -779,7 +785,10 @@ export function Auction({ game, act, disabled, now }) {
     [amount, setAmount] = useState(a.highBid + 10);
   const mine =
     me && !me.out && !a.passed.includes(me.id) && a.highBidder !== me.id;
-  useEffect(() => setAmount(a.highBid + 10), [a.highBid]);
+  useEffect(() => {
+    setAmount(a.highBid + 10);
+    if (a.highBid > 0) play("cash");
+  }, [a.highBid]);
   return (
     <Modal title={`Who’s buying ${t.name}?`}>
       <div className="event-header">
@@ -856,20 +865,28 @@ export function Auction({ game, act, disabled, now }) {
     </Modal>
   );
 }
-export function Stoppa({ game, act, disabled }) {
+export function Stoppa({ game, act, disabled, socket }) {
   const result = game.phase === "stoppa-result",
     p = game.players[game.turn],
     mine = p.id === game.me,
     [settled, setSettled] = useState(false);
+  const effectiveSocket =
+    socket || (typeof window !== "undefined" ? window.__stb_socket : null);
+  const { reactions, sendReaction } = useSpectatorReactions(effectiveSocket);
   useEffect(() => {
     setSettled(false);
     if (!result) return;
-    const id = setTimeout(() => setSettled(true), 1800);
+    play("dice");
+    const id = setTimeout(() => {
+      setSettled(true);
+      play("cash");
+    }, 1800);
     return () => clearTimeout(id);
   }, [result]);
   const percent = game.pending?.percent || 1;
   return (
     <Modal title="Oppa Stoppa caught you lackin.">
+      <FloatingReactions reactions={reactions} />
       <div className="event-header">
         <Shield size={32} />
         <p>
@@ -915,14 +932,25 @@ export function Stoppa({ game, act, disabled }) {
       {mine ? (
         <Btn
           disabled={disabled || (result && !settled)}
-          onClick={() =>
-            act({ type: result ? "stoppa-collect" : "stoppa-spin" })
-          }
+          onClick={() => {
+            if (!result) play("dice");
+            act({ type: result ? "stoppa-collect" : "stoppa-spin" });
+          }}
         >
           {result ? "Pay the Stoppa" : "Spin the Stoppa"} <Shield size={18} />
         </Btn>
       ) : (
-        <p className="micro-note">You’re watching {p.name}’s spin.</p>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "8px",
+          }}
+        >
+          <p className="micro-note">You’re watching {p.name}’s spin.</p>
+          <SpectatorReactionPills onReact={sendReaction} disabled={disabled} />
+        </div>
       )}
     </Modal>
   );

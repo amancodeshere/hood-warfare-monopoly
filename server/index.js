@@ -379,7 +379,8 @@ io.on("connection", (socket) => {
   let fpsCount = 0,
     count = 0,
     window = Date.now(),
-    chatAt = [];
+    chatAt = [],
+    reactionAt = [];
   function handle(event, fn) {
     socket.on(event, async (payload = {}, ack = () => {}) => {
       if (Date.now() - window > 10000) {
@@ -731,6 +732,28 @@ io.on("connection", (socket) => {
     });
     save();
     return {};
+  });
+  handle("reaction", (d) => {
+    const g = session(socket, true);
+    const emoji = String(d?.emoji || "");
+    const ALLOWED = ["🔥", "💀", "🎯", "💰", "👑"];
+    assert(ALLOWED.includes(emoji), "Invalid reaction emoji.");
+    const now = Date.now();
+    reactionAt = reactionAt.filter((t) => now - t < 5000);
+    assert(reactionAt.length < 8, "Slow down on reactions.");
+    reactionAt.push(now);
+    const payload = {
+      id: randomBytes(8).toString("hex"),
+      emoji,
+      from: socket.data.player,
+      time: now,
+    };
+    for (const s of io.sockets.sockets.values()) {
+      if (s.data.code === g.code) {
+        s.emit("reaction", payload);
+      }
+    }
+    return { ok: true };
   });
   handle("action", (d) => {
     const g = session(socket);

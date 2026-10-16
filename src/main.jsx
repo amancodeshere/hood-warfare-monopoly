@@ -52,6 +52,13 @@ import {
   coordinates,
 } from "../shared/board.js";
 import { DISTRICTS as LEGACY_DISTRICTS } from "../shared/legacy-board.js";
+import {
+  getTimerState,
+  holdsBothUtilities,
+  getGridLockdownDisabled,
+  getEnemyDistricts,
+  getCityHeatBadge,
+} from "../shared/hud.js";
 import { Modal } from "./Modal.jsx";
 import { CashDeltaBadge } from "./CashDelta.jsx";
 import {
@@ -77,7 +84,16 @@ import "@fontsource/barlow-condensed/latin-600.css";
 import "@fontsource/barlow-condensed/latin-700.css";
 import "@fontsource/barlow-condensed/latin-800.css";
 import "./style.css";
+import { play, setAudioMuted } from "./audio.js";
+import {
+  SpectatorReactionPills,
+  FloatingReactions,
+  useSpectatorReactions,
+} from "./SpectatorReactions.jsx";
 const socket = io({ autoConnect: false });
+if (typeof window !== "undefined") {
+  window.__stb_socket = socket;
+}
 const icons = {
   crown: Crown,
   diamond: Diamond,
@@ -412,14 +428,478 @@ function Board({ game, selected, setSelected, rolling, highlight }) {
     </div>
   );
 }
-function Roulette({ game, act, disabled }) {
+function DeedCardPopover({
+  t,
+  game,
+  me,
+  districts,
+  BOARD,
+  onClose,
+  act,
+  mine,
+  disabled,
+  propertyFocus,
+}) {
+  const q = game?.props[t.id];
+  const owner = game?.players?.find((p) => p.id === q?.owner);
+  const residents =
+    game?.players?.filter((p) => !p.out && p.pos === t.id) || [];
+  const manage = mine && ["roll", "end", "rent", "buy"].includes(game?.phase);
+  const full =
+    t.group !== undefined &&
+    BOARD.filter((x) => x.group === t.group).every(
+      (x) =>
+        (game?.props[x.id]?.owner === me?.id ||
+          (game?.settings?.teams &&
+            me?.team != null &&
+            game?.players?.find((p) => p.id === game?.props[x.id]?.owner)
+              ?.team === me?.team)) &&
+        !game?.props[x.id]?.mortgaged,
+    );
+
+  useEffect(() => {
+    const previous = document.activeElement;
+    propertyFocus.current?.focus({ preventScroll: true });
+
+    function handleKeyDown(e) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+        return;
+      }
+      if (e.key === "Tab") {
+        const items = propertyFocus.current?.querySelectorAll(
+          'button:not(:disabled), [tabindex="0"]',
+        );
+        if (!items?.length) return;
+        const first = items[0];
+        const last = items[items.length - 1];
+        if (
+          e.shiftKey &&
+          (document.activeElement === first ||
+            document.activeElement === propertyFocus.current)
+        ) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      previous?.focus();
+    };
+  }, [onClose, propertyFocus]);
+
+  const districtColor =
+    t.group !== undefined
+      ? districts[t.group]?.color
+      : t.type === "transit"
+        ? "#486253"
+        : t.type === "utility"
+          ? "#5f5c40"
+          : "#2f3d33";
+
+  const isProp = t.type === "property";
+  const isTransit = t.type === "transit";
+  const isUtil = t.type === "utility";
+  const isPurchasable = Boolean(t.price);
+
+  return (
+    <div
+      className="deed-popover-backdrop"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <section
+        className="property-detail deed-card-popover"
+        ref={propertyFocus}
+        tabIndex={-1}
+        role="region"
+        aria-label={t.name}
+        aria-modal="true"
+        aria-labelledby="property-heading"
+        style={{ "--district": districtColor }}
+      >
+        <div className="deed-drawer-handle" />
+
+        <div className="deed-banner" style={{ background: districtColor }}>
+          <div className="deed-banner-content property-title">
+            <span className="deed-banner-tag">
+              {t.group !== undefined
+                ? `TITLE DEED · ${districts[t.group]?.name.toUpperCase()}`
+                : isTransit
+                  ? "TITLE DEED · CITY TRANSIT"
+                  : isUtil
+                    ? "TITLE DEED · UTILITY PLUG"
+                    : "STREET SQUARE"}
+            </span>
+            <h3 id="property-heading" className="deed-street-title">
+              {t.name}
+            </h3>
+          </div>
+          <button
+            className="icon-button deed-close-btn"
+            onClick={onClose}
+            aria-label="Close property details"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="deed-body">
+          {owner ? (
+            <div
+              className="property-owner-summary deed-owner-card"
+              style={{ "--crew": CREWS[owner.crew].color }}
+            >
+              <div className="owner-avatar">
+                <HoodFigure
+                  color={CREWS[owner.crew].color}
+                  variant={owner.crew}
+                />
+              </div>
+              <div className="owner-meta">
+                <div className="owner-title-row">
+                  <span
+                    className="owner-badge-tag"
+                    style={{ background: CREWS[owner.crew].color }}
+                  >
+                    {CREWS[owner.crew].name}
+                  </span>
+                  <strong>
+                    {owner.id === me?.id
+                      ? "Your block"
+                      : `Owned by ${owner.name}`}
+                  </strong>
+                </div>
+                <span className="owner-status">
+                  {q.mortgaged
+                    ? "MORTGAGED · Rent paused"
+                    : q.level === 5
+                      ? "Hotel built"
+                      : q.level
+                        ? `${q.level} house${q.level > 1 ? "s" : ""} built`
+                        : "Street level · No buildings"}
+                </span>
+              </div>
+              {q.level > 0 && <StreetBuilding hotel={q.level === 5} />}
+            </div>
+          ) : isPurchasable ? (
+            <div className="deed-unowned-badge">
+              <span className="unclaimed-dot" />
+              <span>
+                Unclaimed block · Available for <b>{money(t.price)}</b>
+              </span>
+            </div>
+          ) : null}
+
+          <div className="deed-description">
+            <p>
+              {t.group !== undefined
+                ? districts[t.group]?.name
+                : t.type === "transit"
+                  ? "City transit station. Collects scaled fare based on lines held."
+                  : t.type === "stoppa"
+                    ? "Spin away 1–10% of cash into the Community Plot."
+                    : t.type === "utility"
+                      ? "Rent is 4× dice, or 15× when your side owns both plugs."
+                      : t.type === "roulette"
+                        ? "Six outcomes. One free spin."
+                        : t.type === "card"
+                          ? "A surprise from the streets."
+                          : t.type === "start"
+                            ? "Collect $200 each time you pass."
+                            : t.type === "jail"
+                              ? "Two turns, $100 bail, or an escape card."
+                              : t.type === "raid"
+                                ? "Go straight to County Jail."
+                                : t.type === "parking"
+                                  ? game?.settings?.communityCash === false
+                                    ? "Community payouts are off in this room."
+                                    : "Land here to collect the community pot."
+                                  : "Pay $100 into the community pot."}
+            </p>
+          </div>
+
+          {t.type === "parking" && (
+            <div className="detail-stat">
+              <span>Community Plot balance</span>
+              <b>{money(game?.pot || 0)}</b>
+            </div>
+          )}
+
+          {isProp && (
+            <div className="deed-rent-ladder">
+              <div className="deed-ladder-header">
+                <span>RENT SCHEDULE</span>
+                <span className="deed-base-rent">
+                  Base Rent: <b>{money(t.rent)}</b>
+                </span>
+              </div>
+              <div className="deed-ladder-rows">
+                <div
+                  className={`deed-ladder-row ${q && !q.level && !q.mortgaged ? "current-tier" : ""}`}
+                >
+                  <span className="tier-label">Base Rent (Street)</span>
+                  <span className="tier-dots" />
+                  <span className="tier-val">{money(t.rent)}</span>
+                </div>
+                <div className="deed-ladder-row muted">
+                  <span className="tier-label">With Full District</span>
+                  <span className="tier-dots" />
+                  <span className="tier-val">{money(t.rent * 2)}</span>
+                </div>
+                <div
+                  className={`deed-ladder-row ${q?.level === 1 ? "current-tier" : ""}`}
+                >
+                  <span className="tier-label">
+                    <span className="house-pip">🏠</span> With 1 House
+                  </span>
+                  <span className="tier-dots" />
+                  <span className="tier-val">{money(t.rent * 3)}</span>
+                </div>
+                <div
+                  className={`deed-ladder-row ${q?.level === 2 ? "current-tier" : ""}`}
+                >
+                  <span className="tier-label">
+                    <span className="house-pip">🏠🏠</span> With 2 Houses
+                  </span>
+                  <span className="tier-dots" />
+                  <span className="tier-val">{money(t.rent * 6)}</span>
+                </div>
+                <div
+                  className={`deed-ladder-row ${q?.level === 3 ? "current-tier" : ""}`}
+                >
+                  <span className="tier-label">
+                    <span className="house-pip">🏠🏠🏠</span> With 3 Houses
+                  </span>
+                  <span className="tier-dots" />
+                  <span className="tier-val">{money(t.rent * 10)}</span>
+                </div>
+                <div
+                  className={`deed-ladder-row ${q?.level === 4 ? "current-tier" : ""}`}
+                >
+                  <span className="tier-label">
+                    <span className="house-pip">🏠🏠🏠🏠</span> With 4 Houses
+                  </span>
+                  <span className="tier-dots" />
+                  <span className="tier-val">{money(t.rent * 16)}</span>
+                </div>
+                <div
+                  className={`deed-ladder-row hotel ${q?.level === 5 ? "current-tier" : ""}`}
+                >
+                  <span className="tier-label">
+                    <span className="hotel-pip">🏨</span> With Hotel
+                  </span>
+                  <span className="tier-dots" />
+                  <span className="tier-val">{money(t.rent * 25)}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {isTransit && (
+            <div className="deed-rent-ladder">
+              <div className="deed-ladder-header">
+                <span>TRANSIT FARE LADDER</span>
+                <span className="deed-base-rent">
+                  Base: <b>{money(t.rent || 25)}</b>
+                </span>
+              </div>
+              <div className="deed-ladder-rows">
+                <div className="deed-ladder-row">
+                  <span className="tier-label">If 1 Station owned</span>
+                  <span className="tier-dots" />
+                  <span className="tier-val">{money(25)}</span>
+                </div>
+                <div className="deed-ladder-row">
+                  <span className="tier-label">If 2 Stations owned</span>
+                  <span className="tier-dots" />
+                  <span className="tier-val">{money(50)}</span>
+                </div>
+                <div className="deed-ladder-row">
+                  <span className="tier-label">If 3 Stations owned</span>
+                  <span className="tier-dots" />
+                  <span className="tier-val">{money(100)}</span>
+                </div>
+                <div className="deed-ladder-row">
+                  <span className="tier-label">If 4 Stations owned</span>
+                  <span className="tier-dots" />
+                  <span className="tier-val">{money(200)}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {isUtil && (
+            <div className="deed-rent-ladder">
+              <div className="deed-ladder-header">
+                <span>UTILITY RATES</span>
+              </div>
+              <div className="deed-ladder-rows">
+                <div className="deed-ladder-row">
+                  <span className="tier-label">If 1 Plug owned</span>
+                  <span className="tier-dots" />
+                  <span className="tier-val">4× Dice Total</span>
+                </div>
+                <div className="deed-ladder-row">
+                  <span className="tier-label">If both Plugs owned</span>
+                  <span className="tier-dots" />
+                  <span className="tier-val">15× Dice Total</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {isPurchasable && (
+            <div className="deed-financials">
+              <div className="deed-finance-grid">
+                {t.build ? (
+                  <div className="deed-finance-item">
+                    <span className="label">Build Cost</span>
+                    <b className="val">{money(t.build)}</b>
+                    <span className="sub">per house/hotel</span>
+                  </div>
+                ) : (
+                  <div className="deed-finance-item">
+                    <span className="label">Buy Price</span>
+                    <b className="val">{money(t.price)}</b>
+                    <span className="sub">deed purchase</span>
+                  </div>
+                )}
+                <div className="deed-finance-item">
+                  <span className="label">Mortgage</span>
+                  <b className="val">{money(t.price / 2)}</b>
+                  <span className="sub">50% cash payout</span>
+                </div>
+                <div className="deed-finance-item">
+                  <span className="label">Redeem</span>
+                  <b className="val">
+                    {money(Math.ceil((t.price * 55) / 100))}
+                  </b>
+                  <span className="sub">55% to unfreeze</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="deed-residents-section">
+            <div className="deed-residents-header">
+              <Users size={14} />
+              <span>CREWS ON THIS BLOCK</span>
+              <span className="resident-count">{residents.length}</span>
+            </div>
+            {residents.length > 0 ? (
+              <div
+                className="property-residents deed-residents-list"
+                aria-label="Crews on this block"
+              >
+                {residents.map((p) => (
+                  <span
+                    key={p.id}
+                    className="resident-pill"
+                    style={{ "--crew": CREWS[p.crew].color }}
+                  >
+                    <HoodFigure
+                      color={CREWS[p.crew].color}
+                      variant={p.crew}
+                    />
+                    <b>{p.id === me?.id ? "You" : p.name}</b>
+                    <small>{CREWS[p.crew].name}</small>
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="deed-no-residents">No crews on this block</p>
+            )}
+          </div>
+
+          {owner?.id === me?.id && (
+            <div className="property-actions">
+              {t.type === "property" && (
+                <Button
+                  secondary
+                  disabled={
+                    !manage ||
+                    !full ||
+                    q.level >= (game.schemaVersion === 1 ? 3 : 5) ||
+                    me.cash < t.build ||
+                    disabled
+                  }
+                  onClick={() => act({ type: "upgrade", tile: t.id })}
+                >
+                  <Plus size={15} /> Build {money(t.build)}
+                </Button>
+              )}
+              {q.level > 0 ? (
+                <Button
+                  secondary
+                  disabled={!manage || disabled}
+                  onClick={() => act({ type: "sell", tile: t.id })}
+                >
+                  Sell business {money(Math.floor(t.build / 2))}
+                </Button>
+              ) : (
+                <Button
+                  secondary
+                  disabled={
+                    !manage ||
+                    disabled ||
+                    (!q.mortgaged && !game.settings.mortgage) ||
+                    (q.mortgaged && me.cash < Math.ceil((t.price * 55) / 100))
+                  }
+                  onClick={() =>
+                    act({
+                      type: q.mortgaged ? "redeem" : "mortgage",
+                      tile: t.id,
+                    })
+                  }
+                >
+                  {q.mortgaged
+                    ? "Redeem " + money(Math.ceil((t.price * 55) / 100))
+                    : "Mortgage +" + money(t.price / 2)}
+                </Button>
+              )}
+              {!manage && (
+                <p className="micro-note">
+                  Manage turf on your turn after resolving special events.
+                </p>
+              )}
+              {t.type === "property" && !full && (
+                <p className="micro-note">
+                  Own the full district without mortgages to build.
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      </section>
+    </div>
+  );
+}
+function Roulette({ game, act, disabled, socket }) {
   const result = game.phase === "roulette-result",
     index = game.pending?.roulette || 0;
   const [ready, setReady] = useState(false);
+  const effectiveSocket =
+    socket || (typeof window !== "undefined" ? window.__stb_socket : null);
+  const { reactions, sendReaction } = useSpectatorReactions(effectiveSocket);
   useEffect(() => {
     setReady(false);
-    const t = setTimeout(() => setReady(true), result ? 2600 : 0);
-    return () => clearTimeout(t);
+    if (result) {
+      play("dice");
+      const t = setTimeout(() => {
+        setReady(true);
+        play("cash");
+      }, 2600);
+      return () => clearTimeout(t);
+    }
   }, [result, index]);
   const total = ROULETTE.reduce((s, x) => s + x.weight, 0);
   let cursor = 0;
@@ -432,8 +912,10 @@ function Roulette({ game, act, disabled }) {
   const angle =
     360 * 5 + 360 - ((before + ROULETTE[index].weight / 2) / total) * 360;
   const c = game.pending?.card;
+  const isSpinner = game.me === game.players[game.turn].id;
   return (
     <Modal title="The street wheel">
+      <FloatingReactions reactions={reactions} />
       <div className="wheel-wrap">
         <div className="wheel-pointer" />
         <div
@@ -472,10 +954,13 @@ function Roulette({ game, act, disabled }) {
             : "One spin. Six outcomes. Let the streets decide."}
         </p>
       </div>
-      {game.me === game.players[game.turn].id ? (
+      {isSpinner ? (
         <Button
           disabled={disabled || (result && !ready)}
-          onClick={() => act({ type: result ? "collect" : "spin" })}
+          onClick={() => {
+            if (!result) play("dice");
+            act({ type: result ? "collect" : "spin" });
+          }}
         >
           {result
             ? ready
@@ -485,7 +970,17 @@ function Roulette({ game, act, disabled }) {
           <CircleDollarSign size={18} />
         </Button>
       ) : (
-        <p className="waiting">Watching {game.players[game.turn].name} spin.</p>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "8px",
+          }}
+        >
+          <p className="waiting">Watching {game.players[game.turn].name} spin.</p>
+          <SpectatorReactionPills onReact={sendReaction} disabled={disabled} />
+        </div>
       )}
       <p className="micro-note">
         Odds shown by segment size · In-game cash only
@@ -493,9 +988,12 @@ function Roulette({ game, act, disabled }) {
     </Modal>
   );
 }
-function Duel({ game, act, disabled }) {
+function Duel({ game, act, disabled, socket }) {
+  const effectiveSocket =
+    socket || (typeof window !== "undefined" ? window.__stb_socket : null);
+  const { reactions, sendReaction } = useSpectatorReactions(effectiveSocket);
   if (game.duel.mode === "fps")
-    return <FPSDuel game={game} act={act} disabled={disabled} />;
+    return <FPSDuel game={game} act={act} disabled={disabled} socket={socket} />;
   const d = game.duel,
     a = game.players.find((p) => p.id === d.attacker),
     b = game.players.find((p) => p.id === d.defender),
@@ -505,6 +1003,7 @@ function Duel({ game, act, disabled }) {
     last = d.history.at(-1);
   return (
     <Modal title={result ? "The score is settled." : "Rent due. Guns up."} wide>
+      <FloatingReactions reactions={reactions} />
       <div className="duel-tag">
         <Crosshair size={14} /> {money(d.debt)} ON THE LINE
       </div>
@@ -606,6 +1105,11 @@ function Duel({ game, act, disabled }) {
                 ? "Choose secretly. Both tactics reveal together."
                 : "Watching the crews settle their score."}
           </p>
+          {!playing && (
+            <div style={{ marginTop: "10px", display: "flex", justifyContent: "center" }}>
+              <SpectatorReactionPills onReact={sendReaction} disabled={disabled} />
+            </div>
+          )}
           <p className="micro-note">
             5-round cap · Tied final scores use a coin toss · Win wipes rent;
             lose forfeits your crew
@@ -649,7 +1153,15 @@ function App() {
     [playerOpen, setPlayerOpen] = useState(null),
     [confirmForfeit, setConfirmForfeit] = useState(false),
     [highlight, setHighlight] = useState(null),
-    [mapOverview, setMapOverview] = useState(false);
+    [mapOverview, setMapOverview] = useState(false),
+    [showLockdownPicker, setShowLockdownPicker] = useState(false);
+  const { reactions } = useSpectatorReactions(socket);
+  useEffect(() => {
+    setAudioMuted(muted);
+  }, [muted]);
+  useEffect(() => {
+    setShowLockdownPicker(false);
+  }, [game?.turn, game?.round]);
   useEffect(() => {
     if (
       game?.status === "playing" &&
@@ -674,13 +1186,11 @@ function App() {
   const propertyFocus = useRef(null),
     chatFocus = useRef(null);
   useEffect(() => {
-    if (selected !== null && window.innerWidth <= 720) {
+    if (selected !== null) {
       propertyFocus.current?.focus({ preventScroll: true });
-      propertyFocus.current?.scrollIntoView({ block: "center" });
     }
   }, [selected]);
   const gameRef = useRef(null),
-    audioRef = useRef(null),
     mutedRef = useRef(muted);
   mutedRef.current = muted;
   const notify = (text) => {
@@ -723,24 +1233,30 @@ function App() {
       const old = gameRef.current;
       if (old && JSON.stringify(old.dice) !== JSON.stringify(g.dice)) {
         setRolling(true);
-        setTimeout(() => setRolling(false), 650);
+        if (!mutedRef.current) play("dice");
+        setTimeout(() => {
+          setRolling(false);
+          if (!mutedRef.current) play("land");
+        }, 650);
+      } else if (
+        !mutedRef.current &&
+        old &&
+        g.players.some((p) => {
+          const op = old.players.find((x) => x.id === p.id);
+          return op && op.pos !== p.pos;
+        })
+      ) {
+        play("land");
       }
-      if (!mutedRef.current && old && g.log[0]?.id !== old.log[0]?.id) {
-        try {
-          const ctx =
-            audioRef.current || (audioRef.current = new window.AudioContext());
-          const o = ctx.createOscillator(),
-            gain = ctx.createGain();
-          o.connect(gain);
-          gain.connect(ctx.destination);
-          o.frequency.value = g.players[g.turn]?.id === g.me ? 520 : 280;
-          gain.gain.setValueAtTime(0.025, ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
-          o.start();
-          o.stop(ctx.currentTime + 0.12);
-        } catch {
-          /* Audio is optional. */
-        }
+      if (
+        !mutedRef.current &&
+        old &&
+        g.players.some((p) => {
+          const op = old.players.find((x) => x.id === p.id);
+          return op && op.cash !== p.cash;
+        })
+      ) {
+        play("cash");
       }
       gameRef.current = g;
       setGame(g);
@@ -897,213 +1413,6 @@ function App() {
     owned = game ? BOARD.filter((t) => game.props[t.id]?.owner === me?.id) : [],
     winner = game?.players.find((p) => p.id === game.winner),
     time = game ? Math.max(0, Math.ceil((game.deadline - now) / 1000)) : 0;
-  function propertyPanel(t) {
-    const q = game?.props[t.id],
-      owner = game?.players.find((p) => p.id === q?.owner),
-      manage = mine && ["roll", "end", "rent", "buy"].includes(game.phase);
-    const full =
-      t.group !== undefined &&
-      BOARD.filter((x) => x.group === t.group).every(
-        (x) =>
-          (game?.props[x.id]?.owner === me?.id ||
-            (game?.settings.teams &&
-              me?.team != null &&
-              game.players.find((p) => p.id === game.props[x.id]?.owner)
-                ?.team === me.team)) &&
-          !game.props[x.id]?.mortgaged,
-      );
-    return (
-      <section
-        className="property-detail"
-        ref={propertyFocus}
-        tabIndex={-1}
-        role="region"
-        aria-labelledby="property-heading"
-        style={{
-          "--district":
-            t.group !== undefined ? districts[t.group].color : "#92a392",
-        }}
-      >
-        <div className="property-title">
-          <h3 id="property-heading">{t.name}</h3>
-          <button
-            className="icon-button"
-            onClick={() => setSelected(null)}
-            aria-label="Close property details"
-          >
-            <X size={17} />
-          </button>
-        </div>
-        {game?.players.some((p) => p.pos === t.id && !p.out) && (
-          <div className="property-residents" aria-label="Crews on this block">
-            {game.players
-              .filter((p) => p.pos === t.id && !p.out)
-              .map((p) => (
-                <span key={p.id}>
-                  <HoodFigure color={CREWS[p.crew].color} variant={p.crew} />
-                  <b>{p.id === me?.id ? "You" : p.name}</b>
-                </span>
-              ))}
-          </div>
-        )}
-        {owner && (
-          <div
-            className="property-owner-summary"
-            style={{ "--crew": CREWS[owner.crew].color }}
-          >
-            <HoodFigure color={CREWS[owner.crew].color} variant={owner.crew} />
-            <div>
-              <strong>
-                {owner.id === me?.id ? "Your block" : `Owned by ${owner.name}`}
-              </strong>
-              <span>
-                {CREWS[owner.crew].name}
-                {q.mortgaged
-                  ? " · MORTGAGED · no rent"
-                  : q.level === 5
-                    ? " · Hotel"
-                    : q.level
-                      ? ` · ${q.level} houses`
-                      : " · No buildings"}
-              </span>
-            </div>
-            {q.level > 0 && <StreetBuilding hotel={q.level === 5} />}
-          </div>
-        )}
-        <p>
-          {t.group !== undefined
-            ? districts[t.group].name
-            : t.type === "transit"
-              ? "City transit"
-              : t.type === "stoppa"
-                ? "Spin away 1–10% of cash into the Community Plot."
-                : t.type === "utility"
-                  ? "Rent is 4× dice, or 15× when your side owns both plugs."
-                  : t.type === "roulette"
-                    ? "Six outcomes. One free spin."
-                    : t.type === "card"
-                      ? "A surprise from the streets."
-                      : t.type === "start"
-                        ? "Collect $200 each time you pass."
-                        : t.type === "jail"
-                          ? "Two turns, $100 bail, or an escape card."
-                          : t.type === "raid"
-                            ? "Go straight to County Jail."
-                            : t.type === "parking"
-                              ? game?.settings.communityCash === false
-                                ? "Community payouts are off in this room."
-                                : "Land here to collect the community pot."
-                              : "Pay $100 into the community pot."}
-        </p>
-        {t.type === "parking" && (
-          <div className="detail-stat">
-            <span>Community Plot balance</span>
-            <b>{money(game?.pot || 0)}</b>
-          </div>
-        )}
-        {t.price && (
-          <>
-            <div className="detail-stat">
-              <span>Purchase</span>
-              <b>{money(t.price)}</b>
-            </div>
-            <div className="detail-stat">
-              <span>Base rent</span>
-              <b>
-                {t.type === "utility"
-                  ? "4× / 15× dice"
-                  : t.type === "transit"
-                    ? "$25 / $50 / $100 / $200"
-                    : money(t.rent)}
-              </b>
-            </div>
-            {t.build && (
-              <div className="detail-stat">
-                <span>Build a business</span>
-                <b>{money(t.build)}</b>
-              </div>
-            )}
-            <div className="detail-stat">
-              <span>Owner</span>
-              <b>{owner?.name || "Unclaimed"}</b>
-            </div>
-            {q && (
-              <div className="detail-stat">
-                <span>Status</span>
-                <b>
-                  {q.mortgaged
-                    ? "Mortgaged"
-                    : q.level
-                      ? q.level === 5
-                        ? "Hotel"
-                        : `${q.level} businesses`
-                      : "Street level"}
-                </b>
-              </div>
-            )}
-            {owner?.id === me?.id && (
-              <div className="property-actions">
-                {t.type === "property" && (
-                  <Button
-                    secondary
-                    disabled={
-                      !manage ||
-                      !full ||
-                      q.level >= (game.schemaVersion === 1 ? 3 : 5) ||
-                      me.cash < t.build ||
-                      disabled
-                    }
-                    onClick={() => act({ type: "upgrade", tile: t.id })}
-                  >
-                    <Plus size={15} /> Build {money(t.build)}
-                  </Button>
-                )}
-                {q.level > 0 ? (
-                  <Button
-                    secondary
-                    disabled={!manage || disabled}
-                    onClick={() => act({ type: "sell", tile: t.id })}
-                  >
-                    Sell business {money(Math.floor(t.build / 2))}
-                  </Button>
-                ) : (
-                  <Button
-                    secondary
-                    disabled={
-                      !manage ||
-                      disabled ||
-                      (!q.mortgaged && !game.settings.mortgage) ||
-                      (q.mortgaged && me.cash < Math.ceil((t.price * 55) / 100))
-                    }
-                    onClick={() =>
-                      act({
-                        type: q.mortgaged ? "redeem" : "mortgage",
-                        tile: t.id,
-                      })
-                    }
-                  >
-                    {q.mortgaged
-                      ? "Redeem " + money(Math.ceil((t.price * 55) / 100))
-                      : "Mortgage +" + money(t.price / 2)}
-                  </Button>
-                )}
-                {!manage && (
-                  <p className="micro-note">
-                    Manage turf on your turn after resolving special events.
-                  </p>
-                )}
-                {t.type === "property" && !full && (
-                  <p className="micro-note">
-                    Own the full district without mortgages to build.
-                  </p>
-                )}
-              </div>
-            )}
-          </>
-        )}
-      </section>
-    );
-  }
   function turnPanel() {
     if (!mine)
       return (
@@ -1144,7 +1453,11 @@ function App() {
               <Die value={game.dice[1]} />
             </div>
             <div className="action-panel-sticky">
-              <Button disabled={disabled} onClick={() => act({ type: "roll" })}>
+              <Button
+                className="cta-shimmer"
+                disabled={disabled}
+                onClick={() => act({ type: "roll" })}
+              >
                 Roll the dice <Dice5 size={20} />
               </Button>
             </div>
@@ -1188,10 +1501,11 @@ function App() {
             </div>
             <div className="action-panel-sticky">
               <Button
+                className="cta-shimmer"
                 disabled={disabled || me.cash < t.price}
                 onClick={() => act({ type: "buy" })}
               >
-                Claim this block <Plus size={18} />
+                Claim block <Plus size={18} />
               </Button>
               <Button
                 secondary
@@ -1288,7 +1602,11 @@ function App() {
               </span>
             </div>
             <div className="action-panel-sticky">
-              <Button disabled={disabled} onClick={() => act({ type: "card" })}>
+              <Button
+                className="cta-shimmer"
+                disabled={disabled}
+                onClick={() => act({ type: "card" })}
+              >
                 Play this card <ArrowRight size={18} />
               </Button>
             </div>
@@ -1437,6 +1755,15 @@ function App() {
             How to play <ArrowUpRight size={13} />
           </button>
         </nav>
+        {game && getCityHeatBadge(game) && (
+          <div
+            className="city-heat-badge heat-hud-badge"
+            role="status"
+            aria-label="City Heat Level"
+          >
+            {getCityHeatBadge(game).text}
+          </div>
+        )}
         <div className="top-actions">
           <button
             className="icon-button"
@@ -1457,12 +1784,12 @@ function App() {
             title={muted ? "Enable sound" : "Mute sound"}
             aria-label={muted ? "Enable sound" : "Mute sound"}
             onClick={() => {
-              setMuted(!muted);
-              persist("stb-sound", muted ? "on" : "off");
-              if (muted) {
-                audioRef.current =
-                  audioRef.current || new window.AudioContext();
-                audioRef.current.resume();
+              const nextMuted = !muted;
+              setMuted(nextMuted);
+              setAudioMuted(nextMuted);
+              persist("stb-sound", nextMuted ? "off" : "on");
+              if (!nextMuted) {
+                play("cash", { force: true });
               }
             }}
           >
@@ -1514,17 +1841,63 @@ function App() {
                 cash: 1500,
                 preview: true,
               }))
-            ).map((p) => (
-              <article
-                key={p.id}
-                onMouseEnter={() => setHighlight(p.id)}
-                onMouseLeave={() => setHighlight(null)}
-                className={`crew-row ${p.out ? "eliminated" : ""} ${game?.status === "playing" && current.id === p.id ? "active" : ""}`}
-                style={{ "--crew": CREWS[p.crew].color }}
-              >
-                <div className="crew-main">
-                  <CrewMark crew={p.crew} appearance={p.appearance} />
-                  <div>
+            ).map((p) => {
+              const isActive =
+                game?.status === "playing" && current?.id === p.id && !p.out;
+              const turnDeadline = game?.turnDeadline || game?.deadline || 0;
+              const totalTurnTime =
+                game?.turnDeadline &&
+                game?.turnStarted &&
+                game.turnDeadline > game.turnStarted
+                  ? game.turnDeadline - game.turnStarted
+                  : (game?.settings?.turnSeconds || 90) * 1000;
+              const timerState = isActive
+                ? getTimerState(turnDeadline, now, totalTurnTime)
+                : null;
+
+              return (
+                <article
+                  key={p.id}
+                  onMouseEnter={() => setHighlight(p.id)}
+                  onMouseLeave={() => setHighlight(null)}
+                  className={`crew-row ${p.out ? "eliminated" : ""} ${game?.status === "playing" && current?.id === p.id ? "active" : ""}`}
+                  style={{ "--crew": CREWS[p.crew].color }}
+                >
+                  <div className="crew-main">
+                    <div
+                      className={`avatar-timer-wrap avatar-timer-wrapper ${isActive ? "active" : ""}`}
+                    >
+                      <CrewMark crew={p.crew} appearance={p.appearance} />
+                      {isActive && timerState && (
+                        <svg
+                          className={`avatar-timer-ring ${timerState.className}`}
+                          viewBox="0 0 44 44"
+                          aria-label={`Turn timer: ${Math.ceil(timerState.remainingSec)} seconds remaining`}
+                        >
+                          <circle
+                            className="avatar-timer-bg"
+                            cx="22"
+                            cy="22"
+                            r="19"
+                          />
+                          <circle
+                            className="avatar-timer-progress"
+                            cx="22"
+                            cy="22"
+                            r="19"
+                            stroke={timerState.color}
+                            strokeDasharray={timerState.circumference}
+                            strokeDashoffset={timerState.strokeDashoffset}
+                            style={{
+                              strokeDasharray: timerState.circumference,
+                              strokeDashoffset: timerState.strokeDashoffset,
+                              stroke: timerState.color,
+                            }}
+                          />
+                        </svg>
+                      )}
+                    </div>
+                    <div>
                     <h3>
                       {p.profileId ? (
                         <button
@@ -1587,7 +1960,8 @@ function App() {
                   </button>
                 )}
               </article>
-            ))}
+              );
+            })}
           </div>
           {game?.status === "lobby" &&
             game.players.length < game.settings.maxPlayers && (
@@ -2256,6 +2630,53 @@ function App() {
                     <br />
                     Escape cards: {me?.escapes || 0}
                   </p>
+                  {mine && holdsBothUtilities(game, me?.id) && (
+                    <div className="grid-lockdown-panel">
+                      <Button
+                        secondary
+                        className="lockdown-btn"
+                        disabled={disabled || getGridLockdownDisabled(game, me?.id)}
+                        onClick={() => setShowLockdownPicker(!showLockdownPicker)}
+                      >
+                        ⚡ Grid Lockdown ($100)
+                      </Button>
+                      {showLockdownPicker && !getGridLockdownDisabled(game, me?.id) && (
+                        <div className="district-picker">
+                          <span className="district-picker-label">
+                            Target enemy district to blackout (rent halved for 1 round):
+                          </span>
+                          <div className="district-picker-grid">
+                            {getEnemyDistricts(game, me?.id).map((d) => (
+                              <button
+                                key={d}
+                                className="district-pick-btn"
+                                data-district={d}
+                                disabled={disabled}
+                                onClick={() => {
+                                  act({ type: "grid-lockdown", district: d });
+                                  setShowLockdownPicker(false);
+                                }}
+                                aria-label={`Grid lockdown District ${d}: ${districts[d]?.name || d}`}
+                              >
+                                <span
+                                  className="district-dot"
+                                  style={{
+                                    background: districts[d]?.color || "#ccc",
+                                  }}
+                                />
+                                District {d}: {districts[d]?.name || `District ${d}`}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {game?.blackoutDistrict != null && (
+                    <div style={{ margin: "8px 0", fontSize: "11px", color: "var(--lime)" }}>
+                      ⚡ District {game.blackoutDistrict} ({districts[game.blackoutDistrict]?.name || game.blackoutDistrict}) is currently blacked out (rent halved)!
+                    </div>
+                  )}
                   {me?.tacticals?.length > 0 && (
                     <div style={{ margin: "10px 0" }}>
                       <strong style={{ fontSize: "12px" }}>Tactical Cards ({me.tacticals.length}/2):</strong>
@@ -2371,7 +2792,6 @@ function App() {
               </button>
             </div>
           )}
-          {selected !== null && propertyPanel(BOARD[selected])}
         </aside>
       </main>
       <footer className="page-footer">
@@ -2389,6 +2809,7 @@ function App() {
           {toast}
         </div>
       )}
+      <FloatingReactions reactions={reactions} />
       {error &&
         (settingsOpen ||
           roomsOpen ||
@@ -2546,7 +2967,7 @@ function App() {
       {game?.status === "playing" &&
         !me?.out &&
         ["stoppa", "stoppa-result"].includes(game.phase) && (
-          <Stoppa game={game} act={act} disabled={disabled} />
+          <Stoppa game={game} act={act} disabled={disabled} socket={socket} />
         )}
       {game?.status === "playing" && !me?.out && game.phase === "auction" && (
         <Auction game={game} act={act} disabled={disabled} now={now} />
@@ -2554,7 +2975,12 @@ function App() {
       {game?.status === "playing" &&
         !me?.out &&
         ["roulette", "roulette-result"].includes(game.phase) && (
-          <Roulette game={game} act={act} disabled={disabled} />
+          <Roulette
+            game={game}
+            act={act}
+            disabled={disabled}
+            socket={socket}
+          />
         )}
       {game?.status === "playing" &&
         !me?.out &&
@@ -2563,8 +2989,24 @@ function App() {
             game={game}
             act={act}
             disabled={game.duel?.mode === "fps" ? !connected : disabled}
+            socket={socket}
           />
         )}
+      <FloatingReactions reactions={reactions} />
+      {selected !== null && BOARD[selected] && (
+        <DeedCardPopover
+          t={BOARD[selected]}
+          game={game}
+          me={me}
+          districts={districts}
+          BOARD={BOARD}
+          onClose={() => setSelected(null)}
+          act={act}
+          mine={mine}
+          disabled={disabled}
+          propertyFocus={propertyFocus}
+        />
+      )}
     </>
   );
 }

@@ -12,7 +12,13 @@ import { Modal } from "./Modal.jsx";
 import { money } from "../shared/board.js";
 import { move, angle, clamp, SHOT_DELAY } from "../shared/arena.js";
 import { renderArena, spawnArenaSparks } from "./arenaRenderer.js";
-export default function ArenaDuel({ game, act, disabled }) {
+import { playGunshot, playKick } from "./audio.js";
+import {
+  SpectatorReactionPills,
+  FloatingReactions,
+  useSpectatorReactions,
+} from "./SpectatorReactions.jsx";
+export default function ArenaDuel({ game, act, disabled, socket }) {
   const d = game.duel,
     playing = !!d.fighters[game.me],
     viewer = playing ? game.me : d.attacker;
@@ -58,6 +64,9 @@ export default function ArenaDuel({ game, act, disabled }) {
     [showMovement, setShowMovement] = useState(
       () => matchMedia("(pointer: coarse), (max-width: 600px)").matches,
     );
+  const effectiveSocket =
+    socket || (typeof window !== "undefined" ? window.__stb_socket : null);
+  const { reactions, sendReaction } = useSpectatorReactions(effectiveSocket);
   const offset = (game.serverNow || Date.now()) - Date.now(),
     time = now + offset;
   const ready = d.stage === "ready",
@@ -349,23 +358,11 @@ export default function ArenaDuel({ game, act, disabled }) {
     try {
       const ctx = audio.current || (audio.current = new AudioContext());
       ctx.resume();
-      const oscillator = ctx.createOscillator(),
-        gain = ctx.createGain();
-      oscillator.type = "triangle";
-      oscillator.frequency.setValueAtTime(
-        kind === "shot" ? 150 : 70,
-        ctx.currentTime,
-      );
-      oscillator.frequency.exponentialRampToValueAtTime(
-        35,
-        ctx.currentTime + 0.1,
-      );
-      gain.gain.setValueAtTime(0.08, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
-      oscillator.connect(gain);
-      gain.connect(ctx.destination);
-      oscillator.start();
-      oscillator.stop(ctx.currentTime + 0.13);
+      if (kind === "shot") {
+        playGunshot(ctx);
+      } else {
+        playKick(ctx);
+      }
     } catch {
       /* Sound is optional. */
     }
@@ -581,6 +578,7 @@ export default function ArenaDuel({ game, act, disabled }) {
               <span className="spark s8" />
             </div>
           )}
+          <FloatingReactions reactions={reactions} />
           <div className="arena-hud" aria-live="off">
             <strong>{reloading ? "RELOADING" : mine.ammo + " / 6"}</strong>
             <span>
@@ -670,6 +668,9 @@ export default function ArenaDuel({ game, act, disabled }) {
                       ${d.bets.find((b) => b.player === game.me)?.amount} (2x payout).
                     </p>
                   )}
+                  <div style={{ marginTop: "10px", display: "flex", justifyContent: "center" }}>
+                    <SpectatorReactionPills onReact={sendReaction} disabled={disabled} />
+                  </div>
                 </div>
               )}
             </div>
@@ -870,6 +871,11 @@ export default function ArenaDuel({ game, act, disabled }) {
                 for ${myBet.amount} (pays ${myBet.amount * 2}).
               </p>
             )}
+          </div>
+        )}
+        {!playing && !ready && (
+          <div style={{ display: "flex", justifyContent: "center", margin: "8px 0" }}>
+            <SpectatorReactionPills onReact={sendReaction} disabled={disabled} />
           </div>
         )}
         {notice && (

@@ -121,6 +121,10 @@ input[type="number"] {
 button:hover:not(:disabled) {
   filter: brightness(1.1);
 }
+button:active:not(:disabled) {
+  transform: scale(0.97) translateY(1px);
+  transition: transform 0.08s cubic-bezier(0.2, 0.8, 0.4, 1);
+}
 .topbar {
   height: 90px;
   border-bottom: 1px solid var(--line);
@@ -5226,3 +5230,798 @@ button:hover:not(:disabled) {
 .accolade-icon.lime {
   color: var(--lime);
 }
+
+/* Floating Spectator Hype Reaction Pills & Particle Physics */
+@keyframes floatReaction {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.6) rotate(0deg);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(calc(var(--drift-x, 0px) * 0.25), -45px) scale(1.35) rotate(var(--rot-start, -6deg));
+  }
+  65% {
+    opacity: 0.95;
+    transform: translate(calc(var(--drift-x, 0px) * 0.75), -190px) scale(1.1) rotate(var(--rot-mid, 8deg));
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--drift-x, 0px), -320px) scale(0.85) rotate(var(--rot-end, -12deg));
+  }
+}
+
+.spectator-reactions-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 9999;
+}
+
+.spectator-reaction-particle {
+  position: absolute;
+  pointer-events: none;
+  font-size: 34px;
+  line-height: 1;
+  user-select: none;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.75));
+  animation: floatReaction 1.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.spectator-reaction-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15, 17, 21, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.65), 0 0 20px rgba(255, 215, 0, 0.1);
+  border-radius: 9999px;
+  padding: 6px 14px;
+  position: relative;
+  z-index: 100;
+  animation: popIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.spectator-reaction-label {
+  font-family: var(--font-condensed);
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--amber, #f59e0b);
+  padding-right: 4px;
+  user-select: none;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.spectator-reaction-pill {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 9999px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  cursor: pointer;
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+  user-select: none;
+  padding: 0;
+  line-height: 1;
+}
+
+.spectator-reaction-pill:hover:not(:disabled) {
+  transform: scale(1.25) translateY(-3px);
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5), 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.spectator-reaction-pill:active:not(:disabled),
+.spectator-reaction-pill.popped {
+  transform: scale(0.92);
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.spectator-reaction-pill:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ==========================================================================
+   Tactility & Shimmer Sweep (ctaShimmer)
+   ========================================================================== */
+.cta-shimmer,
+.button.cta-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-shimmer::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: 0;
+  width: 100%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 25%,
+    rgba(255, 255, 255, 0.45) 50%,
+    rgba(255, 255, 255, 0.08) 75%,
+    transparent 100%
+  );
+  transform: translateX(-150%) rotate(20deg);
+  animation: ctaShimmer 3.2s infinite ease-in-out;
+  pointer-events: none;
+}
+
+button:disabled.cta-shimmer::after,
+.button:disabled.cta-shimmer::after {
+  display: none !important;
+}
+
+@keyframes ctaShimmer {
+  0% {
+    transform: translateX(-150%) rotate(20deg);
+  }
+  100% {
+    transform: translateX(150%) rotate(20deg);
+  }
+}
+
+/* ==========================================================================
+   Floating Glassmorphic Deed Card Popover
+   ========================================================================== */
+.deed-popover-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 250;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(22, 30, 25, 0.94);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: deedBackdropFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.deed-card-popover {
+  position: relative;
+  width: 100%;
+  max-width: 390px;
+  max-height: 88vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: rgba(22, 30, 25, 0.96);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(83, 99, 74, 0.65);
+  border-radius: 14px;
+  box-shadow:
+    0 24px 50px rgba(0, 0, 0, 0.75),
+    0 0 0 1px rgba(198, 237, 114, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  margin-top: 0 !important;
+  padding: 0 !important;
+  border-top: none !important;
+  animation: deedCardPopIn 0.22s cubic-bezier(0.2, 0.8, 0.4, 1);
+  outline: none;
+}
+
+.deed-card-popover:focus-visible {
+  outline: 2px solid var(--lime);
+  outline-offset: -2px;
+}
+
+@keyframes deedBackdropFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes deedCardPopIn {
+  from {
+    opacity: 0;
+    transform: scale(0.93) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes deedDrawerSlideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Banner Header */
+.deed-banner {
+  padding: 16px 18px;
+  background: var(--district, #3a4a3f);
+  color: #172018;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.25);
+}
+
+.deed-banner-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.deed-banner-tag {
+  display: block;
+  font-family: "Barlow", sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: rgba(0, 0, 0, 0.7);
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+
+.deed-street-title {
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 25px;
+  font-weight: 800;
+  line-height: 1.05;
+  color: #111a12;
+  margin: 0;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+.deed-close-btn {
+  background: rgba(0, 0, 0, 0.22);
+  color: #111a12;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  flex-shrink: 0;
+  transition: background 0.15s ease, transform 0.08s ease;
+}
+
+.deed-close-btn:hover {
+  background: rgba(0, 0, 0, 0.38);
+  color: #000;
+}
+
+/* Deed Card Content Body */
+.deed-body {
+  padding: 16px 18px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+/* Owner & Status Card */
+.deed-owner-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(27, 36, 29, 0.85);
+  border: 1px solid rgba(75, 95, 70, 0.5);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.deed-owner-card .owner-avatar {
+  flex-shrink: 0;
+}
+
+.deed-owner-card .owner-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.deed-owner-card .owner-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.deed-owner-card strong {
+  font-size: 13px;
+  color: #edf2e8;
+}
+
+.owner-badge-tag {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: #172018;
+  display: inline-block;
+}
+
+.owner-status {
+  font-size: 11px;
+  color: #a7b79e;
+}
+
+.deed-unowned-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(29, 39, 31, 0.7);
+  border: 1px dashed rgba(100, 125, 95, 0.5);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 11px;
+  color: #c4d2ba;
+}
+
+.deed-unowned-badge b {
+  color: var(--lime);
+}
+
+.unclaimed-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--lime);
+  flex-shrink: 0;
+}
+
+/* Description */
+.deed-description p {
+  font-size: 11px;
+  line-height: 1.5;
+  color: #bdcbb0;
+  margin: 0;
+}
+
+/* Visual Rent Ladder */
+.deed-rent-ladder {
+  background: rgba(18, 25, 20, 0.85);
+  border: 1px solid rgba(64, 82, 60, 0.55);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.deed-ladder-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+  color: #8da088;
+  border-bottom: 1px solid rgba(64, 82, 60, 0.45);
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+}
+
+.deed-base-rent b {
+  color: #d6e8c7;
+  font-weight: 600;
+}
+
+.deed-ladder-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.deed-ladder-row {
+  display: flex;
+  align-items: center;
+  font-size: 11px;
+  color: #c2cfb8;
+  padding: 3px 6px;
+  border-radius: 4px;
+}
+
+.deed-ladder-row.current-tier {
+  background: rgba(198, 237, 114, 0.16);
+  border: 1px solid rgba(198, 237, 114, 0.45);
+  color: #f0f8e5;
+  font-weight: 600;
+}
+
+.deed-ladder-row.current-tier .tier-val {
+  color: var(--lime);
+  font-weight: 700;
+}
+
+.deed-ladder-row.hotel {
+  color: #e8a980;
+}
+
+.deed-ladder-row.hotel.current-tier {
+  background: rgba(236, 170, 124, 0.2);
+  border-color: rgba(236, 170, 124, 0.55);
+  color: #ffe6d6;
+}
+
+.deed-ladder-row.muted {
+  opacity: 0.78;
+  font-size: 10px;
+}
+
+.tier-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.tier-dots {
+  flex: 1;
+  border-bottom: 1px dotted rgba(90, 115, 85, 0.45);
+  margin: 0 8px;
+  height: 1px;
+}
+
+.tier-val {
+  flex-shrink: 0;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #e5ede0;
+}
+
+.house-pip,
+.hotel-pip {
+  font-size: 11px;
+  line-height: 1;
+}
+
+/* Financials Grid */
+.deed-finance-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.deed-finance-item {
+  background: rgba(20, 27, 22, 0.75);
+  border: 1px solid rgba(64, 82, 60, 0.45);
+  border-radius: 6px;
+  padding: 8px 6px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.deed-finance-item .label {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8da088;
+  font-weight: 600;
+}
+
+.deed-finance-item .val {
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--lime);
+}
+
+.deed-finance-item .sub {
+  font-size: 8px;
+  color: #7a8c76;
+}
+
+/* Resident Tokens Section */
+.deed-residents-section {
+  background: rgba(20, 27, 22, 0.65);
+  border: 1px solid rgba(64, 82, 60, 0.45);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.deed-residents-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #8da088;
+  margin-bottom: 8px;
+}
+
+.resident-count {
+  margin-left: auto;
+  background: rgba(198, 237, 114, 0.2);
+  color: var(--lime);
+  padding: 1px 5px;
+  border-radius: 10px;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.deed-residents-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.resident-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(30, 42, 33, 0.9);
+  border: 1px solid var(--crew, #708569);
+  border-radius: 20px;
+  padding: 4px 10px 4px 6px;
+  font-size: 11px;
+}
+
+.resident-pill b {
+  color: #eff5ea;
+}
+
+.resident-pill small {
+  font-size: 9px;
+  color: #9ab092;
+  margin-left: 2px;
+}
+
+.deed-no-residents {
+  font-size: 10px;
+  color: #7b8e76;
+  font-style: italic;
+  margin: 0;
+}
+
+/* Mobile responsive drawer styling (fits cleanly on 390x844 viewports) */
+@media (max-width: 600px) {
+  .deed-popover-backdrop {
+    padding: 0;
+    align-items: flex-end;
+  }
+  .deed-card-popover {
+    max-width: 100%;
+    width: 100%;
+    max-height: 84vh;
+    border-radius: 18px 18px 0 0;
+    border-bottom: none;
+    animation: deedDrawerSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .deed-drawer-handle {
+    display: block;
+    width: 36px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+    margin: 8px auto 4px;
+  }
+}
+
+@media (min-width: 601px) {
+  .deed-drawer-handle {
+    display: none;
+  }
+}
+
+/* Accessibility: Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  button:active:not(:disabled) {
+    transform: none !important;
+    transition: none !important;
+  }
+  .cta-shimmer::after {
+    animation: none !important;
+    display: none !important;
+  }
+  .deed-popover-backdrop,
+  .deed-card-popover {
+    animation: none !important;
+    transition: none !important;
+  }
+  .avatar-timer-ring.crimson .avatar-timer-progress,
+  .avatar-timer-ring.pulsing .avatar-timer-progress,
+  .avatar-timer-ring.critical .avatar-timer-progress,
+  .city-heat-badge,
+  .heat-hud-badge {
+    animation: none !important;
+  }
+}
+
+/* Circular Avatar Turn Timer Ring */
+.avatar-timer-wrap,
+.avatar-timer-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+}
+
+.avatar-timer-ring {
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  width: 44px;
+  height: 44px;
+  pointer-events: none;
+  transform: rotate(-90deg);
+  overflow: visible;
+}
+
+.avatar-timer-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 2.5;
+}
+
+.avatar-timer-progress {
+  fill: none;
+  stroke: #c4f53c;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.4s ease, stroke 0.3s ease;
+}
+
+.avatar-timer-ring.amber .avatar-timer-progress,
+.avatar-timer-ring.warning .avatar-timer-progress {
+  stroke: #f59e0b;
+}
+
+.avatar-timer-ring.crimson .avatar-timer-progress,
+.avatar-timer-ring.pulsing .avatar-timer-progress,
+.avatar-timer-ring.critical .avatar-timer-progress {
+  stroke: #ff4336;
+  animation: timerPulseCrimson 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes timerPulseCrimson {
+  0% {
+    stroke: #ff4336;
+    filter: drop-shadow(0 0 2px rgba(255, 67, 54, 0.5));
+  }
+  100% {
+    stroke: #ff7870;
+    filter: drop-shadow(0 0 8px rgba(255, 67, 54, 0.95));
+  }
+}
+
+/* Grid Lockdown Action UI */
+.grid-lockdown-panel {
+  margin: 12px 0;
+  padding: 12px;
+  background: rgba(25, 33, 26, 0.7);
+  border: 1px solid rgba(196, 245, 60, 0.25);
+  border-radius: 8px;
+}
+
+.lockdown-btn {
+  width: 100%;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--lime);
+  border-color: rgba(196, 245, 60, 0.4);
+  transition: all 0.2s ease;
+}
+
+.lockdown-btn:hover:not(:disabled) {
+  border-color: var(--lime);
+  box-shadow: 0 0 12px rgba(196, 245, 60, 0.35);
+}
+
+.district-picker {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.district-picker-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #a8b29f;
+  margin-bottom: 8px;
+}
+
+.district-picker-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.district-pick-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  background: rgba(20, 27, 21, 0.9);
+  border: 1px solid var(--line);
+  color: #edf2e8;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.district-pick-btn:hover:not(:disabled) {
+  border-color: var(--lime);
+  background: rgba(30, 42, 33, 0.95);
+  transform: translateY(-1px);
+}
+
+.district-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* City Heat HUD Badge */
+@keyframes heatBadgeGlow {
+  0%, 100% {
+    border-color: #f59e0b;
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.45), inset 0 0 4px rgba(245, 158, 11, 0.2);
+  }
+  50% {
+    border-color: #ff4336;
+    box-shadow: 0 0 16px rgba(255, 67, 54, 0.75), inset 0 0 8px rgba(255, 67, 54, 0.35);
+  }
+}
+
+.city-heat-badge,
+.heat-hud-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: rgba(28, 17, 17, 0.88);
+  border: 1.5px solid #f59e0b;
+  border-radius: 9999px;
+  font-family: "Barlow Condensed", sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: #fff;
+  animation: heatBadgeGlow 2.5s ease-in-out infinite;
+  white-space: nowrap;
+  user-select: none;
+}
+
+@media (max-width: 720px) {
+  .city-heat-badge,
+  .heat-hud-badge {
+    font-size: 10px;
+    padding: 4px 8px;
+    gap: 4px;
+  }
+}
+
+

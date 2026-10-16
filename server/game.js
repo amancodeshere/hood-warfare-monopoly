@@ -862,6 +862,8 @@ export function action(g, id, a, rng = secureRandom, options = {}) {
       "Resolve this tile first.",
     );
     next(g);
+  } else if (a.type === "reaction") {
+    return;
   } else throw new Error("Unknown action.");
 }
 export function defaultAction(g, id) {

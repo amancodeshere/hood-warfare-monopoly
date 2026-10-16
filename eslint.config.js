@@ -12,6 +12,7 @@ export default [
       "test-results/**",
       "playwright-report/**",
       "game-audit/**",
+      "scripts/**",
     ],
   },
   js.configs.recommended,

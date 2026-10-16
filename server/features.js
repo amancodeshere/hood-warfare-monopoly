@@ -312,7 +312,10 @@ export function extendedAction(g, id, a, rng, options) {
     assert(
       utilities.length >= 2 &&
         utilities.every(
-          (u) => g.props[u.id]?.owner === id && !g.props[u.id].mortgaged,
+          (u) =>
+            g.props[u.id] &&
+            allied(g, g.props[u.id].owner, id) &&
+            !g.props[u.id].mortgaged,
         ),
       "You must own both unmortgaged utilities to activate grid lockdown.",
     );

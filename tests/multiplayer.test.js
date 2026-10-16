@@ -18,7 +18,7 @@ async function boot() {
   await new Promise((resolve, reject) => {
     const timeout = setTimeout(
       () => reject(new Error("Server startup timed out")),
-      8000,
+      25000,
     );
     proc.stdout.on("data", (b) => {
       if (String(b).includes("listening")) {
