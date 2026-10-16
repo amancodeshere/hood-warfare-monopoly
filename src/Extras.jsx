@@ -1495,7 +1495,7 @@ export function ExpandedRules({ close, game }) {
               Full districts double base rent when enabled. Build evenly to{" "}
               {legacy ? "three businesses" : "four houses and a hotel"}.
               Mortgage for half price; redeem for 55%. Utilities charge 4× dice,
-              or 10× with both plugs. Four transit lines charge
+              or 15× with both plugs. Four transit lines charge
               $25/$50/$100/$200.
             </p>
           </div>

@@ -13,6 +13,7 @@ import {
   defaultAction,
   timeoutAction,
   active,
+  updateHeat,
 } from "../server/game.js";
 import { BOARD, makeBoard, coordinates } from "../shared/board.js";
 import { settings, matchLimit } from "../shared/settings.js";
@@ -158,7 +159,7 @@ test("utilities use dice and transit doubles for combined holdings", () => {
   g.props[12] = prop(p.id);
   assert.equal(rent(g, BOARD[12]), 28);
   g.props[33] = prop(p.id);
-  assert.equal(rent(g, BOARD[12]), 70);
+  assert.equal(rent(g, BOARD[12]), 105);
   for (const id of [5, 15, 25, 35]) g.props[id] = prop(p.id);
   assert.equal(rent(g, BOARD[5]), 200);
   g.settings.prisonRent = false;
@@ -473,4 +474,286 @@ test("trade revalidates assets and finances before moving anything; mortgages tr
   action(g, b.id, { type: "trade-respond", offerId: g.trade.id, accept: true });
   assert.equal(g.props[1].owner, b.id);
   assert.equal(g.props[1].mortgaged, true);
+});
+
+test("utility monopoly grants 15x dice multiplier when both plugs held", () => {
+  const { g, p } = game();
+  g.dice = [2, 3]; // total 5
+  g.props[12] = prop(p.id); // Power Plug only
+  assert.equal(rent(g, BOARD[12]), 20); // 5 * 4 = 20
+
+  g.props[33] = prop(p.id); // Both Power Plug and Water Plug
+  assert.equal(rent(g, BOARD[12]), 75); // 5 * 15 = 75
+  assert.equal(rent(g, BOARD[33]), 75); // 5 * 15 = 75
+
+  // Mortgaged plug falls back to 4x on active plug
+  g.props[33].mortgaged = true;
+  assert.equal(rent(g, BOARD[12]), 20);
+  assert.equal(rent(g, BOARD[33]), 0);
+  g.props[33].mortgaged = false;
+
+  // In teams mode, ally owning second plug triggers 15x
+  const { g: tg, p: tp, b: tb } = game(2, { teams: true });
+  tp.team = tb.team = "1";
+  tg.dice = [3, 5]; // total 8
+  tg.props[12] = prop(tp.id);
+  tg.props[33] = prop(tb.id);
+  assert.equal(rent(tg, BOARD[12]), 120); // 8 * 15 = 120
+  assert.equal(rent(tg, BOARD[33]), 120); // 8 * 15 = 120
+});
+
+test("City Grid Lockdown validates prerequisites, charges $100, halves district rent, and expires after 1 round", () => {
+  const { g, p, b } = game();
+  p.cash = 1000;
+  // Precondition: phase guardrail
+  for (const invalidPhase of ["duel", "duel-result", "auction", "stoppa-result"]) {
+    g.phase = invalidPhase;
+    assert.throws(
+      () => action(g, p.id, { type: "grid-lockdown", district: 1 }),
+      /showdown or auction/,
+    );
+  }
+  g.phase = "roll";
+
+  // Precondition: must own both utilities
+  assert.throws(
+    () => action(g, p.id, { type: "grid-lockdown", district: 1 }),
+    /utilities/,
+  );
+
+  g.props[12] = prop(p.id); // Power Plug only
+  assert.throws(
+    () => action(g, p.id, { type: "grid-lockdown", district: 1 }),
+    /utilities/,
+  );
+
+  g.props[33] = prop(p.id); // Water Plug
+  g.props[12].mortgaged = true;
+  assert.throws(
+    () => action(g, p.id, { type: "grid-lockdown", district: 1 }),
+    /utilities/,
+  );
+  g.props[12].mortgaged = false;
+
+  // Precondition: cash >= 100
+  p.cash = 50;
+  assert.throws(
+    () => action(g, p.id, { type: "grid-lockdown", district: 1 }),
+    /maintenance/,
+  );
+  p.cash = 1000;
+
+  // Precondition: targeted district cannot be owned by player's team
+  // District 0: tiles 1 and 3
+  g.props[1] = prop(p.id);
+  g.props[3] = prop(p.id);
+  assert.throws(
+    () => action(g, p.id, { type: "grid-lockdown", district: 0 }),
+    /team/,
+  );
+
+  // Precondition: invalid district
+  assert.throws(
+    () => action(g, p.id, { type: "grid-lockdown", district: 8 }),
+    /district/,
+  );
+  assert.throws(
+    () => action(g, p.id, { type: "grid-lockdown", district: -1 }),
+    /district/,
+  );
+
+  // Rival owns district 1 (tiles 6, 8, 9)
+  g.props[6] = prop(b.id);
+  g.props[8] = prop(b.id);
+  g.props[9] = prop(b.id);
+  const normalRent6 = rent(g, BOARD[6]);
+  assert.equal(normalRent6, 44);
+
+  // Activate City Grid Lockdown on rival district 1
+  action(g, p.id, { type: "grid-lockdown", district: 1 });
+  assert.equal(p.cash, 900); // $100 maintenance cost deducted
+  assert.equal(g.lockdownUsedRound, 1);
+  assert.equal(g.blackoutDistrict, 1);
+  assert.equal(g.blackoutExpiresOnPlayer, p.id);
+
+  // Cannot activate lockdown twice in the same round
+  assert.throws(
+    () => action(g, p.id, { type: "grid-lockdown", district: 2 }),
+    /once per round/,
+  );
+
+  // Rent in blacked out district 1 is halved (50%)
+  const blackedRent6 = rent(g, BOARD[6]);
+  assert.equal(blackedRent6, Math.floor(normalRent6 * 0.5));
+  assert.equal(blackedRent6, 22);
+
+  // Rent in unaffected district (e.g. district 0) is not reduced
+  assert.equal(rent(g, BOARD[1]), 24);
+
+  // Opponent b takes their turn while blackout is active
+  g.phase = "end";
+  action(g, p.id, { type: "end" });
+  assert.equal(g.turn, 1);
+  assert.equal(g.blackoutDistrict, 1);
+  assert.equal(rent(g, BOARD[6]), 22);
+
+  // Turn returns to activator (p), clearing blackout
+  g.phase = "end";
+  action(g, b.id, { type: "end" });
+  assert.equal(g.turn, 2);
+  g.phase = "end";
+  action(g, g.players[2].id, { type: "end" });
+  assert.equal(g.turn, 0); // back to p
+  assert.equal(g.blackoutDistrict, null);
+  assert.equal(g.blackoutExpiresOnPlayer, null);
+  assert.equal(rent(g, BOARD[6]), normalRent6);
+
+  // Player can activate lockdown again in round 2
+  assert.equal(g.round, 2);
+  action(g, p.id, { type: "grid-lockdown", district: 2 });
+  assert.equal(p.cash, 800);
+  assert.equal(g.lockdownUsedRound, 2);
+  assert.equal(g.blackoutDistrict, 2);
+});
+
+test("when the last player in turn order activates grid-lockdown, blackout persists into round 2 until their next turn", () => {
+  const { g, p, b, c } = game(3);
+  const lastPlayer = c;
+  lastPlayer.cash = 1000;
+  // Last player owns both utilities
+  g.props[12] = prop(lastPlayer.id);
+  g.props[33] = prop(lastPlayer.id);
+
+  // Rival (p) owns district 1 (tiles 6, 8, 9)
+  g.props[6] = prop(p.id);
+  g.props[8] = prop(p.id);
+  g.props[9] = prop(p.id);
+  const normalRent6 = rent(g, BOARD[6]);
+  assert.equal(normalRent6, 44);
+
+  // It is last player's turn in round 1
+  g.round = 1;
+  g.turn = 2; // last player in 3-player match
+  g.phase = "roll";
+
+  // Last player activates City Grid Lockdown on district 1
+  action(g, lastPlayer.id, { type: "grid-lockdown", district: 1 });
+  assert.equal(g.blackoutDistrict, 1);
+  assert.equal(g.blackoutExpiresOnPlayer, lastPlayer.id);
+  assert.equal(lastPlayer.cash, 900);
+
+  // Last player finishes their turn
+  g.phase = "end";
+  action(g, lastPlayer.id, { type: "end" });
+
+  // Round rolled over to round 2, turn is now player 0 (p)
+  assert.equal(g.round, 2);
+  assert.equal(g.turn, 0);
+
+  // CRITICAL: Blackout MUST persist into round 2 for opponents
+  assert.equal(g.blackoutDistrict, 1);
+  assert.equal(rent(g, BOARD[6]), 22); // still 50% rent in round 2!
+
+  // Player 0 (p) finishes turn
+  g.phase = "end";
+  action(g, p.id, { type: "end" });
+  assert.equal(g.turn, 1); // player 1 (b)
+  assert.equal(g.blackoutDistrict, 1);
+  assert.equal(rent(g, BOARD[6]), 22); // still 50% rent for player 1!
+
+  // Player 1 (b) finishes turn -> turn returns to lastPlayer (c)
+  g.phase = "end";
+  action(g, b.id, { type: "end" });
+  assert.equal(g.turn, 2); // back to lastPlayer
+
+  // Now that turn has returned to the activator, blackout expires
+  assert.equal(g.blackoutDistrict, null);
+  assert.equal(g.blackoutExpiresOnPlayer, null);
+  assert.equal(rent(g, BOARD[6]), normalRent6); // rent restored to 100%
+});
+
+test("City Heat bonus decay at round 15 ($175), round 20 ($150), and tax scaling", () => {
+  const { g, p } = game();
+  g.settings.doubles = false;
+
+  // Round < 15: normal economics
+  g.round = 14;
+  updateHeat(g);
+  assert.equal(g.heatLevel, 0);
+  p.cash = 1000;
+  p.pos = 39;
+  action(g, p.id, { type: "roll" }, () => 0); // passed Home Base
+  assert.equal(p.cash, 1200); // +$200
+
+  // Flex Tax at round 14: $100
+  p.pos = 4;
+  land(g);
+  assert.equal(p.cash, 1100); // -$100
+
+  // Round 15: Heat Level 1
+  g.round = 15;
+  g.phase = "roll";
+  p.cash = 1000;
+  p.pos = 39;
+  action(g, p.id, { type: "roll" }, () => 0); // passed Home Base
+  assert.equal(g.heatLevel, 1);
+  assert.equal(p.cash, 1175); // Home Base bonus decays by $25 -> +$175
+
+  // Flex Tax at round 15: 100 * (1 + 1 * 0.20) = $120
+  p.pos = 4;
+  land(g);
+  assert.equal(p.cash, 1055); // 1175 - 120 = 1055
+
+  // Round 20: Heat Level 2
+  g.round = 20;
+  g.phase = "roll";
+  p.cash = 1000;
+  p.pos = 39;
+  action(g, p.id, { type: "roll" }, () => 0); // passed Home Base
+  assert.equal(g.heatLevel, 2);
+  assert.equal(p.cash, 1150); // Home Base bonus decays by $50 -> +$150
+
+  // Flex Tax at round 20: 100 * (1 + 2 * 0.20) = $140
+  p.pos = 4;
+  land(g);
+  assert.equal(p.cash, 1010); // 1150 - 140 = 1010
+
+  // Round 25: Heat Level 3
+  g.round = 25;
+  g.phase = "roll";
+  p.cash = 1000;
+  p.pos = 39;
+  action(g, p.id, { type: "roll" }, () => 0);
+  assert.equal(g.heatLevel, 3);
+  assert.equal(p.cash, 1125); // +$125
+
+  p.pos = 4;
+  land(g);
+  assert.equal(p.cash, 965); // 1125 - 160 = 965
+
+  // Round 30: Heat Level 4 (cap)
+  g.round = 30;
+  g.phase = "roll";
+  p.cash = 1000;
+  p.pos = 39;
+  action(g, p.id, { type: "roll" }, () => 0);
+  assert.equal(g.heatLevel, 4);
+  assert.equal(p.cash, 1100); // +$100 (capped minimum $100)
+
+  p.pos = 4;
+  land(g);
+  assert.equal(p.cash, 920); // 1100 - 180 = 920
+
+  // Round 35+: Heat Level remains capped at 4
+  g.round = 35;
+  g.phase = "roll";
+  p.cash = 1000;
+  p.pos = 39;
+  action(g, p.id, { type: "roll" }, () => 0);
+  assert.equal(g.heatLevel, 4);
+  assert.equal(p.cash, 1100); // stays $100
+
+  p.pos = 4;
+  land(g);
+  assert.equal(p.cash, 920); // stays $180
 });
