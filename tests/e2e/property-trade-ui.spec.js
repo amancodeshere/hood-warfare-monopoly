@@ -82,7 +82,7 @@ test("quick board compact controls mortgage, redeem, build and sell with accurat
   const errors=[];
   page.on("pageerror",error=>errors.push(error.message));
   await resume(page,"quick-builder-ace");
-  const dialog=await openProperty(page,"Corner Store");
+  const dialog=await openProperty(page,"Bronx Cut");
   await expect(dialog.locator(".building-section-title")).toContainText("$48");
   await expect(dialog.locator(".building-rent-row.is-current")).toContainText("Full district");
   await expect(dialog.getByRole("button",{name:/^Mortgage/})).toBeEnabled();
@@ -114,7 +114,7 @@ test("quick board compact controls mortgage, redeem, build and sell with accurat
 
 test("standard board supports hotel upgrade and downgrade, and district colour remains prominent under buildings", async ({page}) => {
   await resume(page,"pieces-ace");
-  const dialog=await openProperty(page,"Auntie’s Bodega");
+  const dialog=await openProperty(page,"Bronx Cut");
   await expect(dialog.getByRole("button",{name:/^Hotel/})).toBeEnabled();
   await dialog.getByRole("button",{name:/^Hotel/}).click();
   await expect(dialog.locator(".building-rent-row.is-current")).toContainText("Hotel");

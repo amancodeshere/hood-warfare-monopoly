@@ -4,6 +4,7 @@ import { DEFAULT_SETTINGS, settings } from "../shared/settings.js";
 import {
   QUICK_BOARD,
   makeBoard,
+  MAPS,
   coordinates,
 } from "../shared/board.js";
 import { presetMap } from "../shared/maps.js";
@@ -211,7 +212,7 @@ test("gameplay operates cleanly on a 28-tile quick board", () => {
   // Player rolls: moves from 0 with steps 2 to tile 2
   action(g, host.id, { type: "roll" }, () => 0); // dice [1, 1], steps 2
   assert.equal(host.pos, 2);
-  assert.equal(g.board[host.pos].name, "Grove Street");
+  assert.equal(g.board[host.pos].name, "Harlem Steps");
 
   // Buy property on 28-tile board
   action(g, host.id, { type: "buy" });
@@ -247,6 +248,39 @@ test("all six city themes properly format names on 28-tile quick boards", () => 
     assert.equal(props.length, 16, `${theme} must have 16 properties`);
     for (const p of props) {
       assert.ok(p.name && p.name.length > 0, `${theme} prop ${p.id} must have a name`);
+    }
+  }
+});
+
+test("regional map names stay distinct while both board sizes keep the same economy and essential spaces", () => {
+  const expected = [
+    ["trenches", "America Blocks"],
+    ["night-shift", "India Gully"],
+    ["boardwalk", "China Backstreets"],
+    ["snow-day", "Europe Estates"],
+    ["neon", "Mexico Barrios"],
+    ["festival", "Brazil Favelas"],
+  ];
+  assert.deepEqual(MAPS.map(({ id, name }) => [id, name]), expected);
+  assert.equal(MAPS.filter(({ verified }) => !verified).length, 2);
+  assert.equal(MAPS.filter(({ verified }) => verified).length, 4);
+
+  for (const [id] of expected) {
+    for (const size of ["standard", "quick"]) {
+      const board = makeBoard(id, size);
+      const baseline = makeBoard("trenches", size);
+      const properties = board.filter((tile) => tile.type === "property");
+      assert.equal(board.length, size === "quick" ? 28 : 40);
+      assert.equal(new Set(properties.map((tile) => tile.name)).size, properties.length, `${id} property names`);
+      assert.ok(properties.every((tile) => tile.name.length <= 19), `${id} labels fit the board on ${size}`);
+      assert.deepEqual(
+        properties.map(({ id: tileId, group, price, rent, build }) => ({ id: tileId, group, price, rent, build })),
+        baseline.filter((tile) => tile.type === "property").map(({ id: tileId, group, price, rent, build }) => ({ id: tileId, group, price, rent, build })),
+        `${id} economy on ${size}`,
+      );
+      for (const type of ["start", "jail", "parking", "raid", "transit", "utility"]) {
+        assert.equal(board.filter((tile) => tile.type === type).length, baseline.filter((tile) => tile.type === type).length, `${id} ${type} spaces on ${size}`);
+      }
     }
   }
 });

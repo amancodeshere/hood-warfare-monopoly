@@ -684,7 +684,7 @@ body:has(.game-layout.in-play) .page-footer {
 }
 .tile .tile-name,
 .tile-content .tile-name {
-  font-size: clamp(6px, 11cqw, 12px);
+  font-size: clamp(8px, 12.5cqw, 12px);
   font-weight: 700;
   line-height: 1.15;
   text-align: center;
@@ -765,7 +765,7 @@ body:has(.game-layout.in-play) .page-footer {
   }
   .tile .tile-name,
   .tile-content .tile-name {
-    font-size: clamp(5px, 11cqw, 7.5px);
+    font-size: clamp(6px, 11cqw, 7.5px);
     line-height: 1.05;
   }
   .tile .tile-price,
@@ -3161,7 +3161,8 @@ body:has(.game-layout.in-play) .page-footer {
 }
 .chat-channel {
   display: flex;
-  gap: 20px;
+  flex-wrap: wrap;
+  gap: 0 16px;
   border-bottom: 1px solid #4e5b46;
   margin: 16px 0;
 }
@@ -3170,6 +3171,7 @@ body:has(.game-layout.in-play) .page-footer {
   display: flex;
   align-items: center;
   gap: 6px;
+  min-height: 40px;
   padding: 10px 0;
   font-size: 14px;
 }
@@ -3841,7 +3843,7 @@ body:has(.game-layout.in-play) .page-footer {
   color: #17211d;
 }
 .theme-night-shift {
-  filter: brightness(0.8);
+  filter: none;
 }
 .studio-shelf {
   display: flex;
@@ -3952,13 +3954,31 @@ body:has(.game-layout.in-play) .page-footer {
   border-top: 1px solid #566048;
 }
 .city-theme-snow-day {
-  filter: brightness(1.12) saturate(0.65);
+  filter: saturate(0.78) contrast(1.04);
 }
 .city-theme-neon {
-  filter: saturate(1.3);
+  filter: saturate(1.28) contrast(1.03);
 }
 .city-theme-boardwalk {
-  filter: brightness(1.12);
+  filter: saturate(0.9) contrast(1.04);
+}
+.city-theme-trenches {
+  filter: saturate(0.78) contrast(1.08);
+}
+.city-theme-night-shift {
+  filter: saturate(1.08) contrast(1.07);
+}
+.city-theme-festival {
+  filter: saturate(1.18) contrast(1.05);
+}
+.city-details-india text,
+.city-details-china text {
+  paint-order: stroke;
+  stroke: #eadcae;
+  stroke-width: .35px;
+}
+.city-theme-custom {
+  filter: saturate(.92);
 }
 @media (max-width: 900px) {
   .entry-world {

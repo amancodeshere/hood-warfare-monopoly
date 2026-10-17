@@ -121,145 +121,63 @@ export const QUICK_BOARD = [
 export const MAPS = [
   {
     id: "trenches",
-    name: "The Trenches",
-    description: "40 blocks. Three Oppa Stoppas. No quiet corners.",
+    name: "America Blocks",
+    description: "Brownstone stoops, corner delis, courts, and cross-town traffic.",
   },
   {
     id: "night-shift",
-    name: "Night Shift",
-    description: "After-hours stores, arcade luck, and lowrider routes.",
+    name: "India Gully",
+    description: "Chawl lanes, chai stalls, auto-rickshaws, and a cow crossing the street.",
   },
   {
     id: "boardwalk",
-    name: "Lackin’ by the Beach",
-    description: "Beach bags, overpriced drip, and a very suspicious pier.",
+    name: "China Backstreets",
+    description: "Urban-village lanes, noodle stalls, hanging laundry, and scooters.",
     verified: true,
-    colors: [
-      "#b6d9bd",
-      "#92cbd3",
-      "#e6bb85",
-      "#d7a3b5",
-      "#a5badc",
-      "#e1cf8b",
-      "#a5cdb7",
-      "#d7b7dd",
-    ],
+    colors: ["#b6d9bd", "#92cbd3", "#e6bb85", "#d7a3b5", "#a5badc", "#e1cf8b", "#a5cdb7", "#d7b7dd"],
   },
   {
     id: "snow-day",
-    name: "Cold Streets",
-    description: "Frozen pipes. Heated beef. Snow-day hustles.",
+    name: "Europe Estates",
+    description: "Brick estate blocks, tram cut-throughs, underpass courts, and café corners.",
     verified: true,
-    colors: [
-      "#a8ced4",
-      "#c0cde4",
-      "#b8bad8",
-      "#a6c5bd",
-      "#cfb8d2",
-      "#d2d1b2",
-      "#b2c8d5",
-      "#d4bed0",
-    ],
+    colors: ["#a8ced4", "#c0cde4", "#b8bad8", "#a6c5bd", "#cfb8d2", "#d2d1b2", "#b2c8d5", "#d4bed0"],
   },
   {
     id: "neon",
-    name: "Neon Problems",
-    description: "Arcade scams and main-character money after midnight.",
+    name: "Mexico Barrios",
+    description: "Barrio homes, a tiendita, mural wall, lowrider, and market stalls.",
     verified: true,
-    colors: [
-      "#d69dc5",
-      "#9ccbc5",
-      "#b0a1db",
-      "#dfad91",
-      "#a2bcdf",
-      "#d0cf92",
-      "#bd9dcf",
-      "#8fc9ad",
-    ],
+    colors: ["#d69dc5", "#9ccbc5", "#b0a1db", "#dfad91", "#a2bcdf", "#d0cf92", "#bd9dcf", "#8fc9ad"],
   },
   {
     id: "festival",
-    name: "Cookout County",
-    description: "Uncle’s grill, auntie’s side-eye, and rent at the cookout.",
+    name: "Brazil Favelas",
+    description: "Hillside homes, roof tanks, a football court, and moto-taxis.",
     verified: true,
-    colors: [
-      "#d6b18b",
-      "#bac68b",
-      "#dd9e91",
-      "#d3bb82",
-      "#a6c7b3",
-      "#d4a7c5",
-      "#9db9d4",
-      "#c7b2d3",
-    ],
+    colors: ["#d6b18b", "#bac68b", "#dd9e91", "#d3bb82", "#a6c7b3", "#d4a7c5", "#9db9d4", "#c7b2d3"],
   },
 ];
-const THEME_WORDS = {
+const THEME_NAMES = {
+  trenches: [
+    "Bronx Cut", "Harlem Steps", "Queens Plaza", "Bed-Stuy Row", "Compton Court", "Southside Ave", "West Oakland", "8 Mile Block", "Brownsville", "Philly Corner", "Baltimore Row", "Crown Heights", "Watts Avenue", "East Flatbush", "Coney Island", "Brooklyn Yard", "Inglewood Way", "Atlanta Loop", "Newark Stoop", "Memphis Lane", "Houston Heights", "Chicago South",
+  ],
+  "night-shift": [
+    "Dharavi Lane", "Kurla Corner", "Govandi Gully", "Mankhurd Mile", "Seelampur Row", "Old Delhi Cut", "Chawl Court", "Byculla Beat", "Ghatkopar Gate", "Narela Nook", "Sion Steps", "Chembur Turn", "Bandra Backlot", "Koliwada Walk", "Basti Market", "Dongri Dock", "Bengaluru Beat", "Hyderabad Hub", "Kolkata Cut", "Chennai Yard", "Pune Peth", "Dilli Gate",
+  ],
   boardwalk: [
-    "Sand in the Jordans",
-    "Pier Pressure",
-    "Beach Bag Bandit",
-    "Sunburn Side Hustle",
-    "Boardwalk Beef",
-    "Flip Flop Flex",
-    "Seagull Stole My Chips",
-    "Lifeguard Lackin’",
+    "Hutong Steps", "Sanyuanli Lane", "Shipai Corner", "Longgang Row", "Chengzhongcun", "Shanghai Shikumen", "Beijing Alley", "Guangzhou Cut", "Chengdu Noodle", "Shenzhen Yard", "Wuhan Walkup", "Nanjing Nook", "Suzhou Steps", "Tianjin Turn", "Hangzhou Court", "Chongqing Rise", "Kunming Corner", "Qingdao Quay", "Harbin Stop", "Fuzhou Street", "Xiamen Yard", "Hong Kong Hill",
   ],
   "snow-day": [
-    "Frozen Drip",
-    "Black Ice Boulevard",
-    "Cold Shoulder",
-    "Snowball Scheme",
-    "Puffer Jacket Palace",
-    "Heated Beef",
-    "Slush Fund",
-    "Icebox Uncle",
+    "Brixton Steps", "Peckham Tram", "Tottenham Row", "Saint-Denis Cut", "Marseille Yard", "Scampia Court", "Raval Passage", "Naples Arcade", "Dublin Backcourt", "Canning Town", "Milan Blocks", "East Paris Estate", "Berlin Brick", "Glasgow Scheme", "Lisbon Gully", "Rome Courtyard", "Athens Block", "Porto Steps", "Prague Square", "Vienna Corner", "Warsaw Walk", "London Yard",
   ],
   neon: [
-    "RGB Rent",
-    "Arcade Opps",
-    "NPC Boulevard",
-    "Lag Switch Lane",
-    "Neon No Cap",
-    "Respawn Row",
-    "Pixel Paper",
-    "Final Boss Energy",
+    "Tepito Corner", "Neza Market", "Iztapalapa Steps", "Doctores Turn", "Lagunilla Plaza", "La Merced Row", "Tlatelolco Stop", "Guerrero Yard", "Santa Fe Mile", "San Cosme Lane", "Tacuba Loop", "Xochimilco Wharf", "Tlalpan Court", "Mixcoac Walk", "Portales Gate", "Coyoacán Cut", "Juárez Blocks", "Condesa Corner", "Azcapotzalco St", "Ecatepec Rise", "Tacubaya Port", "Roma Norte Turn",
   ],
   festival: [
-    "Auntie’s Side Eye",
-    "Uncle Burnt the Ribs",
-    "Plate Tax",
-    "Cookout Credentials",
-    "Extra Sauce Estate",
-    "DJ No Requests",
-    "Leftovers Lick",
-    "Foldout Chair Flex",
+    "Rocinha Steps", "Vidigal Corner", "Maré Market", "Alemão Yard", "Mangueira Loop", "Heliópolis Row", "Paraisópolis Wharf", "Santa Marta Hill", "Pavão Court", "Borel Lane", "Jacarezinho Field", "Serrinha Stop", "Vila Cruzeiro Gate", "Cantagalo Steps", "Cidade de Deus", "Complexo Cut", "Morro do Pinto", "Brasília Teimosa", "Bairro da Paz", "Aglomerado da Serra", "Pernambués Market", "Capão Redondo",
   ],
 };
-const NIGHT_NAMES = [
-  "Midnight Bodega",
-  "Last Slice Lane",
-  "After Hours Cuts",
-  "Seen at 3AM",
-  "Backseat Boulevard",
-  "Night Shift Flats",
-  "Trap Nap Towers",
-  "Rent at Midnight",
-  "Late Plate Corner",
-  "Sneaky Link Heights",
-  "Chain Reaction City",
-  "Basement Beats",
-  "Parking Lot Mall",
-  "Drip After Dark",
-  "No Sleep Studios",
-  "Side Mission Square",
-  "Night Owl Block",
-  "Neon Money Gardens",
-  "Don’t Snooze Flats",
-  "Moonlight Mansion",
-  "Rich Uncle Row",
-  "Afterparty Estate",
-];
 export function makeBoard(map = "trenches", mapSize = "standard") {
   if (typeof map === "object" && map !== null) {
     mapSize = map.mapSize || "standard";
@@ -274,40 +192,30 @@ export function makeBoard(map = "trenches", mapSize = "standard") {
   return baseBoard.map((t) => {
     const tile = {
       ...t,
-      name:
-        map === "night-shift" && t.type === "property"
-          ? NIGHT_NAMES[i++]
-          : t.name,
+      name: t.type === "property" && THEME_NAMES[map]
+        ? THEME_NAMES[map][i++] || t.name
+        : t.name,
     };
-    if (
-      THEME_WORDS[map] &&
-      t.type === "property" &&
-      t.group !== undefined &&
-      THEME_WORDS[map][t.group]
-    )
-      tile.name =
-        THEME_WORDS[map][t.group] +
-        (t.id % 3 === 0 ? " Heights" : t.id % 3 === 1 ? " Row" : " Corner");
     if (!isQuick) {
       if (["neon", "festival"].includes(map) && [2, 17].includes(t.id)) {
         tile.type = "roulette";
-        tile.name = map === "neon" ? "Arcade Jackpot" : "Uncle’s Lucky Draw";
+        tile.name = map === "neon" ? "Barrio Jackpot" : "Favela Draw";
       }
       if (map === "boardwalk" && t.id === 28) {
         tile.type = "stoppa";
-        tile.name = "Seagull Stoppa";
+        tile.name = "Hutong Stoppa";
       }
       if (map === "snow-day" && t.id === 22) {
         tile.type = "card";
-        tile.name = "Cold Street Luck";
+        tile.name = "Estate Luck";
       }
       if (map === "night-shift" && t.id === 17) {
         tile.type = "roulette";
-        tile.name = "After Hours Roulette";
+        tile.name = "Chai Roulette";
       }
       if (map === "night-shift" && t.id === 28) {
         tile.type = "card";
-        tile.name = "Night Shift Luck";
+        tile.name = "Gully Luck";
       }
     }
     return tile;

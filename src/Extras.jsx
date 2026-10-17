@@ -17,6 +17,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { Modal } from "./Modal.jsx";
+import { filterChatMessages } from "../shared/chat.js";
 import { DEFAULT_SETTINGS, RULE_OPTIONS } from "../shared/settings.js";
 import { BOARD, MAPS, money, CREWS } from "../shared/board.js";
 import { COSMETICS } from "../shared/cosmetics.js";
@@ -365,30 +366,60 @@ export {
   ExchangePanel,
   TradeModal,
 } from "./components/VisualTrade.jsx";
-export function ChatPanel({ game, emit, disabled, onPlayer }) {
+export function ChatPanel({
+  game,
+  emit,
+  disabled,
+  onPlayer,
+  audience,
+  setAudience,
+}) {
   const [text, setText] = useState(""),
     [team, setTeam] = useState(false);
   const { request, message, busy } = useRequest(emit);
   const end = useRef(null),
     me = game.players.find((p) => p.id === game.me);
+  const messages = filterChatMessages(game.chat || [], game.players, {
+    audience,
+    team: team ? me?.team : null,
+  });
+  const latestMessage = messages.at(-1);
   useEffect(() => {
     if (end.current?.parentElement)
       end.current.parentElement.scrollTop =
         end.current.parentElement.scrollHeight;
-  }, [game.chat?.length]);
+  }, [messages.length, latestMessage?.id, latestMessage?.time, audience, team]);
   return (
     <section className="chat-panel" aria-label="Room chat">
       <h2>Talk on the block.</h2>
-      <div className="chat-channel">
+      <div className="chat-channel" role="group" aria-label="Chat audience">
         <button
-          className={!team ? "active" : ""}
-          onClick={() => setTeam(false)}
+          type="button"
+          className={!team && audience === "players" ? "active" : ""}
+          aria-pressed={!team && audience === "players"}
+          onClick={() => {
+            setTeam(false);
+            setAudience("players");
+          }}
         >
-          Everyone
+          Players
+        </button>
+        <button
+          type="button"
+          className={!team && audience === "players-and-bots" ? "active" : ""}
+          aria-pressed={!team && audience === "players-and-bots"}
+          onClick={() => {
+            setTeam(false);
+            setAudience("players-and-bots");
+          }}
+        >
+          Players &amp; Bots
         </button>
         {game.settings.teams && me?.team && (
           <button
+            type="button"
             className={team ? "active" : ""}
+            aria-pressed={team}
             onClick={() => setTeam(true)}
           >
             <Lock size={12} />
@@ -397,24 +428,20 @@ export function ChatPanel({ game, emit, disabled, onPlayer }) {
         )}
       </div>
       <div className="chat-messages" role="log" aria-live="polite">
-        {(game.chat || [])
-          .filter((m) => (team ? m.team === String(me?.team) : !m.team))
-          .map((m, i) => (
-            <p key={m.time ? `${m.id}-${m.time}-${i}` : (m.id || i)}>
-              <button
-                onClick={() => {
-                  const p = game.players.find((p) => p.id === m.player);
-                  if (p) onPlayer(p);
-                }}
-              >
-                {m.name}
-              </button>
-              <span>{m.text}</span>
-            </p>
-          ))}
-        {!(game.chat || []).some((m) =>
-          team ? m.team === String(me?.team) : !m.team,
-        ) && (
+        {messages.map((m, i) => (
+          <p key={m.time ? `${m.id}-${m.time}-${i}` : (m.id || i)}>
+            <button
+              onClick={() => {
+                const p = game.players.find((p) => p.id === m.player);
+                if (p) onPlayer(p);
+              }}
+            >
+              {m.name}
+            </button>
+            <span>{m.text}</span>
+          </p>
+        ))}
+        {!messages.length && (
           <p className="empty-copy">
             Say hello, talk trades, or call your shot.
           </p>

@@ -5,7 +5,7 @@ The comparison uses Richup’s public room settings and its official release not
 | Richup feature family                        | Spin the Block implementation                                                                                                                                         |
 | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Public/private rooms, 2–8 players, bot seats | Public directory, quick play, private invite links, 2–8 seats, bot autofill, solo with 1–7 opponents                                                                  |
-| Maps and house rules                         | Two 40-square city maps; configurable starting cash, doubles, auctioning, mortgages, prison rent, even building, community payouts, order and capacity                |
+| Maps and house rules                         | Six regional 40-square maps plus 28-square Quick boards; configurable starting cash, doubles, auctioning, mortgages, prison rent, even building, community payouts, order and capacity |
 | Property, utility and transport economy      | Eight districts, four transit lines, two utilities, four houses plus hotel, auctioning and mortgage/redeem                                                            |
 | Trading                                      | Atomic offers containing multiple properties, cash in both directions, and escape cards; rescue gifts; fair-value checks during rent debt                             |
 | Team alliances                               | Up to four named teams, no allied rent, shared district/transit/utility sets, cash/escape-card inheritance and server-filtered team chat                                      |
@@ -40,7 +40,8 @@ CI runs lint, Node engine/profile/multiplayer tests with coverage, production bu
 
 - Dedicated sign-in entry with guest continuation and account creation.
 - Real email code verification with expiry, attempt limits, resend throttling, and private addresses; requires Resend sender configuration in Railway.
-- Six city themes with different block names, palettes, and surprise-space layouts; two guest maps and four verified account maps.
+- Six hood-themed regional maps—America Blocks, India Gully, China Backstreets, Europe Estates, Mexico Barrios, and Brazil Favelas—with distinct street scenes and concise board labels; full place names remain available in square inspection. Two maps are guest-hostable and four require email verification.
+- The India centerpiece includes a cow crossing the street, chai stalls, and auto-rickshaws; the other regional scenes feature local street architecture, shops, and traffic. Custom maps use a neutral centerpiece.
 - Verified Map Studio: up to ten saved maps, 40 square names, eight district names/colors, and card/roulette/Oppa Stoppa event placement.
 - Owner-only map editing and server-side selection permissions; guests can join custom cities.
 - Immutable room maps, including rematches, even after the source map is edited or deleted.
@@ -55,7 +56,7 @@ Ownership has a named crew badge and explicit mortgage state. Larger illustrated
 
 Any active crew can propose multi-property/cash/escape-card deals between events without waiting for their turn. Counteroffers prefill reversed assets and replace an offer atomically; unique offer IDs reject stale responses. Summaries use the current map names, show mortgage status and cash after settlement, and preserve mortgage flags. Acceptance rechecks ownership, balances, cards, unbuilt districts, and debt fair-value constraints. Declining or withdrawing works during events; offers expire on turn advance.
 
-Room chat appears beside the board, remains available while editing deals, retains private team channels and mute/block filtering, and has a direct composer shortcut. Eliminated seats get a prominent leave action, are not trapped by event overlays, clear browser seat state on exit, and cannot resume a revoked seat. Browser coverage includes two-crew counters, cross-browser chat, and mobile exit during an event.
+Room chat appears beside the board, remains available while editing deals, and lets players switch between human messages and human-plus-bot chat. Private team channels and mute/block filtering remain in place, with a direct composer shortcut. Eliminated seats get a prominent leave action, are not trapped by event overlays, clear browser seat state on exit, and cannot resume a revoked seat. Browser coverage includes two-crew counters, cross-browser chat, and mobile exit during an event.
 
 Richup’s live game connection was unavailable during this implementation. These negotiation behaviors are implemented and tested; exact parity with its current trading UI/rules has not been verified.
 

@@ -24,7 +24,7 @@ test("login page welcomes guests on mobile and gated maps explain verification",
     .getByRole("button", { name: "Room settings", exact: true })
     .click();
   await expect(page.locator(".map-choice")).toHaveCount(6);
-  await page.getByRole("button", { name: /Neon Problems/ }).click();
+  await page.getByRole("button", { name: /Mexico Barrios/ }).click();
   await expect(
     page.getByRole("button", { name: "Open login page" }),
   ).toBeVisible();
@@ -83,6 +83,7 @@ test("verified map studio saves, selects and shares a custom map with guests; ed
     .getByRole("button", { name: "Room settings", exact: true })
     .click();
   await page.getByRole("button", { name: "Map Studio" }).click();
+  await expect(page.locator(".studio-preview .city-art")).toHaveClass(/city-theme-custom/);
   await page
     .getByLabel("Map name", { exact: true })
     .fill("Auntie’s Custom Cookout");
@@ -100,6 +101,8 @@ test("verified map studio saves, selects and shares a custom map with guests; ed
   );
   await page.getByRole("button", { name: "Save house rules" }).click();
   await page.getByRole("button", { name: "Create a private room" }).click();
+  await expect(page.locator(".board-grid > .tile")).toHaveCount(40);
+  await expect(page.locator(".board-center .city-art")).toHaveClass(/city-theme-custom/);
   await expect(
     page.getByRole("button", { name: "Ribs Are Rent, $60", exact: true }),
   ).toBeVisible();

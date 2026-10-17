@@ -376,6 +376,7 @@ export function triggerBotBark(g, botPlayer, triggerType, context = {}) {
 
   const message = {
     type: "chat",
+    bot: true,
     id: botPlayer.id,
     player: botPlayer.id,
     name: botPlayer.name,

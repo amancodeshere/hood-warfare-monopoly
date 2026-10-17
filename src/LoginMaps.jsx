@@ -427,7 +427,7 @@ export function MapStudio({ profile, emit, close, select }) {
         <div className="studio-preview" aria-label="Custom city preview">
           <City
             palette={draft.districts.map((d) => d.color)}
-            theme={draft.base}
+            theme="custom"
           />
           <strong>{draft.name || "Name your city"}</strong>
         </div>

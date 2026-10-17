@@ -76,9 +76,9 @@ test("mobile table is usable without horizontal page overflow and rules are keyb
     page.getByRole("button", { name: "Roll the dice" }),
   ).toBeVisible();
   await page
-    .getByRole("button", { name: "Auntie’s Bodega, $60", exact: true })
+    .getByRole("button", { name: "Bronx Cut, $60", exact: true })
     .click();
-  const detail = page.getByRole("dialog", { name: "Auntie’s Bodega" });
+  const detail = page.getByRole("dialog", { name: "Bronx Cut" });
   await expect(detail).toBeFocused();
   await expect
     .poll(async () => {
@@ -166,7 +166,7 @@ test("solo bot count, default match length and rich house settings are usable", 
   await expect(page.locator(".crew-list .bot-tag")).toHaveCount(7);
   await expect(page.locator(".round-tag")).toContainText("ALL IN");
   await expect(
-    page.getByRole("button", { name: "Midnight Bodega, $60", exact: true }),
+    page.getByRole("button", { name: "Dharavi Lane, $60", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Room rules", exact: true }).click();
   await expect(
@@ -225,7 +225,7 @@ test("online auction lets another crew bid and collects only when others pass", 
     await rival.getByRole("button", { name: "Continue as guest" }).click();
   const a = page.getByRole("dialog"),
     b = rival.getByRole("dialog");
-  await expect(a).toContainText("Who’s buying Auntie’s Bodega?");
+  await expect(a).toContainText("Who’s buying Bronx Cut?");
   await b.getByLabel(/Your bid/).fill("30");
   await b.getByRole("button", { name: "Bid $30", exact: true }).click();
   await expect(a.locator(".auction-price")).toContainText("Rival leads");

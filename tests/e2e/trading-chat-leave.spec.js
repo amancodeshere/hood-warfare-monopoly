@@ -23,7 +23,7 @@ test("two crews negotiate properties, cash and cards through an editable counter
   await editor
     .getByRole("checkbox", { name: /Auntie’s Tax-Free Corner/ })
     .check();
-  await editor.getByRole("checkbox", { name: /Broke Boy Blvd/ }).check();
+  await editor.getByRole("checkbox", { name: /Harlem Steps/ }).check();
   // Select the opponent's one owned property using its live rendered label.
   await editor.locator(".exchange-fields").nth(1).getByRole("checkbox").check();
   await editor.getByLabel("Cash to give", { exact: true }).fill("100");

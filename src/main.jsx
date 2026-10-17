@@ -61,6 +61,7 @@ import {
   PlayerPanel,
 } from "./Extras.jsx";
 import { DEFAULT_SETTINGS } from "../shared/settings.js";
+import { filterChatMessages } from "../shared/chat.js";
 import "@fontsource/barlow/latin-400.css";
 import "@fontsource/barlow/latin-500.css";
 import "@fontsource/barlow/latin-600.css";
@@ -370,6 +371,7 @@ function App() {
       new URLSearchParams(location.search).get("room") || "",
     ),
     [tab, setTab] = useState("turn"),
+    [chatAudience, setChatAudience] = useState("players"),
     [counterOffer, setCounterOffer] = useState(null),
     [limit, setLimit] = useState(0),
     [muted, setMuted] = useState(stored("stb-sound") !== "on"),
@@ -1166,6 +1168,8 @@ function App() {
                 emit={emit}
                 disabled={!connected || !me}
                 onPlayer={setPlayerOpen}
+                audience={chatAudience}
+                setAudience={setChatAudience}
               />
             </div>
           )}
@@ -1649,7 +1653,11 @@ function App() {
                   >
                     {x.label}
                     {x.id === "chat" && (
-                      <span aria-hidden="true">{game.chat?.length || 0}</span>
+                      <span aria-hidden="true">
+                        {filterChatMessages(game.chat || [], game.players, {
+                          audience: chatAudience,
+                        }).length}
+                      </span>
                     )}
                     {x.id === "turf" && <span>{owned.length}</span>}
                   </button>
@@ -1908,12 +1916,21 @@ function App() {
                     emit={emit}
                     disabled={!connected || !me}
                     onPlayer={setPlayerOpen}
+                    audience={chatAudience}
+                    setAudience={setChatAudience}
                   />
                 </div>
               ) : null}
               {tab !== "chat" && (
                 <div className="board-chat sidebar-chat-tab">
-                  <ChatPanel game={game} emit={emit} disabled={!connected || !me} onPlayer={setPlayerOpen} />
+                  <ChatPanel
+                    game={game}
+                    emit={emit}
+                    disabled={!connected || !me}
+                    onPlayer={setPlayerOpen}
+                    audience={chatAudience}
+                    setAudience={setChatAudience}
+                  />
                 </div>
               )}
               {!mine &&

@@ -177,7 +177,7 @@ test("mobile ownership badges and compact street pieces remain inspectable witho
   );
   await page.goto("/");
   const tile = page.getByRole("button", {
-    name: /Auntie’s Bodega, \$60, owned by Big Stepper/,
+    name: /Bronx Cut, \$60, owned by Big Stepper/,
   });
   await expect(tile.locator(".owner-badge")).toContainText("YOU OWN");
   await expect(tile.locator(".building-pieces")).toHaveAttribute(
@@ -194,12 +194,12 @@ test("mobile ownership badges and compact street pieces remain inspectable witho
   );
   await expect(page.locator(".building-rent-row.is-current")).toContainText("4 houses");
   await expect(
-    page.getByRole("dialog", { name: "Auntie’s Bodega" }),
+    page.getByRole("dialog", { name: "Bronx Cut" }),
   ).toBeFocused();
   await expect(page.locator(".building-residents")).toContainText("Gold Chain");
   await page.getByRole("button", { name: "Close property details" }).click();
   const hotel = page.getByRole("button", {
-    name: /No Cap Cuts, \$100, owned by Gold Chain/,
+    name: /Queens Plaza, \$100, owned by Gold Chain/,
   });
   await hotel.scrollIntoViewIfNeeded();
   await expect(hotel.locator(".street-hotel")).toBeVisible();

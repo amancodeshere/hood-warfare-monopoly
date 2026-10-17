@@ -3,6 +3,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { player, room, start, land, action } from "../server/game.js";
 import { BOARD as LEGACY_BOARD } from "../shared/legacy-board.js";
+import { presetMap } from "../shared/maps.js";
 if (!process.env.DATA_DIR?.includes("stb-playwright-"))
   throw new Error("Refusing to seed outside a browser test directory");
 const fixtures = [];
@@ -215,6 +216,56 @@ for (const tile of quickBuild.board.filter(t => t.group === 0))
   quickBuild.props[tile.id] = {owner: quickBuilder.id, level: 0, mortgaged: false};
 fixtures.push(quickBuild);
 sessions.push(["quick-builder-ace", {code: quickBuild.code, id: quickBuilder.id}]);
+
+// Region-map browser fixtures land on the first regional property so the
+// authoritative buy action can be checked in both supported board sizes.
+for (const [code, session, map, mapSize] of [
+  ["REGAMR", "regional-america-buy", "trenches", "standard"],
+  ["REGBRZ", "regional-brazil-quick-buy", "festival", "quick"],
+]) {
+  const host = player("Map Buyer"), rival = player("Map Rival");
+  const g = room(code, host, {settings: {map, mapSize, autoFill: false}});
+  g.players.push(rival);
+  Object.assign(g, presetMap(map, mapSize));
+  start(g, host.id);
+  host.pos = 1;
+  land(g);
+  fixtures.push(g);
+  sessions.push([session, {code: g.code, id: host.id}]);
+}
+
+// Chat audience filtering needs stable human and bot messages without waiting
+// for an in-game event to trigger a bark.
+const chatHost = player("Chat Host"),
+  chatPeer = player("Chat Peer"),
+  chatBot = player("Chat Bot", true);
+const chatFixture = room("CHT001", chatHost, {settings: {autoFill: false}});
+chatFixture.players.push(chatPeer, chatBot);
+start(chatFixture, chatHost.id);
+chatFixture.chat.push(
+  {
+    id: "chat-human-seed",
+    player: chatHost.id,
+    profileId: chatHost.profileId,
+    name: chatHost.name,
+    text: "Human public message",
+    team: null,
+    time: Date.now(),
+  },
+  {
+    id: "chat-bot-seed",
+    player: chatBot.id,
+    name: chatBot.name,
+    text: "Bot public message",
+    team: null,
+    time: Date.now() + 1,
+  },
+);
+fixtures.push(chatFixture);
+sessions.push(
+  ["chat-channels-host", {code: chatFixture.code, id: chatHost.id}],
+  ["chat-channels-peer", {code: chatFixture.code, id: chatPeer.id}],
+);
 mkdirSync(process.env.DATA_DIR, { recursive: true });
 writeFileSync(
   resolve(process.env.DATA_DIR, "rooms.json"),

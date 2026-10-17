@@ -60,6 +60,7 @@ export function customMap(definition) {
   return {
     ...presetMap(d.base),
     mapName: d.name,
+    mapTheme: "custom",
     board: makeBoard(d.base).map((t) => ({
       ...t,
       name: d.names[t.id],

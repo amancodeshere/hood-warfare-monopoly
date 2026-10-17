@@ -13,6 +13,7 @@ import { COSMETICS } from "../../shared/cosmetics.js";
 import { HoodFigure, StreetBuilding } from "../StreetPieces.jsx";
 import City from "../City.jsx";
 import { Icon, Die } from "./common.jsx";
+import { getBoardDisplayName } from "../utils/board-display-name.js";
 
 export function BoardCenter({
   game,
@@ -61,7 +62,7 @@ export function BoardCenter({
       </div>
       <City
         palette={activeDistricts.map((d) => d.color)}
-        theme={game?.mapTheme}
+        theme={game?.settings?.map?.startsWith?.("custom:") ? "custom" : game?.mapTheme}
         scale={cityScale}
       />
       <div className={`center-bottom ${rolling ? "rolling" : ""}`}>
@@ -369,7 +370,9 @@ export function GameBoard({
                 {t.type !== "property" && (
                   <Icon name={t.type} size={corner ? 24 : 19} />
                 )}
-                <span className="tile-name">{t.name}</span>
+                <span className="tile-name" title={t.name}>
+                  {getBoardDisplayName(t.name)}
+                </span>
                 {t.type === "parking" && (
                   <span className="community-balance">
                     {money(game?.pot || 0)}
