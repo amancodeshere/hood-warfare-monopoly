@@ -18,7 +18,6 @@ import {
   view,
   assert,
   log,
-  board,
   migrate,
   finishAuction,
   timeoutAction,
@@ -27,6 +26,7 @@ import {
 import { settings, matchLimit } from "../shared/settings.js";
 import { profileStore } from "./profiles.js";
 import { setBotBarkIO } from "./botBarks.js";
+import { botEvaluateTrade } from "./features.js";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const dataDir = process.env.DATA_DIR || resolve(root, "data");
 mkdirSync(dataDir, { recursive: true, mode: 0o700 });
@@ -811,6 +811,7 @@ io.on("connection", (socket) => {
   });
 });
 const botDue = new Map();
+const botTradeDue = new Map();
 const interval = setInterval(() => {
   for (const g of rooms.values()) {
     if (Date.now() - g.updatedAt > 24 * 3600000) {
@@ -897,23 +898,25 @@ const interval = setInterval(() => {
       }
     }
     if (g.trade && g.players.find((p) => p.id === g.trade.to)?.bot) {
-      try {
-        const tr = g.trade,
-          t = board(g),
-          value = (ids) =>
-            ids.reduce(
-              (n, id) => n + t[id].price * (g.props[id].mortgaged ? 0.5 : 1),
-              0,
-            );
-        const accept = tr.giveTiles
-          ? value(tr.giveTiles) + tr.cash + tr.giveEscapes * 100 >=
-            value(tr.takeTiles) + tr.requestCash + tr.takeEscapes * 100
-          : t[tr.give].price + tr.cash >= t[tr.take].price;
-        action(g, tr.to, { type: "trade-respond", accept, offerId: tr.id });
-        publish(g);
-      } catch {
-        g.trade = null;
-        publish(g);
+      const tr = g.trade;
+      const bot = g.players.find((p) => p.id === tr.to);
+      const tradeKey = `${g.code}:${tr.id}`;
+      if (!botTradeDue.has(tradeKey)) {
+        botTradeDue.set(tradeKey, (tr.createdAt || Date.now()) + 1200);
+      }
+      if (Date.now() >= botTradeDue.get(tradeKey)) {
+        try {
+          const evalResult = botEvaluateTrade(g, tr);
+          if (evalResult?.action) {
+            action(g, bot.id, evalResult.action);
+          }
+          publish(g);
+        } catch {
+          g.trade = null;
+          publish(g);
+        } finally {
+          botTradeDue.delete(tradeKey);
+        }
       }
     }
   }

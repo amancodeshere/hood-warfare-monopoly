@@ -80,6 +80,8 @@ import { Icon, CrewMark, Die, Button } from "./components/common.jsx";
 import GameBoard, { Board } from "./components/GameBoard.jsx";
 import DeedCardPopover from "./components/DeedCardPopover.jsx";
 import CrewRoster from "./components/CrewRoster.jsx";
+import { TradeModal, VisualTrade } from "./components/VisualTrade.jsx";
+import QuickChatWheel, { QUICK_CHAT_OPTIONS } from "./components/QuickChatWheel.jsx";
 const socket = io({ autoConnect: false });
 if (typeof window !== "undefined") {
   window.__stb_socket = socket;
@@ -385,7 +387,9 @@ function App() {
     [confirmForfeit, setConfirmForfeit] = useState(false),
     [highlight, setHighlight] = useState(null),
     [mapOverview, setMapOverview] = useState(false),
-    [showLockdownPicker, setShowLockdownPicker] = useState(false);
+    [showLockdownPicker, setShowLockdownPicker] = useState(false),
+    [tradeModalOpen, setTradeModalOpen] = useState(false),
+    [tradePartnerId, setTradePartnerId] = useState(null);
   const { reactions } = useSpectatorReactions(socket);
   useEffect(() => {
     setAudioMuted(muted);
@@ -1056,6 +1060,10 @@ function App() {
             now={now}
             setHighlight={setHighlight}
             setPlayerOpen={setPlayerOpen}
+            onTrade={(rival) => {
+              setTradePartnerId(rival?.id || null);
+              setTradeModalOpen(true);
+            }}
             lobby={lobby}
             disabled={disabled}
             BOARD={BOARD}
@@ -1832,14 +1840,25 @@ function App() {
                   )}
                 </>
               ) : (
-                <ExchangePanel
-                  key={counterOffer?.id || "new"}
-                  game={game}
-                  act={act}
-                  disabled={disabled}
-                  counter={counterOffer}
-                  clearCounter={() => setCounterOffer(null)}
-                />
+                <>
+                  <div className="trade-tab-popout-wrap">
+                    <button
+                      type="button"
+                      className="text-button trade-popout-btn"
+                      onClick={() => setTradeModalOpen(true)}
+                    >
+                      ⤢ Open Popover Modal
+                    </button>
+                  </div>
+                  <ExchangePanel
+                    key={counterOffer?.id || "new"}
+                    game={game}
+                    act={act}
+                    disabled={disabled}
+                    counter={counterOffer}
+                    clearCounter={() => setCounterOffer(null)}
+                  />
+                </>
               )}
               {!mine &&
                 me &&
@@ -2080,6 +2099,14 @@ function App() {
           />
         )}
       <FloatingReactions reactions={reactions} />
+      {game && game.status === "playing" && me && (
+        <QuickChatWheel
+          game={game}
+          me={me}
+          emit={emit}
+          disabled={disabled}
+        />
+      )}
       {selected !== null && BOARD[selected] && (
         <DeedCardPopover
           t={BOARD[selected]}
@@ -2094,10 +2121,23 @@ function App() {
           propertyFocus={propertyFocus}
         />
       )}
+      {tradeModalOpen && game && (
+        <TradeModal
+          game={game}
+          act={act}
+          disabled={disabled}
+          counter={counterOffer}
+          clearCounter={() => setCounterOffer(null)}
+          initialPartnerId={tradePartnerId}
+          onClose={() => setTradeModalOpen(false)}
+        />
+      )}
     </>
   );
 }
 createRoot(document.getElementById("root")).render(<App />);
 
 export { DeedCardPopover, CrewRoster, GameBoard, Board };
+export { Auction, TradeModal, VisualTrade };
+export { QuickChatWheel, QUICK_CHAT_OPTIONS };
 

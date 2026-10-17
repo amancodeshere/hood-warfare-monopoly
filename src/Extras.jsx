@@ -345,6 +345,7 @@ export {
   CashStepperButtons,
   VisualTrade,
   ExchangePanel,
+  TradeModal,
 } from "./components/VisualTrade.jsx";
 export function ChatPanel({ game, emit, disabled, onPlayer }) {
   const [text, setText] = useState(""),
@@ -435,14 +436,57 @@ export function ChatPanel({ game, emit, disabled, onPlayer }) {
 export function Auction({ game, act, disabled, now }) {
   const a = game.auction,
     t = (game.board || BOARD)[a.tile],
-    me = game.players.find((p) => p.id === game.me),
-    [amount, setAmount] = useState(a.highBid + 10);
+    me = game.players.find((p) => p.id === game.me);
+
+  const minBid = (a?.highBid || 0) + 10;
+  const maxBid = me?.cash || 0;
   const mine =
     me && !me.out && !a.passed.includes(me.id) && a.highBidder !== me.id;
+
+  const [rawInput, setRawInput] = useState(String(minBid));
+  const prevHighBidRef = useRef(a?.highBid);
+
   useEffect(() => {
-    setAmount(a.highBid + 10);
-    if (a.highBid > 0) play("cash");
-  }, [a.highBid]);
+    if (a?.highBid !== prevHighBidRef.current) {
+      if (a?.highBid > 0) play("cash");
+      prevHighBidRef.current = a?.highBid;
+      setRawInput((prev) => {
+        const num = parseInt(prev, 10);
+        if (isNaN(num) || num < minBid) {
+          return String(Math.min(maxBid, minBid));
+        }
+        return prev;
+      });
+    }
+  }, [a?.highBid, minBid, maxBid]);
+
+  const numericBid = rawInput === "" ? minBid : parseInt(rawInput, 10);
+  const isBidValid =
+    !isNaN(numericBid) && numericBid >= minBid && numericBid <= maxBid;
+
+  const handleInputChange = (e) => {
+    setRawInput(e.target.value);
+  };
+
+  const handleBlur = () => {
+    const parsed = parseInt(rawInput, 10);
+    if (isNaN(parsed) || parsed < minBid) {
+      setRawInput(String(Math.min(maxBid, minBid)));
+    } else if (parsed > maxBid) {
+      setRawInput(String(maxBid));
+    } else {
+      setRawInput(String(parsed));
+    }
+  };
+
+  const applyQuickBid = (targetVal) => {
+    const clamped = Math.max(minBid, Math.min(maxBid, targetVal));
+    setRawInput(String(clamped));
+  };
+
+  const currentBase =
+    isNaN(numericBid) || numericBid < minBid ? minBid : numericBid;
+
   return (
     <Modal title={`Who’s buying ${t.name}?`}>
       <div className="event-header">
@@ -483,18 +527,71 @@ export function Auction({ game, act, disabled, now }) {
           <input
             id="auction-bid"
             type="number"
-            min={a.highBid + 10}
-            max={me.cash}
+            min={minBid}
+            max={maxBid}
             step={10}
-            value={amount}
-            onChange={(e) => setAmount(Number(e.target.value))}
+            value={rawInput}
+            onChange={handleInputChange}
+            onBlur={handleBlur}
+            aria-label={`Your bid · ${money(me.cash)} available`}
           />
+          <div
+            className="auction-quick-chips"
+            role="group"
+            aria-label="Quick bid options"
+          >
+            <button
+              type="button"
+              className="auction-chip-btn"
+              disabled={disabled || (currentBase + 10 > maxBid && numericBid >= maxBid)}
+              onClick={() => applyQuickBid(currentBase + 10)}
+              aria-label="Add $10 to bid"
+            >
+              +$10
+            </button>
+            <button
+              type="button"
+              className="auction-chip-btn"
+              disabled={disabled || (currentBase + 25 > maxBid && numericBid >= maxBid)}
+              onClick={() => applyQuickBid(currentBase + 25)}
+              aria-label="Add $25 to bid"
+            >
+              +$25
+            </button>
+            <button
+              type="button"
+              className="auction-chip-btn"
+              disabled={disabled || (currentBase + 50 > maxBid && numericBid >= maxBid)}
+              onClick={() => applyQuickBid(currentBase + 50)}
+              aria-label="Add $50 to bid"
+            >
+              +$50
+            </button>
+            <button
+              type="button"
+              className="auction-chip-btn"
+              disabled={disabled || (currentBase + 100 > maxBid && numericBid >= maxBid)}
+              onClick={() => applyQuickBid(currentBase + 100)}
+              aria-label="Add $100 to bid"
+            >
+              +$100
+            </button>
+            <button
+              type="button"
+              className="auction-chip-btn match-chip-btn"
+              disabled={disabled || minBid > maxBid}
+              onClick={() => applyQuickBid(minBid)}
+              aria-label="Match high bid plus $10"
+            >
+              Match + $10
+            </button>
+          </div>
           <div className="panel-actions">
             <Btn
-              disabled={disabled || amount < a.highBid + 10 || amount > me.cash}
-              onClick={() => act({ type: "auction-bid", amount })}
+              disabled={disabled || !isBidValid}
+              onClick={() => act({ type: "auction-bid", amount: numericBid })}
             >
-              Bid {money(amount)}
+              Bid {money(numericBid)}
             </Btn>
             <Btn
               secondary

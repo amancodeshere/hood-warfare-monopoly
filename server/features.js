@@ -60,6 +60,206 @@ function checkTrade(g, tr) {
     }
   }
 }
+export function completesDistrictSet(
+  g,
+  playerId,
+  tileId,
+  tilesGained = [],
+  tilesLost = [],
+) {
+  const b = board(g);
+  const t = b[tileId];
+  if (!t || t.group === undefined) return false;
+  const districtTiles = b.filter((x) => x.group === t.group);
+  if (districtTiles.length === 0) return false;
+
+  const ownedBefore = districtTiles.filter(
+    (x) => g.props[x.id] && allied(g, g.props[x.id].owner, playerId),
+  );
+  if (ownedBefore.length === districtTiles.length) {
+    return false;
+  }
+
+  const ownedAfter = districtTiles.filter((x) => {
+    if (tilesLost.includes(x.id)) return false;
+    if (tilesGained.includes(x.id) || x.id === tileId) return true;
+    return g.props[x.id] && allied(g, g.props[x.id].owner, playerId);
+  });
+
+  return ownedAfter.length === districtTiles.length;
+}
+
+export function botEvaluateTrade(g, tr = g.trade) {
+  if (!tr) return null;
+  const b = board(g);
+  const fromPlayer = g.players.find((p) => p.id === tr.from);
+  const toPlayer = g.players.find((p) => p.id === tr.to);
+  if (!fromPlayer || !toPlayer) return null;
+
+  const giveTiles = tr.giveTiles ?? (tr.give !== undefined ? [tr.give] : []);
+  const takeTiles = tr.takeTiles ?? (tr.take !== undefined ? [tr.take] : []);
+  const cash = tr.cash ?? 0;
+  const requestCash = tr.requestCash ?? 0;
+  const giveEscapes = tr.giveEscapes ?? 0;
+  const takeEscapes = tr.takeEscapes ?? 0;
+
+  const isReceiver = toPlayer.bot || !fromPlayer.bot;
+  const bot = isReceiver ? toPlayer : fromPlayer;
+  const opp = isReceiver ? fromPlayer : toPlayer;
+
+  const tilesReceived = isReceiver ? giveTiles : takeTiles;
+  const tilesGiven = isReceiver ? takeTiles : giveTiles;
+  const cashReceived = isReceiver ? cash : requestCash;
+  const cashGiven = isReceiver ? requestCash : cash;
+  const escapesReceived = isReceiver ? giveEscapes : takeEscapes;
+  const escapesGiven = isReceiver ? takeEscapes : giveEscapes;
+
+  const evaluateTiles = (tileIds, recipientId, gainedTiles, lostTiles) => {
+    return tileIds.reduce((sum, id) => {
+      const tile = b[id];
+      if (!tile || !tile.price) return sum;
+      const completes = completesDistrictSet(
+        g,
+        recipientId,
+        id,
+        gainedTiles,
+        lostTiles,
+      );
+      const mult = completes ? 2.2 : 1.0;
+      const mortgage = g.props[id]?.mortgaged ? 0.5 : 1.0;
+      return sum + tile.price * mult * mortgage;
+    }, 0);
+  };
+
+  const valPropsGiven = evaluateTiles(
+    tilesGiven,
+    opp.id,
+    tilesGiven,
+    tilesReceived,
+  );
+  const valPropsReceived = evaluateTiles(
+    tilesReceived,
+    bot.id,
+    tilesReceived,
+    tilesGiven,
+  );
+
+  const valueGiven = valPropsGiven + cashGiven + escapesGiven * 100;
+  const valueReceived = valPropsReceived + cashReceived + escapesReceived * 100;
+
+  const givesOpponentMonopoly = tilesGiven.some((id) =>
+    completesDistrictSet(g, opp.id, id, tilesGiven, tilesReceived),
+  );
+  const givesBotMonopoly = tilesReceived.some((id) =>
+    completesDistrictSet(g, bot.id, id, tilesReceived, tilesGiven),
+  );
+
+  const ratio =
+    valueGiven > 0
+      ? valueReceived / valueGiven
+      : valueReceived > 0
+        ? Infinity
+        : 1.0;
+
+  // If trade gives opponent a monopoly while giving bot no monopoly,
+  // decline unless heavily compensated (ratio >= 1.5).
+  if (givesOpponentMonopoly && !givesBotMonopoly) {
+    if (ratio >= 1.5) {
+      return {
+        decision: "accept",
+        accept: true,
+        action: { type: "trade-respond", accept: true, offerId: tr.id },
+        ratio,
+        valueGiven,
+        valueReceived,
+        givesOpponentMonopoly,
+        givesBotMonopoly,
+      };
+    }
+    return {
+      decision: "decline",
+      accept: false,
+      reason: "Trade grants monopoly to opponent without monopoly compensation",
+      action: { type: "trade-respond", accept: false, offerId: tr.id },
+      ratio,
+      valueGiven,
+      valueReceived,
+      givesOpponentMonopoly,
+      givesBotMonopoly,
+    };
+  }
+
+  if (ratio >= 1.0) {
+    return {
+      decision: "accept",
+      accept: true,
+      action: { type: "trade-respond", accept: true, offerId: tr.id },
+      ratio,
+      valueGiven,
+      valueReceived,
+      givesOpponentMonopoly,
+      givesBotMonopoly,
+    };
+  }
+
+  // Counter-offer capability: if incoming trade is close (ratio between 0.80 and 0.99)
+  if (ratio >= 0.80 && ratio < 1.0) {
+    const deficit = Math.round(valueGiven - valueReceived);
+    const counterRequestCash = (isReceiver ? cash : requestCash) + deficit;
+    const counterCash = 0;
+
+    if (opp.cash < counterRequestCash || bot.cash < counterCash) {
+      return {
+        decision: "decline",
+        accept: false,
+        reason: "Opponent cannot afford counter-offer cash",
+        action: { type: "trade-respond", accept: false, offerId: tr.id },
+        ratio,
+        valueGiven,
+        valueReceived,
+        givesOpponentMonopoly,
+        givesBotMonopoly,
+      };
+    }
+
+    const counterAction = {
+      type: "trade-counter",
+      offerId: tr.id,
+      to: opp.id,
+      giveTiles: [...tilesGiven],
+      takeTiles: [...tilesReceived],
+      cash: counterCash,
+      requestCash: counterRequestCash,
+      giveEscapes: escapesGiven,
+      takeEscapes: escapesReceived,
+    };
+
+    return {
+      decision: "counter",
+      accept: false,
+      counter: counterAction,
+      action: counterAction,
+      ratio,
+      valueGiven,
+      valueReceived,
+      givesOpponentMonopoly,
+      givesBotMonopoly,
+    };
+  }
+
+  return {
+    decision: "decline",
+    accept: false,
+    reason: "Offer value too low",
+    action: { type: "trade-respond", accept: false, offerId: tr.id },
+    ratio,
+    valueGiven,
+    valueReceived,
+    givesOpponentMonopoly,
+    givesBotMonopoly,
+  };
+}
+
 export function extendedAction(g, id, a, rng, options) {
   if (tacticalAction(g, id, a, rng, options)) return true;
   const p = g.players.find((x) => x.id === id);
@@ -239,6 +439,7 @@ export function extendedAction(g, id, a, rng, options) {
       requestCash: a.requestCash ?? 0,
       giveEscapes: a.giveEscapes ?? 0,
       takeEscapes: a.takeEscapes ?? 0,
+      createdAt: options?.now ?? Date.now(),
     };
     assert(tr.to !== id, "Choose another crew.");
     assert(
@@ -305,7 +506,14 @@ export function extendedAction(g, id, a, rng, options) {
       from.escapes += tr.takeEscapes - tr.giveEscapes;
       p.escapes += tr.giveEscapes - tr.takeEscapes;
       log(g, `${from.name} and ${p.name} made a block deal.`, "good");
-    } else log(g, `${p.name} declined the trade offer.`);
+      triggerBotBark(g, p, "trade_accept", { now: options?.now });
+      if (from.bot) {
+        triggerBotBark(g, from, "trade_accept", { now: options?.now });
+      }
+    } else {
+      log(g, `${p.name} declined the trade offer.`);
+      triggerBotBark(g, p, "trade_decline", { now: options?.now });
+    }
     g.trade = null;
     return true;
   }

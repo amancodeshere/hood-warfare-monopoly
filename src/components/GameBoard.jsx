@@ -85,7 +85,28 @@ export function BoardCenter({
   );
 }
 
-export function GameBoard({ game, selected, setSelected, rolling, highlight }) {
+import {
+  getActivePlayerBark,
+  sortTokenPlayersByBark,
+  BARK_DURATION_MS,
+  BARK_FADE_MS,
+} from "../../shared/barks.js";
+
+export {
+  getActivePlayerBark,
+  sortTokenPlayersByBark,
+  BARK_DURATION_MS,
+  BARK_FADE_MS,
+};
+
+export function GameBoard({
+  game,
+  selected,
+  setSelected,
+  rolling,
+  highlight,
+  barks: externalBarks,
+}) {
   const BOARD = game?.board || DEFAULT_BOARD,
     size = BOARD.length / 4 + 1,
     districts =
@@ -94,6 +115,166 @@ export function GameBoard({ game, selected, setSelected, rolling, highlight }) {
         : game?.districts || DISTRICTS;
   const [walking, setWalking] = useState(null),
     lastMove = useRef(game?.lastMove?.id);
+
+  const [barks, setBarks] = useState({});
+  const barksRef = useRef(barks);
+  barksRef.current = barks;
+  const barkTimers = useRef(new Map());
+  const seenMsgTimes = useRef(new Map());
+
+  // Track latest chat message / bark for each seated player
+  useEffect(() => {
+    const chat = game?.chat || [];
+    const players = game?.players || [];
+    if (!chat.length || !players.length) return;
+
+    const now = Date.now();
+    const BARK_DURATION_MS = 3500;
+    const BARK_FADE_MS = 500;
+
+    players.forEach((p) => {
+      let latestMsg = null;
+      for (let i = chat.length - 1; i >= 0; i--) {
+        const m = chat[i];
+        if (!m || !m.text) continue;
+        const isMatch =
+          m.player === p.id ||
+          (m.id && m.id === p.id) ||
+          (!m.player && m.name && m.name === p.name);
+        if (isMatch) {
+          latestMsg = m;
+          break;
+        }
+      }
+
+      if (!latestMsg) return;
+
+      let msgTime = Number(latestMsg.time || latestMsg.timestamp);
+      if (!msgTime || Number.isNaN(msgTime)) {
+        if (seenMsgTimes.current.has(latestMsg.id || latestMsg)) {
+          msgTime = seenMsgTimes.current.get(latestMsg.id || latestMsg);
+        } else {
+          msgTime = now;
+          seenMsgTimes.current.set(latestMsg.id || latestMsg, msgTime);
+        }
+      }
+
+      const age = now - msgTime;
+      if (age < 0 || age >= BARK_DURATION_MS) return;
+
+      const msgId = latestMsg.id || `${latestMsg.text}-${msgTime}`;
+      const currentBark = barksRef.current[p.id];
+      if (currentBark && currentBark.id === msgId) return;
+
+      if (barkTimers.current.has(p.id)) {
+        const { dismissTimer, removeTimer } = barkTimers.current.get(p.id);
+        clearTimeout(dismissTimer);
+        clearTimeout(removeTimer);
+      }
+
+      const remainingTotal = Math.max(0, BARK_DURATION_MS - age);
+      const remainingActive = Math.max(0, remainingTotal - BARK_FADE_MS);
+
+      setBarks((prev) => ({
+        ...prev,
+        [p.id]: {
+          id: msgId,
+          text: latestMsg.text,
+          time: msgTime,
+          dismissing: remainingActive === 0,
+        },
+      }));
+
+      const dismissTimer = setTimeout(() => {
+        setBarks((prev) => {
+          if (prev[p.id]?.id === msgId) {
+            return { ...prev, [p.id]: { ...prev[p.id], dismissing: true } };
+          }
+          return prev;
+        });
+      }, remainingActive);
+
+      const removeTimer = setTimeout(() => {
+        setBarks((prev) => {
+          if (prev[p.id]?.id === msgId) {
+            const next = { ...prev };
+            delete next[p.id];
+            return next;
+          }
+          return prev;
+        });
+        barkTimers.current.delete(p.id);
+      }, remainingTotal);
+
+      barkTimers.current.set(p.id, { dismissTimer, removeTimer });
+    });
+  }, [game?.chat, game?.players]);
+
+  useEffect(() => {
+    const timers = barkTimers.current;
+    return () => {
+      timers.forEach(({ dismissTimer, removeTimer }) => {
+        clearTimeout(dismissTimer);
+        clearTimeout(removeTimer);
+      });
+      timers.clear();
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleLocalBubble = (e) => {
+      const { player, text } = e.detail || {};
+      if (!player || !text) return;
+      const msgId = `local-${player}-${Date.now()}`;
+      const BARK_DURATION_MS = 3500;
+      const BARK_FADE_MS = 500;
+
+      if (barkTimers.current.has(player)) {
+        const { dismissTimer, removeTimer } = barkTimers.current.get(player);
+        clearTimeout(dismissTimer);
+        clearTimeout(removeTimer);
+      }
+
+      setBarks((prev) => ({
+        ...prev,
+        [player]: {
+          id: msgId,
+          text,
+          time: Date.now(),
+          dismissing: false,
+        },
+      }));
+
+      const dismissTimer = setTimeout(() => {
+        setBarks((prev) => {
+          if (prev[player]?.id === msgId) {
+            return { ...prev, [player]: { ...prev[player], dismissing: true } };
+          }
+          return prev;
+        });
+      }, BARK_DURATION_MS - BARK_FADE_MS);
+
+      const removeTimer = setTimeout(() => {
+        setBarks((prev) => {
+          if (prev[player]?.id === msgId) {
+            const next = { ...prev };
+            delete next[player];
+            return next;
+          }
+          return prev;
+        });
+        barkTimers.current.delete(player);
+      }, BARK_DURATION_MS);
+
+      barkTimers.current.set(player, { dismissTimer, removeTimer });
+    };
+
+    window.addEventListener("stb-speech-bubble", handleLocalBubble);
+    return () => window.removeEventListener("stb-speech-bubble", handleLocalBubble);
+  }, []);
+
+  const effectiveBarks = { ...barks, ...(externalBarks || {}) };
+
   useEffect(() => {
     const m = game?.lastMove;
     if (!m || lastMove.current === m.id) return;
@@ -131,11 +312,11 @@ export function GameBoard({ game, selected, setSelected, rolling, highlight }) {
                   (walking?.id === p.id ? walking.pos : p.pos) === t.id,
               ) || [],
             corner = t.id % (BOARD.length / 4) === 0;
-          const tokenPlayers = players
-            .slice()
-            .sort(
-              (a, b) => Number(b.id === game?.me) - Number(a.id === game?.me),
-            );
+          const tokenPlayers = sortTokenPlayersByBark(
+            players,
+            effectiveBarks,
+            game?.me,
+          );
           return (
             <button
               key={t.id}
@@ -164,39 +345,41 @@ export function GameBoard({ game, selected, setSelected, rolling, highlight }) {
                   <b>{q.level === 5 ? "HOTEL" : `×${q.level}`}</b>
                 </span>
               )}
-              {t.type !== "property" && (
-                <Icon name={t.type} size={corner ? 24 : 19} />
-              )}
-              <span className="tile-name">{t.name}</span>
-              {t.type === "parking" && (
-                <span className="community-balance">
-                  {money(game?.pot || 0)}
-                </span>
-              )}
-              {t.type !== "parking" && (
-                <span className="tile-price">
-                  {t.price
-                    ? money(t.price)
-                    : t.type === "start"
-                      ? "+$200"
-                      : t.type === "tax"
-                        ? "$100"
-                        : t.type === "roulette"
-                          ? "SPIN TO WIN"
-                          : t.type === "stoppa"
-                            ? "LOSE 1–10%"
-                            : t.type === "card"
-                              ? "TAKE A CHANCE"
-                              : t.type === "jail"
-                                ? "JUST VISITING"
-                                : t.type === "raid"
-                                  ? "GO TO JAIL"
-                                  : "COMMUNITY POT"}
-                </span>
-              )}
+              <div className="tile-content">
+                {t.type !== "property" && (
+                  <Icon name={t.type} size={corner ? 24 : 19} />
+                )}
+                <span className="tile-name">{t.name}</span>
+                {t.type === "parking" && (
+                  <span className="community-balance">
+                    {money(game?.pot || 0)}
+                  </span>
+                )}
+                {t.type !== "parking" && (
+                  <span className="tile-price">
+                    {t.price
+                      ? money(t.price)
+                      : t.type === "start"
+                        ? "+$200"
+                        : t.type === "tax"
+                          ? "$100"
+                          : t.type === "roulette"
+                            ? "SPIN TO WIN"
+                            : t.type === "stoppa"
+                              ? "LOSE 1–10%"
+                              : t.type === "card"
+                                ? "TAKE A CHANCE"
+                                : t.type === "jail"
+                                  ? "JUST VISITING"
+                                  : t.type === "raid"
+                                    ? "GO TO JAIL"
+                                    : "COMMUNITY POT"}
+                  </span>
+                )}
+              </div>
               {q && (
                 <span
-                  className="owner-badge"
+                  className="owner-badge tile-owner-bar"
                   title={`Owned by ${owner?.name}${q.mortgaged ? " · mortgaged" : ""}`}
                 >
                   <span>
@@ -214,36 +397,50 @@ export function GameBoard({ game, selected, setSelected, rolling, highlight }) {
                   className={`tokens ${players.length > 4 ? "crowded" : ""}`}
                   aria-label={tokenPlayers.map((p) => p.name).join(", ")}
                 >
-                  {tokenPlayers.map((p) => (
-                    <span
-                      className={`token ${walking?.id === p.id ? "hopping" : ""}`}
-                      key={`${p.id}-${walking?.id === p.id ? walking.step : "idle"}`}
-                      style={{
-                        "--crew":
-                          COSMETICS.find((x) => x.id === p.appearance)?.color ||
-                          CREWS[p.crew].color,
-                      }}
-                      title={p.name}
-                    >
-                      <HoodFigure
-                        color={
-                          COSMETICS.find((x) => x.id === p.appearance)?.color ||
-                          CREWS[p.crew].color
-                        }
-                        variant={p.crew}
-                      />
-                      {p.appearance && p.appearance !== "crew" && (
-                        <span className="token-emblem">
-                          <Icon
-                            name={
-                              COSMETICS.find((x) => x.id === p.appearance)?.icon
-                            }
-                            size={10}
-                          />
-                        </span>
-                      )}
-                    </span>
-                  ))}
+                  {tokenPlayers.map((p) => {
+                    const playerBark = effectiveBarks[p.id];
+                    return (
+                      <span
+                        className={`token ${walking?.id === p.id ? "hopping" : ""}`}
+                        key={`${p.id}-${walking?.id === p.id ? walking.step : "idle"}`}
+                        style={{
+                          "--crew":
+                            COSMETICS.find((x) => x.id === p.appearance)?.color ||
+                            CREWS[p.crew].color,
+                        }}
+                        title={p.name}
+                      >
+                        {playerBark && (
+                          <div
+                            className={`token-bark-bubble ${playerBark.dismissing ? "dismissing" : ""}`}
+                            role="status"
+                            aria-live="polite"
+                            data-player={p.id}
+                          >
+                            <span className="token-bark-text">{playerBark.text}</span>
+                            <span className="token-bark-tail" aria-hidden="true" />
+                          </div>
+                        )}
+                        <HoodFigure
+                          color={
+                            COSMETICS.find((x) => x.id === p.appearance)?.color ||
+                            CREWS[p.crew].color
+                          }
+                          variant={p.crew}
+                        />
+                        {p.appearance && p.appearance !== "crew" && (
+                          <span className="token-emblem">
+                            <Icon
+                              name={
+                                COSMETICS.find((x) => x.id === p.appearance)?.icon
+                              }
+                              size={10}
+                            />
+                          </span>
+                        )}
+                      </span>
+                    );
+                  })}
                   {players.length > 1 && (
                     <span
                       className="token-stack-count"

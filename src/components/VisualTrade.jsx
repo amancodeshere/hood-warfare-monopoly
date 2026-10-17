@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Handshake } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { Handshake, X } from "lucide-react";
 import { BOARD, money, DISTRICTS } from "../../shared/board.js";
 import { DISTRICTS as LEGACY_DISTRICTS } from "../../shared/legacy-board.js";
 import {
@@ -293,13 +293,21 @@ export function CashStepperButtons({
  * interactive property chips with swatches and mortgage flags,
  * quick cash stepper buttons, and a real-time Trade Value Meter.
  */
-export function VisualTrade({ game, act, disabled, counter, clearCounter }) {
+export function VisualTrade({
+  game,
+  act,
+  disabled,
+  counter,
+  clearCounter,
+  initialPartnerId,
+  onClose,
+}) {
   const me = game.players.find((p) => p.id === game.me),
     board = game.board || BOARD;
   const districts =
     game?.schemaVersion === 1 ? LEGACY_DISTRICTS : game?.districts || DISTRICTS;
 
-  const [to, setTo] = useState(counter?.from || ""),
+  const [to, setTo] = useState(counter?.from || initialPartnerId || ""),
     [give, setGive] = useState(counter?.takeTiles || []),
     [take, setTake] = useState(counter?.giveTiles || []),
     [cash, setCash] = useState(String(counter?.requestCash || 0)),
@@ -308,6 +316,15 @@ export function VisualTrade({ game, act, disabled, counter, clearCounter }) {
     [requestEscapes, setRequestEscapes] = useState(
       String(counter?.giveEscapes || 0),
     );
+
+  useEffect(() => {
+    if (initialPartnerId && !counter && initialPartnerId !== to) {
+      setTo(initialPartnerId);
+      setTake([]);
+      setRequestCash("0");
+      setRequestEscapes("0");
+    }
+  }, [initialPartnerId, counter, to]);
 
   const partner = game.players.find((p) => p.id === to);
   if (!me || me.out)
@@ -660,12 +677,120 @@ export function VisualTrade({ game, act, disabled, counter, clearCounter }) {
             </Btn>
           )}
 
+          {onClose && (
+            <Btn secondary onClick={onClose}>
+              Close negotiation
+            </Btn>
+          )}
+
           <p className="micro-note">
             Sell all buildings in a district before trading its properties. Debt
             trades must return fair value. Offers expire when the turn ends.
           </p>
         </>
       )}
+    </div>
+  );
+}
+
+/**
+ * Richup-style centered elevated glassmorphic modal popover for trade negotiations.
+ * Positioned directly over the board with backdrop blur, 1-click close button, and Escape key dismissal.
+ */
+export function TradeModal({
+  game,
+  act,
+  disabled,
+  counter,
+  clearCounter,
+  initialPartnerId,
+  onClose,
+}) {
+  const modalRef = useRef(null);
+
+  useEffect(() => {
+    const previous = document.activeElement;
+    modalRef.current?.focus({ preventScroll: true });
+
+    function handleKeyDown(e) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose?.();
+        return;
+      }
+      if (e.key === "Tab") {
+        const items = modalRef.current?.querySelectorAll(
+          'button:not(:disabled), [tabindex="0"], input:not(:disabled)',
+        );
+        if (!items?.length) return;
+        const first = items[0];
+        const last = items[items.length - 1];
+        if (
+          e.shiftKey &&
+          (document.activeElement === first ||
+            document.activeElement === modalRef.current)
+        ) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      previous?.focus();
+    };
+  }, [onClose]);
+
+  if (!game) return null;
+
+  return (
+    <div
+      className="deed-popover-backdrop trade-modal-backdrop"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose?.();
+      }}
+    >
+      <section
+        className="trade-card-popover trade-modal"
+        ref={modalRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-label="Trade negotiation"
+        aria-modal="true"
+      >
+        <div className="trade-modal-header">
+          <div className="trade-modal-title">
+            <Handshake size={20} className="trade-modal-icon" aria-hidden="true" />
+            <span className="trade-modal-tag">STREET DEAL</span>
+            <h3 className="trade-modal-heading">Trade Negotiation</h3>
+          </div>
+          <button
+            type="button"
+            className="icon-button trade-close-btn"
+            onClick={onClose}
+            aria-label="Close trade negotiation"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="trade-modal-body">
+          <VisualTrade
+            game={game}
+            act={act}
+            disabled={disabled}
+            counter={counter}
+            clearCounter={clearCounter}
+            initialPartnerId={initialPartnerId}
+            onClose={onClose}
+          />
+        </div>
+      </section>
     </div>
   );
 }

@@ -44,11 +44,14 @@ export function CrewRow({
   now,
   setHighlight,
   setPlayerOpen,
+  onTrade,
   lobby,
   BOARD = DEFAULT_BOARD,
 }) {
   const isActive =
     game?.status === "playing" && current?.id === p.id && !p.out;
+  const isRival =
+    game?.status === "playing" && p.id !== game?.me && !p.out && !p.preview;
   const turnDeadline = game?.turnDeadline || game?.deadline || 0;
   const totalTurnTime =
     game?.turnDeadline &&
@@ -126,6 +129,20 @@ export function CrewRow({
             : 0}{" "}
           blocks{p.jail > 0 ? " · jailed" : ""}
         </span>
+        {isRival && onTrade && (
+          <button
+            type="button"
+            className="crew-trade-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              onTrade(p);
+            }}
+            aria-label={`Trade with ${p.name}`}
+            title={`Trade with ${p.name}`}
+          >
+            🤝 Trade
+          </button>
+        )}
       </div>
       {game?.status === "lobby" && game.host === game.me && p.bot && (
         <button
@@ -146,6 +163,7 @@ export function CrewRoster({
   now,
   setHighlight,
   setPlayerOpen,
+  onTrade,
   lobby,
   disabled,
   BOARD = DEFAULT_BOARD,
@@ -184,6 +202,7 @@ export function CrewRoster({
             now={now}
             setHighlight={setHighlight}
             setPlayerOpen={setPlayerOpen}
+            onTrade={onTrade}
             lobby={lobby}
             BOARD={BOARD}
           />
