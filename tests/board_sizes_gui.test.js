@@ -279,7 +279,7 @@ test("Utilities & Transits: calculate rent accurately according to active board 
   // --- DeedCardPopover Transit Ladder Parity ---
   const deedCode = readFileSync(resolve("src/components/DeedCardPopover.jsx"), "utf8");
   assert.ok(
-    deedCode.includes("is28") && deedCode.includes("TRANSIT FARE LADDER"),
+    deedCode.includes("legacyTransitRates") && deedCode.includes("Fare schedule"),
     "DeedCardPopover must dynamically adapt transit fare ladder based on board length (is28)",
   );
   assert.ok(

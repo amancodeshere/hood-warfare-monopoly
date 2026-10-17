@@ -1,9 +1,29 @@
-import React, { useEffect } from "react";
-import { X, Users, Plus } from "lucide-react";
+import React, { useEffect, useRef } from "react";
+import { ArrowDown, ArrowUp, Building2, Hotel, Landmark, X } from "lucide-react";
 import { CREWS, money, BOARD as DEFAULT_BOARD, DISTRICTS } from "../../shared/board.js";
 import { BOARD as LEGACY_BOARD, DISTRICTS as LEGACY_DISTRICTS } from "../../shared/legacy-board.js";
-import { HoodFigure, StreetBuilding } from "../StreetPieces.jsx";
+import { HoodFigure } from "../StreetPieces.jsx";
 import { Button } from "./common.jsx";
+import "./BuildingManagement.css";
+
+const RENT_MULTIPLIERS = [1, 3, 6, 10, 16, 25];
+const MANAGE_PHASES = ["roll", "end", "rent", "buy"];
+
+function tileDescription(tile, game) {
+  if (tile.group !== undefined) return "";
+  if (tile.type === "transit") return "Fare scales with the number of transit lines your side owns.";
+  if (tile.type === "utility") return "Rent is based on the dice roll and utility ownership.";
+  if (tile.type === "stoppa") return "Spin to send 1–10% of your cash to the Community Plot.";
+  if (tile.type === "roulette") return "Six possible outcomes. One free spin.";
+  if (tile.type === "card") return "Draw a surprise from the streets.";
+  if (tile.type === "start") return "Collect $200 each time you pass Home Base.";
+  if (tile.type === "jail") return "Serve two turns, pay $100 bail, or use an escape card.";
+  if (tile.type === "raid") return "Go straight to County Jail.";
+  if (tile.type === "parking") return game?.settings?.communityCash === false
+    ? "Community payouts are off in this room."
+    : "Land here to collect the community pot.";
+  return "Pay $100 into the Community Plot.";
+}
 
 export function DeedCardPopover({
   t,
@@ -18,446 +38,231 @@ export function DeedCardPopover({
   propertyFocus,
 }) {
   const activeBoard = BOARD || game?.board || (game?.schemaVersion === 1 ? LEGACY_BOARD : DEFAULT_BOARD);
-  const is28 = activeBoard?.length === 28 || game?.schemaVersion === 1;
-  const allDistricts =
-    districts ||
-    (is28 ? LEGACY_DISTRICTS : DISTRICTS);
-  const q = game?.props[t.id];
-  const owner = game?.players?.find((p) => p.id === q?.owner);
-  const residents =
-    game?.players?.filter((p) => !p.out && p.pos === t.id) || [];
-  const manage = mine && ["roll", "end", "rent", "buy"].includes(game?.phase);
-  const full =
-    t.group !== undefined &&
-    activeBoard.filter((x) => x.group === t.group).every(
-      (x) =>
-        (game?.props[x.id]?.owner === me?.id ||
-          (game?.settings?.teams &&
-            me?.team != null &&
-            game?.players?.find((p) => p.id === game?.props[x.id]?.owner)
-              ?.team === me?.team)) &&
-        !game?.props[x.id]?.mortgaged,
-    );
+  const legacy = game?.schemaVersion === 1;
+  const legacyTransitRates = legacy || activeBoard?.length === 28;
+  const allDistricts = districts || (legacy ? LEGACY_DISTRICTS : DISTRICTS);
+  const props = game?.props || {};
+  const q = props[t.id];
+  const owner = game?.players?.find((player) => player.id === q?.owner);
+  const residents = game?.players?.filter((player) => !player.out && player.pos === t.id) || [];
+  const isProperty = t.type === "property";
+  const isTransit = t.type === "transit";
+  const isUtility = t.type === "utility";
+  const isPurchasable = Boolean(t.price);
+  const maxLevel = legacy ? 3 : 5;
+  const buildCost = t.build || 0;
+  const mortgageValue = t.price ? t.price / 2 : 0;
+  const redeemCost = t.price ? Math.ceil((t.price * 55) / 100) : 0;
+  const districtTiles = t.group === undefined ? [] : activeBoard.filter((tile) => tile.group === t.group);
+  const ownsSet = (player) => districtTiles.length > 0 && districtTiles.every((tile) => {
+    const tileOwner = game?.players?.find((player) => player.id === props[tile.id]?.owner);
+    const allied = player?.id != null && (tileOwner?.id === player.id || Boolean(
+      game?.settings?.teams && player?.team != null && tileOwner?.team === player.team,
+    ));
+    return Boolean(props[tile.id]) && allied && !props[tile.id]?.mortgaged;
+  });
+  const full = ownsSet(me);
+  const rentSetFull = ownsSet(owner);
+  const minLevel = districtTiles.length ? Math.min(...districtTiles.map((tile) => props[tile.id]?.level || 0)) : 0;
+  const maxDistrictLevel = districtTiles.length ? Math.max(...districtTiles.map((tile) => props[tile.id]?.level || 0)) : 0;
+  const managePhase = MANAGE_PHASES.includes(game?.phase);
+  const canManage = owner?.id === me?.id;
+  const actionBlocked = Boolean(disabled || !managePhase || mine === false);
 
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
   useEffect(() => {
+    const panel = propertyFocus.current;
     const previous = document.activeElement;
-    propertyFocus.current?.focus({ preventScroll: true });
-
-    function handleKeyDown(e) {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        onClose();
-        return;
-      }
-      if (e.key === "Tab") {
-        const items = propertyFocus.current?.querySelectorAll(
-          'button:not(:disabled), [tabindex="0"]',
+    panel?.focus({ preventScroll: true });
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeRef.current?.();
+      } else if (event.key === "Tab") {
+        const items = panel?.querySelectorAll(
+          'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex="0"]',
         );
         if (!items?.length) return;
         const first = items[0];
         const last = items[items.length - 1];
-        if (
-          e.shiftKey &&
-          (document.activeElement === first ||
-            document.activeElement === propertyFocus.current)
-        ) {
-          e.preventDefault();
+        const active = document.activeElement;
+        const outside = panel && !panel.contains(active);
+        if (event.shiftKey && (active === first || active === panel || outside)) {
+          event.preventDefault();
           last.focus();
-        } else if (!e.shiftKey && document.activeElement === last) {
-          e.preventDefault();
+        } else if (!event.shiftKey && (active === last || active === panel || outside)) {
+          event.preventDefault();
           first.focus();
         }
       }
-    }
-
+    };
     document.addEventListener("keydown", handleKeyDown);
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
-      previous?.focus();
+      previous?.focus?.();
     };
-  }, [onClose, propertyFocus]);
+    // The external ref is stable; callback changes should not restart focus management.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const districtColor =
-    t.group !== undefined
-      ? allDistricts[t.group]?.color
-      : t.type === "transit"
-        ? "#486253"
-        : t.type === "utility"
-          ? "#5f5c40"
-          : "#2f3d33";
+  const districtColor = t.group !== undefined
+    ? allDistricts[t.group]?.color
+    : isTransit ? "#486253" : isUtility ? "#5f5c40" : "#2f3d33";
+  const headerLabel = t.group !== undefined
+    ? allDistricts[t.group]?.name
+    : isTransit ? "City Transit" : isUtility ? "Utilities" : "Street Square";
 
-  const isProp = t.type === "property";
-  const isTransit = t.type === "transit";
-  const isUtil = t.type === "utility";
-  const isPurchasable = Boolean(t.price);
+  const upgradeReason = !canManage ? "Only the deed owner can build." : actionBlocked
+    ? disabled ? "Finish the current selection first." : mine === false ? "Wait for your turn to build." : "Finish the current event first."
+    : !full ? "Own the full district without mortgages to build."
+    : q?.level >= maxLevel ? "This block is fully built."
+    : game?.settings?.evenBuild && q?.level !== minLevel ? "Build evenly across the district."
+    : (me?.cash || 0) < buildCost ? `Need ${money(buildCost - (me?.cash || 0))} more to build.`
+    : "";
+  const sellReason = !canManage ? "Only the deed owner can sell a building."
+    : actionBlocked ? disabled ? "Finish the current selection first." : mine === false ? "Wait for your turn to sell." : "Finish the current event first."
+    : !q?.level ? "There is no building to sell."
+    : game?.settings?.evenBuild && q.level !== maxDistrictLevel ? "Sell evenly across the district."
+    : "";
+  const mortgageReason = !canManage ? "Only the deed owner can mortgage this deed."
+    : actionBlocked ? disabled ? "Finish the current selection first." : mine === false ? "Wait for your turn to manage deeds." : "Finish the current event first."
+    : game?.settings?.mortgage === false ? "Mortgages are disabled in this room."
+    : q?.mortgaged ? "This deed is already mortgaged."
+    : q?.level ? "Sell all buildings before mortgaging."
+    : districtTiles.some((tile) => props[tile.id]?.level) ? "Sell all district buildings before mortgaging."
+    : "";
+  const redeemReason = !canManage ? "Only the deed owner can redeem this deed."
+    : actionBlocked ? disabled ? "Finish the current selection first." : mine === false ? "Wait for your turn to redeem." : "Finish the current event first."
+    : !q?.mortgaged ? "This deed is not mortgaged."
+    : (me?.cash || 0) < redeemCost ? `Need ${money(redeemCost - (me?.cash || 0))} more to redeem.`
+    : "";
+
+  const rentRows = isProperty ? RENT_MULTIPLIERS.slice(0, maxLevel + 1).map((multiplier, level) => ({
+    level,
+    label: level === 0 ? (rentSetFull && game?.settings?.doubleRent !== false ? "Full district" : "Street rent") : level === maxLevel && !legacy ? "Hotel" : `${level} ${level === 1 ? "house" : "houses"}`,
+    amount: t.rent * multiplier * (level === 0 && rentSetFull && game?.settings?.doubleRent !== false ? 2 : 1),
+  })) : [];
+  const activeLevel = q?.level || 0;
+  const prisonRentPaused = Boolean(owner && game?.settings?.prisonRent === false && owner.jail);
+  const rentPaused = Boolean(q?.mortgaged || prisonRentPaused);
+  const blackoutActive = Boolean(t.group !== undefined && game?.blackoutDistrict === t.group);
+  const nominalCurrentRent = rentRows[activeLevel]?.amount;
+  const currentRent = nominalCurrentRent == null ? null : blackoutActive ? Math.floor(nominalCurrentRent / 2) : nominalCurrentRent;
+  const showCurrentRent = Boolean(owner && !rentPaused);
 
   return (
-    <div
-      className="deed-popover-backdrop"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
+    <div className="deed-popover-backdrop" onClick={(event) => {
+      if (event.target === event.currentTarget) closeRef.current?.();
+    }}>
       <section
-        className="property-detail deed-card-popover"
+        className="building-popover deed-card-popover"
         ref={propertyFocus}
         tabIndex={-1}
-        role="region"
-        aria-label={t.name}
+        role="dialog"
         aria-modal="true"
         aria-labelledby="property-heading"
         style={{ "--district": districtColor }}
       >
-        <div className="deed-drawer-handle" />
-
-        <div className="deed-banner" style={{ background: districtColor }}>
-          <div className="deed-banner-content property-title">
-            <span className="deed-banner-tag">
-              {t.group !== undefined
-                ? `TITLE DEED · ${allDistricts[t.group]?.name.toUpperCase()}`
-                : isTransit
-                  ? "TITLE DEED · CITY TRANSIT"
-                  : isUtil
-                    ? "TITLE DEED · UTILITY PLUG"
-                    : "STREET SQUARE"}
-            </span>
-            <h3 id="property-heading" className="deed-street-title">
-              {t.name}
-            </h3>
+        <header className={`building-heading ${t.group === undefined ? "building-heading-neutral" : ""}`} style={{ backgroundColor: districtColor }}>
+          <div className="building-heading-copy">
+            <span className="building-district">{headerLabel}</span>
+            <h2 id="property-heading">{t.name}</h2>
           </div>
-          <button
-            className="icon-button deed-close-btn"
-            onClick={onClose}
-            aria-label="Close property details"
-          >
+          <button className="building-close" onClick={() => closeRef.current?.()} aria-label="Close property details">
             <X size={18} />
           </button>
-        </div>
+        </header>
 
-        <div className="deed-body">
-          {owner ? (
-            <div
-              className="property-owner-summary deed-owner-card"
-              style={{ "--crew": CREWS[owner.crew].color }}
-            >
-              <div className="owner-avatar">
-                <HoodFigure
-                  color={CREWS[owner.crew].color}
-                  variant={owner.crew}
-                />
-              </div>
-              <div className="owner-meta">
-                <div className="owner-title-row">
-                  <span
-                    className="owner-badge-tag"
-                    style={{ background: CREWS[owner.crew].color }}
-                  >
-                    {CREWS[owner.crew].name}
-                  </span>
-                  <strong>
-                    {owner.id === me?.id
-                      ? "Your block"
-                      : `Owned by ${owner.name}`}
-                  </strong>
-                </div>
-                <span className="owner-status">
-                  {q.mortgaged
-                    ? "MORTGAGED · Rent paused"
-                    : q.level === 5
-                      ? "Hotel built"
-                      : q.level
-                        ? `${q.level} house${q.level > 1 ? "s" : ""} built`
-                        : "Street level · No buildings"}
-                </span>
-              </div>
-              {q.level > 0 && <StreetBuilding hotel={q.level === 5} />}
-            </div>
-          ) : isPurchasable ? (
-            <div className="deed-unowned-badge">
-              <span className="unclaimed-dot" />
-              <span>
-                Unclaimed block · Available for <b>{money(t.price)}</b>
-              </span>
-            </div>
-          ) : null}
-
-          <div className="deed-description">
-            <p>
-              {t.group !== undefined
-                ? allDistricts[t.group]?.name
-                : t.type === "transit"
-                  ? "City transit station. Collects scaled fare based on lines held."
-                  : t.type === "stoppa"
-                    ? "Spin away 1–10% of cash into the Community Plot."
-                    : t.type === "utility"
-                      ? "Rent is 4× dice, or 15× when your side owns both plugs."
-                      : t.type === "roulette"
-                        ? "Six outcomes. One free spin."
-                        : t.type === "card"
-                          ? "A surprise from the streets."
-                          : t.type === "start"
-                            ? "Collect $200 each time you pass."
-                            : t.type === "jail"
-                              ? "Two turns, $100 bail, or an escape card."
-                              : t.type === "raid"
-                                ? "Go straight to County Jail."
-                                : t.type === "parking"
-                                  ? game?.settings?.communityCash === false
-                                    ? "Community payouts are off in this room."
-                                    : "Land here to collect the community pot."
-                                  : "Pay $100 into the community pot."}
-            </p>
-          </div>
-
-          {t.type === "parking" && (
-            <div className="detail-stat">
-              <span>Community Plot balance</span>
-              <b>{money(game?.pot || 0)}</b>
-            </div>
-          )}
-
-          {isProp && (
-            <div className="deed-rent-ladder">
-              <div className="deed-ladder-header">
-                <span>RENT SCHEDULE</span>
-                <span className="deed-base-rent">
-                  Base Rent: <b>{money(t.rent)}</b>
-                </span>
-              </div>
-              <div className="deed-ladder-rows">
-                <div
-                  className={`deed-ladder-row ${q && !q.level && !q.mortgaged ? "current-tier" : ""}`}
-                >
-                  <span className="tier-label">Base Rent (Street)</span>
-                  <span className="tier-dots" />
-                  <span className="tier-val">{money(t.rent)}</span>
-                </div>
-                <div className="deed-ladder-row muted">
-                  <span className="tier-label">With Full District</span>
-                  <span className="tier-dots" />
-                  <span className="tier-val">{money(t.rent * 2)}</span>
-                </div>
-                <div
-                  className={`deed-ladder-row ${q?.level === 1 ? "current-tier" : ""}`}
-                >
-                  <span className="tier-label">
-                    <span className="house-pip">🏠</span> With 1 House
-                  </span>
-                  <span className="tier-dots" />
-                  <span className="tier-val">{money(t.rent * 3)}</span>
-                </div>
-                <div
-                  className={`deed-ladder-row ${q?.level === 2 ? "current-tier" : ""}`}
-                >
-                  <span className="tier-label">
-                    <span className="house-pip">🏠🏠</span> With 2 Houses
-                  </span>
-                  <span className="tier-dots" />
-                  <span className="tier-val">{money(t.rent * 6)}</span>
-                </div>
-                <div
-                  className={`deed-ladder-row ${q?.level === 3 ? "current-tier" : ""}`}
-                >
-                  <span className="tier-label">
-                    <span className="house-pip">🏠🏠🏠</span> With 3 Houses
-                  </span>
-                  <span className="tier-dots" />
-                  <span className="tier-val">{money(t.rent * 10)}</span>
-                </div>
-                <div
-                  className={`deed-ladder-row ${q?.level === 4 ? "current-tier" : ""}`}
-                >
-                  <span className="tier-label">
-                    <span className="house-pip">🏠🏠🏠🏠</span> With 4 Houses
-                  </span>
-                  <span className="tier-dots" />
-                  <span className="tier-val">{money(t.rent * 16)}</span>
-                </div>
-                <div
-                  className={`deed-ladder-row hotel ${q?.level === 5 ? "current-tier" : ""}`}
-                >
-                  <span className="tier-label">
-                    <span className="hotel-pip">🏨</span> With Hotel
-                  </span>
-                  <span className="tier-dots" />
-                  <span className="tier-val">{money(t.rent * 25)}</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {isTransit && (
-            <div className="deed-rent-ladder">
-              <div className="deed-ladder-header">
-                <span>TRANSIT FARE LADDER</span>
-                <span className="deed-base-rent">
-                  Base: <b>{money(t.rent || (is28 ? 45 : 25))}</b>
-                </span>
-              </div>
-              <div className="deed-ladder-rows">
-                {(is28
-                  ? [
-                      { count: 1, val: t.rent || 45 },
-                      { count: 2, val: (t.rent || 45) * 2 },
-                    ]
-                  : [
-                      { count: 1, val: t.rent || 25 },
-                      { count: 2, val: (t.rent || 25) * 2 },
-                      { count: 3, val: (t.rent || 25) * 4 },
-                      { count: 4, val: (t.rent || 25) * 8 },
-                    ]
-                ).map(({ count, val }) => (
-                  <div key={count} className="deed-ladder-row">
-                    <span className="tier-label">
-                      If {count} Station{count > 1 ? "s" : ""} owned
-                    </span>
-                    <span className="tier-dots" />
-                    <span className="tier-val">{money(val)}</span>
+        <div className="building-content">
+          {isProperty && (
+            <section className="building-rent-section" aria-label="Rent schedule">
+              <div className="building-section-title"><span>Rent schedule</span><b>Current: {rentPaused ? "Paused" : showCurrentRent && currentRent != null ? money(currentRent) : "—"}</b></div>
+              <div className="building-rent-list">
+                {rentRows.map((row) => (
+                  <div key={row.level} className={`building-rent-row ${showCurrentRent && activeLevel === row.level ? "is-current" : ""}`}>
+                    <span>{row.label}</span><b>{money(row.amount)}</b>
                   </div>
                 ))}
               </div>
-            </div>
+              {q?.mortgaged && <p className="building-inline-note">Rent is paused while mortgaged.</p>}
+              {!q?.mortgaged && prisonRentPaused && <p className="building-inline-note">Rent is paused while the owner is in jail.</p>}
+              {blackoutActive && showCurrentRent && <p className="building-inline-note">A district blackout halves rent.</p>}
+            </section>
           )}
 
-          {isUtil && (
-            <div className="deed-rent-ladder">
-              <div className="deed-ladder-header">
-                <span>UTILITY RATES</span>
+          {(isTransit || isUtility) && (
+            <section className="building-rent-section" aria-label={isTransit ? "Transit fare schedule" : "Utility rates"}>
+              <div className="building-section-title"><span>{isTransit ? "Fare schedule" : "Utility rates"}</span><b>Base {money(t.rent || (isTransit ? (legacyTransitRates ? 45 : 25) : 4))}</b></div>
+              <div className="building-rent-list">
+                {isTransit ? (legacyTransitRates ? [1, 2] : [1, 2, 3, 4]).map((count) => (
+                  <div className="building-rent-row" key={count}><span>{count} line{count > 1 ? "s" : ""} owned</span><b>{money((t.rent || (legacyTransitRates ? 45 : 25)) * (legacyTransitRates ? count : 2 ** (count - 1)))}</b></div>
+                )) : <>
+                  <div className="building-rent-row"><span>One utility owned</span><b>4× dice</b></div>
+                  <div className="building-rent-row"><span>Both utilities owned</span><b>15× dice</b></div>
+                </>}
               </div>
-              <div className="deed-ladder-rows">
-                <div className="deed-ladder-row">
-                  <span className="tier-label">If 1 Plug owned</span>
-                  <span className="tier-dots" />
-                  <span className="tier-val">4× Dice Total</span>
-                </div>
-                <div className="deed-ladder-row">
-                  <span className="tier-label">If both Plugs owned</span>
-                  <span className="tier-dots" />
-                  <span className="tier-val">15× Dice Total</span>
-                </div>
-              </div>
-            </div>
+            </section>
           )}
 
-          {isPurchasable && (
-            <div className="deed-financials">
-              <div className="deed-finance-grid">
-                {t.build ? (
-                  <div className="deed-finance-item">
-                    <span className="label">Build Cost</span>
-                    <b className="val">{money(t.build)}</b>
-                    <span className="sub">per house/hotel</span>
-                  </div>
-                ) : (
-                  <div className="deed-finance-item">
-                    <span className="label">Buy Price</span>
-                    <b className="val">{money(t.price)}</b>
-                    <span className="sub">deed purchase</span>
-                  </div>
-                )}
-                <div className="deed-finance-item">
-                  <span className="label">Mortgage</span>
-                  <b className="val">{money(t.price / 2)}</b>
-                  <span className="sub">50% cash payout</span>
+          {canManage && isPurchasable && (
+            <section className="building-controls" aria-label="Property management">
+              {isProperty && (
+                <div className="building-action-wrap">
+                  <Button secondary className="building-action" disabled={Boolean(upgradeReason)} onClick={() => act({ type: "upgrade", tile: t.id })}>
+                    {activeLevel === maxLevel - 1 && !legacy ? <Hotel size={15} /> : <ArrowUp size={15} />}
+                    {activeLevel === maxLevel - 1 && !legacy ? `Hotel · ${money(buildCost)}` : `Build · ${money(buildCost)}`}
+                  </Button>
+                  {upgradeReason && <span className="building-reason">{upgradeReason}</span>}
                 </div>
-                <div className="deed-finance-item">
-                  <span className="label">Redeem</span>
-                  <b className="val">
-                    {money(Math.ceil((t.price * 55) / 100))}
-                  </b>
-                  <span className="sub">55% to unfreeze</span>
+              )}
+              {isProperty && (
+                <div className="building-action-wrap">
+                  <Button secondary className="building-action" disabled={Boolean(sellReason)} onClick={() => act({ type: "sell", tile: t.id })}>
+                    <ArrowDown size={15} /> Sell · {money(Math.floor(buildCost / 2))}
+                  </Button>
+                  {sellReason && <span className="building-reason">{sellReason}</span>}
                 </div>
+              )}
+              <div className="building-action-wrap">
+                <Button secondary className="building-action" disabled={Boolean(q?.mortgaged ? redeemReason : mortgageReason)} onClick={() => act({ type: q?.mortgaged ? "redeem" : "mortgage", tile: t.id })}>
+                  <Landmark size={15} /> {q?.mortgaged ? `Redeem · ${money(redeemCost)}` : `Mortgage · +${money(mortgageValue)}`}
+                </Button>
+                {(q?.mortgaged ? redeemReason : mortgageReason) && <span className="building-reason">{q?.mortgaged ? redeemReason : mortgageReason}</span>}
               </div>
-            </div>
+            </section>
           )}
 
-          <div className="deed-residents-section">
-            <div className="deed-residents-header">
-              <Users size={14} />
-              <span>CREWS ON THIS BLOCK</span>
-              <span className="resident-count">{residents.length}</span>
+          <section className="building-facts" aria-label="Ownership and costs">
+            <div className="building-owner-line">
+              {owner && <span className="building-avatar" style={{ "--crew": CREWS[owner.crew]?.color || "#c6ed72" }}><HoodFigure color={CREWS[owner.crew]?.color} variant={owner.crew} /></span>}
+              <span className="building-fact-label">Owner</span>
+              <b>{owner ? owner.id === me?.id ? "Your crew" : owner.name : isPurchasable ? "Unclaimed" : "—"}</b>
+              {q?.mortgaged && <span className="building-mortgage-tag">Mortgaged</span>}
             </div>
-            {residents.length > 0 ? (
-              <div
-                className="property-residents deed-residents-list"
-                aria-label="Crews on this block"
-              >
-                {residents.map((p) => (
-                  <span
-                    key={p.id}
-                    className="resident-pill"
-                    style={{ "--crew": CREWS[p.crew].color }}
-                  >
-                    <HoodFigure
-                      color={CREWS[p.crew].color}
-                      variant={p.crew}
-                    />
-                    <b>{p.id === me?.id ? "You" : p.name}</b>
-                    <small>{CREWS[p.crew].name}</small>
-                  </span>
-                ))}
+            {isPurchasable && (
+              <div className="building-cost-line">
+                <span><small>Purchase</small><b>{money(t.price)}</b></span>
+                {isProperty && <span><small>Build cost</small><b>{money(buildCost)}</b></span>}
+                <span><small>{q?.mortgaged ? "Redeem" : "Mortgage value"}</small><b>{money(q?.mortgaged ? redeemCost : mortgageValue)}</b></span>
               </div>
-            ) : (
-              <p className="deed-no-residents">No crews on this block</p>
             )}
-          </div>
+          </section>
 
-          {owner?.id === me?.id && (
-            <div className="property-actions">
-              {t.type === "property" && (
-                <Button
-                  secondary
-                  disabled={
-                    !manage ||
-                    !full ||
-                    q.level >= (game.schemaVersion === 1 ? 3 : 5) ||
-                    me.cash < t.build ||
-                    disabled
-                  }
-                  onClick={() => act({ type: "upgrade", tile: t.id })}
-                >
-                  <Plus size={15} /> Build {money(t.build)}
-                </Button>
-              )}
-              {q.level > 0 ? (
-                <Button
-                  secondary
-                  disabled={!manage || disabled}
-                  onClick={() => act({ type: "sell", tile: t.id })}
-                >
-                  Sell business {money(Math.floor(t.build / 2))}
-                </Button>
-              ) : (
-                <Button
-                  secondary
-                  disabled={
-                    !manage ||
-                    disabled ||
-                    (!q.mortgaged && !game.settings.mortgage) ||
-                    (q.mortgaged && me.cash < Math.ceil((t.price * 55) / 100))
-                  }
-                  onClick={() =>
-                    act({
-                      type: q.mortgaged ? "redeem" : "mortgage",
-                      tile: t.id,
-                    })
-                  }
-                >
-                  {q.mortgaged
-                    ? "Redeem " + money(Math.ceil((t.price * 55) / 100))
-                    : "Mortgage +" + money(t.price / 2)}
-                </Button>
-              )}
-              {!manage && (
-                <p className="micro-note">
-                  Manage turf on your turn after resolving special events.
-                </p>
-              )}
-              {t.type === "property" && !full && (
-                <p className="micro-note">
-                  Own the full district without mortgages to build.
-                </p>
-              )}
+          {!isProperty && !isTransit && !isUtility && isPurchasable && (
+            <p className="building-description">{tileDescription(t, game)}</p>
+          )}
+          {!isPurchasable && (
+            <div className="building-special-info">
+              <p>{tileDescription(t, game)}</p>
+              {t.type === "parking" && <b>Community Plot · {money(game?.pot || 0)}</b>}
+            </div>
+          )}
+
+          {residents.length > 0 && (
+            <div className="building-residents" aria-label={`${residents.length} crews on this block`}>
+              <Building2 size={14} />
+              <span>{residents.map((player) => player.id === me?.id ? "You" : player.name).join(", ")}</span>
             </div>
           )}
         </div>

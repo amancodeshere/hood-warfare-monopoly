@@ -52,7 +52,6 @@ import { Modal } from "./Modal.jsx";
 import {
   SettingsPanel,
   RoomsPanel,
-  ExchangePanel,
   TradeSummary,
   ChatPanel,
   AccountPanel,
@@ -1062,10 +1061,11 @@ function App() {
             now={now}
             setHighlight={setHighlight}
             setPlayerOpen={setPlayerOpen}
-            onTrade={(rival) => {
+            onTrade={me && !me.out ? (rival) => {
+              setCounterOffer(null);
               setTradePartnerId(rival?.id || null);
               setTradeModalOpen(true);
-            }}
+            } : undefined}
             lobby={lobby}
             disabled={disabled}
             BOARD={BOARD}
@@ -1628,7 +1628,6 @@ function App() {
                 {[
                   { id: "turn", label: "The move" },
                   { id: "turf", label: "My turf" },
-                  { id: "trade", label: "Trade" },
                   { id: "chat", label: "Chat" },
                 ].map((x) => (
                   <button
@@ -1688,7 +1687,8 @@ function App() {
                       }
                       onClick={() => {
                         setCounterOffer(game.trade);
-                        setTab("trade");
+                        setTradePartnerId(null);
+                        setTradeModalOpen(true);
                       }}
                     >
                       Counteroffer
@@ -1709,6 +1709,28 @@ function App() {
                   </div>
                 </div>
               )}
+              {game.trade?.from === game.me && (
+                <div className="trade-outgoing-summary" aria-label="Outgoing trade">
+                  <Handshake size={18} />
+                  <div>
+                    <strong>Offer pending</strong>
+                    <span>Waiting for {game.players.find((p) => p.id === game.trade.to)?.name || "your rival"}</span>
+                  </div>
+                  <Button secondary disabled={disabled} onClick={() => act({ type: "trade-cancel", offerId: game.trade.id })}>Withdraw</Button>
+                </div>
+              )}
+              <button
+                type="button"
+                className="create-trade-button"
+                disabled={!me || me.out || !!game.trade || !game.players.some((p) => p.id !== game.me && !p.out && !p.preview)}
+                onClick={() => {
+                  setCounterOffer(null);
+                  setTradePartnerId(null);
+                  setTradeModalOpen(true);
+                }}
+              >
+                <Handshake size={17} /> Create trade
+              </button>
               {tab === "turn" ? (
                 <div className="turn-panel">{turnPanel()}</div>
               ) : tab === "turf" ? (
@@ -1886,27 +1908,7 @@ function App() {
                     onPlayer={setPlayerOpen}
                   />
                 </div>
-              ) : (
-                <>
-                  <div className="trade-tab-popout-wrap">
-                    <button
-                      type="button"
-                      className="text-button trade-popout-btn"
-                      onClick={() => setTradeModalOpen(true)}
-                    >
-                      ⤢ Open Popover Modal
-                    </button>
-                  </div>
-                  <ExchangePanel
-                    key={counterOffer?.id || "new"}
-                    game={game}
-                    act={act}
-                    disabled={disabled}
-                    counter={counterOffer}
-                    clearCounter={() => setCounterOffer(null)}
-                  />
-                </>
-              )}
+              ) : null}
               {tab !== "chat" && (
                 <div className="board-chat sidebar-chat-tab">
                   <ChatPanel game={game} emit={emit} disabled={!connected || !me} onPlayer={setPlayerOpen} />
@@ -2181,7 +2183,10 @@ function App() {
           counter={counterOffer}
           clearCounter={() => setCounterOffer(null)}
           initialPartnerId={tradePartnerId}
-          onClose={() => setTradeModalOpen(false)}
+          onClose={() => {
+            setTradeModalOpen(false);
+            setCounterOffer(null);
+          }}
         />
       )}
     </>

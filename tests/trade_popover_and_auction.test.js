@@ -26,7 +26,7 @@ test("CrewRoster: exports CrewRow and CrewRoster with rival Trade action button"
   assert.ok(content.includes("onTrade={onTrade}"), "CrewRoster must forward onTrade prop to CrewRow");
 });
 
-test("VisualTrade & TradeModal: exports Richup-style centered elevated modal popover with backdrop blur", () => {
+test("VisualTrade & TradeModal: exports an exclusive accessible trade overlay", () => {
   const content = readFileSync(resolve("src/components/VisualTrade.jsx"), "utf8");
 
   // Component exports
@@ -35,12 +35,12 @@ test("VisualTrade & TradeModal: exports Richup-style centered elevated modal pop
   assert.ok(content.includes("export const ExchangePanel = VisualTrade;"), "Must export ExchangePanel alias");
 
   // TradeModal modal attributes & backdrop blur
-  assert.ok(content.includes('className="deed-popover-backdrop trade-modal-backdrop"'), "Must use elevated deed-popover-backdrop class");
-  assert.ok(content.includes('className="trade-card-popover trade-modal"'), "Must use trade-card-popover class");
+  assert.ok(content.includes('className="trade-overlay-backdrop"'), "Must use elevated deed-popover-backdrop class");
+  assert.ok(content.includes('className="trade-modal"'), "Must use trade-card-popover class");
   assert.ok(content.includes('role="dialog"'), "Must have role=dialog");
   assert.ok(content.includes('aria-modal="true"'), "Must declare aria-modal=true");
   assert.ok(content.includes('aria-label="Trade negotiation"'), "Must have aria-label Trade negotiation");
-  assert.ok(content.includes("Trade Negotiation"), "Must render Trade Negotiation heading");
+  assert.ok(content.includes("Trade negotiation"), "Must render Trade Negotiation heading");
 
   // 1-click close button & Escape key dismissal
   assert.ok(content.includes('className="icon-button trade-close-btn"'), "Must provide 1-click close button");
@@ -95,7 +95,7 @@ test("Auction: smooth bidding UI with stable input, quick-bid chips, and exact P
   assert.ok(content.includes('aria-label="Match high bid plus $10"'), "Must have Match + $10 aria-label");
 });
 
-test("main.jsx: integrates TradeModal, passes onTrade to CrewRoster, and preserves embedded trade tab", () => {
+test("main.jsx: integrates TradeModal, passes onTrade to CrewRoster, and removes the embedded trade composer", () => {
   const mainContent = readFileSync(resolve("src/main.jsx"), "utf8");
 
   // Imports
@@ -120,7 +120,7 @@ test("main.jsx: integrates TradeModal, passes onTrade to CrewRoster, and preserv
   assert.ok(mainContent.includes("tradeModalOpen && game"), "Must conditionally render TradeModal");
 
   // Backward compatibility: embedded Trade tab preserved
-  assert.ok(mainContent.includes("<ExchangePanel"), "Embedded ExchangePanel in trade tab must be preserved");
+  assert.ok(!mainContent.includes("<ExchangePanel"), "Trade composer must only render inside its overlay");
 
   // Re-exports
   assert.ok(

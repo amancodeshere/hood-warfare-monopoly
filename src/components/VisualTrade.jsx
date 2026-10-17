@@ -1,15 +1,17 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { Handshake, X } from "lucide-react";
 import { BOARD, money, DISTRICTS } from "../../shared/board.js";
 import { DISTRICTS as LEGACY_DISTRICTS } from "../../shared/legacy-board.js";
+import { ArrowLeft, ArrowLeftRight, Send } from "lucide-react";
+import "./TradeOverlay.css";
 import {
   getDistrictColor,
   stepCash,
   calculateTradeValues,
 } from "../../shared/trading.js";
 
-const Btn = ({ secondary = false, children, ...props }) => (
-  <button className={`button ${secondary ? "secondary" : ""}`} {...props}>
+const Btn = ({ secondary = false, className = "", children, ...props }) => (
+  <button className={`button ${secondary ? "secondary" : ""} ${className}`} {...props}>
     {children}
   </button>
 );
@@ -310,27 +312,58 @@ export function VisualTrade({
       : game?.districts || DISTRICTS;
 
   const [to, setTo] = useState(counter?.from || initialPartnerId || ""),
+    [step, setStep] = useState(counter || initialPartnerId ? "compose" : "choose"),
     [give, setGive] = useState(counter?.takeTiles || []),
     [take, setTake] = useState(counter?.giveTiles || []),
     [cash, setCash] = useState(String(counter?.requestCash || 0)),
     [requestCash, setRequestCash] = useState(String(counter?.cash || 0)),
     [escapes, setEscapes] = useState(String(counter?.takeEscapes || 0)),
-    [requestEscapes, setRequestEscapes] = useState(
-      String(counter?.giveEscapes || 0),
-    );
-
-  useEffect(() => {
-    if (initialPartnerId && !counter && initialPartnerId !== to) {
-      setTo(initialPartnerId);
-      setTake([]);
-      setRequestCash("0");
-      setRequestEscapes("0");
-    }
-  }, [initialPartnerId, counter, to]);
-
+    [requestEscapes, setRequestEscapes] = useState(String(counter?.giveEscapes || 0)),
+    [submitError, setSubmitError] = useState(""),
+    [sent, setSent] = useState(false);
   const partner = game.players.find((p) => p.id === to);
-  if (!me || me.out)
-    return <p className="empty-copy">Trading is for active crews.</p>;
+  const stepFocusRef = useRef(null);
+  useEffect(() => {
+    stepFocusRef.current?.focus({ preventScroll: true });
+  }, [step]);
+  useEffect(() => {
+    setEscapes((value) => Number(value) > (me?.escapes || 0) ? String(me?.escapes || 0) : value);
+  }, [me?.escapes]);
+  useEffect(() => {
+    setRequestEscapes((value) => Number(value) > (partner?.escapes || 0) ? String(partner?.escapes || 0) : value);
+  }, [partner?.escapes]);
+
+  const activeRivals = game.players.filter((p) => p.id !== game.me && !p.out && !p.preview);
+  const choosePartner = (id) => {
+    setTo(id);
+    setGive([]);
+    setTake([]);
+    setCash("0");
+    setRequestCash("0");
+    setEscapes("0");
+    setRequestEscapes("0");
+    setSubmitError("");
+    setSent(false);
+    setStep("compose");
+  };
+  const setBoundedAmount = (value, max, setter) => {
+    if (value === "") return setter("");
+    const amount = Number(value);
+    if (Number.isFinite(amount)) setter(String(Math.min(max, Math.max(0, Math.trunc(amount)))));
+  };
+  const backToChooser = () => {
+    setTo("");
+    setGive([]);
+    setTake([]);
+    setCash("0");
+    setRequestCash("0");
+    setEscapes("0");
+    setRequestEscapes("0");
+    setSubmitError("");
+    setSent(false);
+    clearCounter?.();
+    setStep("choose");
+  };
 
   const available = (t, id) =>
     game.props[t.id]?.owner === id &&
@@ -343,7 +376,7 @@ export function VisualTrade({
 
   const movable = ["roll", "end", "rent", "buy"].includes(game.phase);
   const draft = {
-    from: me.id,
+    from: me?.id,
     to,
     giveTiles: give,
     takeTiles: take,
@@ -360,6 +393,7 @@ export function VisualTrade({
     Number(value) <= max;
 
   const valid =
+    me && !me.out &&
     partner &&
     !partner.out &&
     validAmount(cash, me.cash) &&
@@ -401,87 +435,34 @@ export function VisualTrade({
     );
   };
 
+  if (!me || me.out) return <p className="trade-overlay-message">Trading is available to active crews.</p>;
+  if (game.trade?.from === me.id && !counter) {
+    const recipient = game.players.find((p) => p.id === game.trade.to);
+    return <div className="trade-pending-view"><p role="status">Offer sent to {recipient?.name || "your rival"}. Waiting for an answer.</p><TradeSummary game={game} offer={game.trade} /><Btn secondary disabled={disabled} onClick={() => act({ type: "trade-cancel", offerId: game.trade.id })}>Withdraw offer</Btn></div>;
+  }
+  if (step === "choose") return (
+    <div className="trade-chooser">
+      <h3 ref={stepFocusRef} tabIndex={-1}>Create a trade</h3>
+      <p>Select an active player to trade with:</p>
+      {counter && <p className="trade-overlay-notice">The offer changed or expired. Choose a player to start a fresh trade.</p>}
+      {activeRivals.length ? activeRivals.map((p) => <button type="button" key={p.id} className="trade-rival-choice" aria-label={`Trade with ${p.name}`} onClick={() => choosePartner(p.id)}><span className="trade-rival-mark" aria-hidden="true">{p.name.slice(0, 1).toUpperCase()}</span><span>{p.name}</span><small>{money(p.cash)}</small></button>) : <p className="trade-overlay-message">No active rivals are available to trade.</p>}
+    </div>
+  );
   return (
-    <div className="exchange">
-      <div className="turf-heading">
-        <h2>{counter ? "Make a counteroffer." : "Let’s make a deal."}</h2>
-        <p>
-          Swap multiple properties, cash, and escape cards. Any active crew can
-          negotiate between events.
-        </p>
-      </div>
-
-      {game.trade?.from === me.id ? (
-        <>
-          <p className="waiting">
-            Offer sent to{" "}
-            {game.players.find((p) => p.id === game.trade.to)?.name}. Waiting
-            for an answer.
-          </p>
-          <TradeSummary game={game} offer={game.trade} />
-          <Btn
-            secondary
-            disabled={disabled}
-            onClick={() =>
-              act({ type: "trade-cancel", offerId: game.trade.id })
-            }
-          >
-            Withdraw offer
-          </Btn>
-        </>
-      ) : (
-        <>
-          {counter && (
-            <p className="panel-notice" role="status">
-              {stale
-                ? "This offer was replaced or expired. Start a fresh deal."
-                : "The original stays open until you send your counteroffer. Sending replaces it; no assets move yet."}
-              <button className="text-button" onClick={clearCounter}>
-                Discard counteroffer draft
-              </button>
-            </p>
-          )}
-
-          <fieldset
-            className="trade-crew-choices"
-            disabled={!!counter || disabled}
-          >
-            <legend>Trade with</legend>
-            {game.players
-              .filter((p) => p.id !== me.id && !p.out)
-              .map((p) => (
-                <label key={p.id}>
-                  <input
-                    type="radio"
-                    name="trade-partner"
-                    value={p.id}
-                    checked={to === p.id}
-                    onChange={() => {
-                      setTo(p.id);
-                      setTake([]);
-                      setRequestCash("0");
-                      setRequestEscapes("0");
-                    }}
-                  />
-                  <span>
-                    {p.name} · {money(p.cash)}
-                  </span>
-                </label>
-              ))}
-          </fieldset>
-
+      <div className="exchange trade-composer">
+        <div className="trade-composer-content">
+          {counter && <p className="trade-overlay-notice" role="status">{stale ? "This offer was replaced or expired. Start a fresh deal." : "Counteroffer draft · the original offer stays open until you send this."}</p>}
+          <div className="trade-composer-title"><button ref={stepFocusRef} type="button" className="trade-back-btn" onClick={backToChooser} aria-label="Choose a different player"><ArrowLeft size={17}/><span>Change player</span></button><h3>{counter ? "Counteroffer" : "Create a trade"}</h3></div>
           <div className="trade-columns">
             <div className="trade-column trade-column-give">
               <div className="trade-column-header">
                 <div className="trade-column-title-row">
-                  <span className="trade-column-badge give-badge">
-                    Your Offer
-                  </span>
+                  <span className="trade-column-badge give-badge">{me.name}</span>
                   <span className="trade-column-cash-pill">
                     {money(me.cash)} available
                   </span>
                 </div>
-                <p className="trade-column-sub">Assets and cash you offer</p>
+                <p className="trade-column-sub">What you offer</p>
               </div>
 
               <fieldset
@@ -489,60 +470,41 @@ export function VisualTrade({
                 className="exchange-fields"
               >
                 <legend>You give · {money(me.cash)} available</legend>
-                {renderPropertyChips(me.id, give, setGive)}
                 <div className="amount-fields">
-                  <div className="amount-input-wrap">
+                  <div className="amount-input-wrap trade-cash-control">
                     <label>
                       Cash to give
                       <input
+                        aria-label="Cash to give"
                         type="number"
                         min={0}
                         max={me.cash}
                         step={1}
                         value={cash}
-                        onChange={(e) => setCash(e.target.value)}
+                        onChange={(e) => setBoundedAmount(e.target.value, me.cash, setCash)}
                       />
                     </label>
-                    <CashStepperButtons
-                      currentVal={cash}
-                      maxVal={me.cash}
-                      onUpdate={setCash}
-                      disabled={!movable || disabled || stale}
-                      contextLabel="Cash to give"
-                    />
-                  </div>
-                  <div className="amount-input-wrap">
-                    <label>
-                      Escape cards to give
-                      <input
-                        type="number"
-                        min={0}
-                        max={me.escapes}
-                        step={1}
-                        value={escapes}
-                        onChange={(e) => setEscapes(e.target.value)}
-                      />
-                    </label>
+                    <input className="trade-cash-slider" aria-label="Cash to give slider" type="range" min="0" max={me.cash} step="1" value={Math.min(me.cash, Math.max(0, Number(cash) || 0))} disabled={!movable || disabled || stale} onChange={(e) => setCash(e.target.value)} />
                   </div>
                 </div>
+                {renderPropertyChips(me.id, give, setGive)}
+                {me.escapes > 0 && <div className="amount-input-wrap trade-escape-control"><label>Escape cards to give<input type="number" aria-label="Escape cards to give" min={0} max={me.escapes} step={1} value={escapes} onChange={(e) => setBoundedAmount(e.target.value, me.escapes, setEscapes)} /></label></div>}
               </fieldset>
             </div>
+
+            <div className="trade-exchange-mark" aria-hidden="true"><ArrowLeftRight size={20} /></div>
 
             <div className="trade-column trade-column-take">
               <div className="trade-column-header">
                 <div className="trade-column-title-row">
-                  <span className="trade-column-badge take-badge">
-                    Rival’s Offer
-                  </span>
+                  <span className="trade-column-badge take-badge">{partner?.name || "Choose a player"}</span>
                   <span className="trade-column-cash-pill">
                     {partner
                       ? `${money(partner.cash)} available`
                       : "No crew selected"}
                   </span>
                 </div>
-                <p className="trade-column-sub">
-                  Assets and cash you request in return
-                </p>
+                <p className="trade-column-sub">What you receive</p>
               </div>
 
               <fieldset
@@ -553,54 +515,33 @@ export function VisualTrade({
                   You receive
                   {partner ? ` · ${money(partner.cash)} available` : ""}
                 </legend>
-                {partner ? (
-                  renderPropertyChips(to, take, setTake)
-                ) : (
-                  <p className="empty-copy">
-                    Choose a crew to see their properties.
-                  </p>
-                )}
                 <div className="amount-fields">
-                  <div className="amount-input-wrap">
+                  <div className="amount-input-wrap trade-cash-control">
                     <label>
                       Cash to receive
                       <input
+                        aria-label="Cash to receive"
                         type="number"
                         min={0}
                         max={partner?.cash || 0}
                         step={1}
                         value={requestCash}
-                        onChange={(e) => setRequestCash(e.target.value)}
+                        onChange={(e) => setBoundedAmount(e.target.value, partner?.cash || 0, setRequestCash)}
                       />
                     </label>
-                    <CashStepperButtons
-                      currentVal={requestCash}
-                      maxVal={partner?.cash || 0}
-                      onUpdate={setRequestCash}
-                      disabled={!movable || disabled || !partner || stale}
-                      contextLabel="Cash to receive"
-                    />
-                  </div>
-                  <div className="amount-input-wrap">
-                    <label>
-                      Escape cards to receive
-                      <input
-                        type="number"
-                        min={0}
-                        max={partner?.escapes || 0}
-                        step={1}
-                        value={requestEscapes}
-                        onChange={(e) => setRequestEscapes(e.target.value)}
-                      />
-                    </label>
+                    <input className="trade-cash-slider" aria-label="Cash to receive slider" type="range" min="0" max={partner?.cash || 0} step="1" value={Math.min(partner?.cash || 0, Math.max(0, Number(requestCash) || 0))} disabled={!movable || disabled || !partner || stale} onChange={(e) => setRequestCash(e.target.value)} />
                   </div>
                 </div>
+                {partner ? renderPropertyChips(to, take, setTake) : <p className="empty-copy">Choose a crew to see their properties.</p>}
+                {!!partner?.escapes && <div className="amount-input-wrap trade-escape-control"><label>Escape cards to receive<input type="number" aria-label="Escape cards to receive" min={0} max={partner.escapes} step={1} value={requestEscapes} onChange={(e) => setBoundedAmount(e.target.value, partner.escapes, setRequestEscapes)} /></label></div>}
               </fieldset>
             </div>
           </div>
 
           {partner && (
-            <>
+            <details className="trade-review">
+              <summary>Review deal value</summary>
+              <div className="trade-review-content">
               <TradeValueMeter
                 board={board}
                 props={game.props}
@@ -613,48 +554,11 @@ export function VisualTrade({
                 requestEscapes={requestEscapes}
               />
 
-              <h3 className="deal-preview-title">
-                Review your {counter ? "counteroffer" : "offer"}
-              </h3>
               <TradeSummary game={game} offer={draft} />
-              {!valid && (
-                <p className="micro-note">
-                  Select an available asset and use whole amounts within each
-                  crew’s balance.
-                </p>
-              )}
-            </>
+              </div>
+            </details>
           )}
-
-          <Btn
-            disabled={
-              !movable ||
-              disabled ||
-              !valid ||
-              stale ||
-              (!!game.trade && !counter)
-            }
-            onClick={async () => {
-              if (
-                await act({
-                  type: counter ? "trade-counter" : "trade",
-                  ...draft,
-                  offerId: counter?.id,
-                })
-              ) {
-                clearCounter();
-                setGive([]);
-                setTake([]);
-                setCash("0");
-                setRequestCash("0");
-                setEscapes("0");
-                setRequestEscapes("0");
-              }
-            }}
-          >
-            {counter ? "Send counteroffer" : "Send offer"}{" "}
-            <Handshake size={18} />
-          </Btn>
+          {!valid && <p className="micro-note">Select an available asset and use whole amounts within each crew’s balance.</p>}
 
           {!movable && (
             <p className="panel-notice">
@@ -662,35 +566,45 @@ export function VisualTrade({
             </p>
           )}
 
-          {!counter && (
-            <Btn
-              secondary
-              disabled={
-                disabled ||
-                !partner ||
-                Number(cash) <= 0 ||
-                !validAmount(cash, me.cash) ||
-                !movable ||
-                (game.players[game.turn].id === me.id && game.phase === "rent")
-              }
-              onClick={() => act({ type: "gift", to, amount: Number(cash) })}
-            >
-              Send {money(Number(cash) || 0)} as a gift
-            </Btn>
-          )}
-
-          {onClose && (
-            <Btn secondary onClick={onClose}>
-              Close negotiation
-            </Btn>
-          )}
-
           <p className="micro-note">
             Sell all buildings in a district before trading its properties. Debt
             trades must return fair value. Offers expire when the turn ends.
           </p>
-        </>
-      )}
+        </div>
+
+        <div className="trade-composer-footer">
+          {submitError && <p className="trade-submit-error" role="alert">{submitError}</p>}
+          {sent && <p className="trade-submit-success" role="status">Offer sent. Waiting for {partner?.name || "your rival"} to respond.</p>}
+          <Btn
+            className="trade-submit-button"
+            disabled={
+              !movable ||
+              disabled ||
+              !valid ||
+              stale ||
+              sent ||
+              (!!game.trade && !counter)
+            }
+            onClick={async () => {
+              setSubmitError("");
+              const result = await act({
+                  type: counter ? "trade-counter" : "trade",
+                  ...draft,
+                  offerId: counter?.id,
+                });
+              if (result && !result.error) {
+                setSent(true);
+                clearCounter();
+                onClose?.();
+              } else {
+                setSubmitError(result?.error || "Trade could not be sent. Check the connection and try again.");
+              }
+            }}
+          >
+            {sent ? "Offer sent" : counter ? "Send counteroffer" : "Send offer"}{" "}
+            <Send size={17} />
+          </Btn>
+        </div>
     </div>
   );
 }
@@ -710,14 +624,16 @@ export function TradeModal({
 }) {
   const modalRef = useRef(null);
 
-  useEffect(() => {
+  const callbacks = useRef({ onClose });
+  callbacks.current.onClose = onClose;
+  useLayoutEffect(() => {
     const previous = document.activeElement;
     modalRef.current?.focus({ preventScroll: true });
 
     function handleKeyDown(e) {
       if (e.key === "Escape") {
         e.preventDefault();
-        onClose?.();
+        callbacks.current.onClose?.();
         return;
       }
       if (e.key === "Tab") {
@@ -737,6 +653,9 @@ export function TradeModal({
         } else if (!e.shiftKey && document.activeElement === last) {
           e.preventDefault();
           first.focus();
+        } else if (!modalRef.current?.contains(document.activeElement)) {
+          e.preventDefault();
+          (e.shiftKey ? last : first).focus();
         }
       }
     }
@@ -746,19 +665,19 @@ export function TradeModal({
       document.removeEventListener("keydown", handleKeyDown);
       previous?.focus();
     };
-  }, [onClose]);
+  }, []);
 
   if (!game) return null;
 
   return (
     <div
-      className="deed-popover-backdrop trade-modal-backdrop"
-      onClick={(e) => {
+      className="trade-overlay-backdrop"
+        onClick={(e) => {
         if (e.target === e.currentTarget) onClose?.();
       }}
     >
       <section
-        className="trade-card-popover trade-modal"
+        className="trade-modal"
         ref={modalRef}
         tabIndex={-1}
         role="dialog"
@@ -768,8 +687,7 @@ export function TradeModal({
         <div className="trade-modal-header">
           <div className="trade-modal-title">
             <Handshake size={20} className="trade-modal-icon" aria-hidden="true" />
-            <span className="trade-modal-tag">STREET DEAL</span>
-            <h3 className="trade-modal-heading">Trade Negotiation</h3>
+            <h3 className="trade-modal-heading">Trade negotiation</h3>
           </div>
           <button
             type="button"

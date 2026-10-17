@@ -17,11 +17,9 @@ test("two crews negotiate properties, cash and cards through an editable counter
   const context = await browser.newContext();
   const rival = await context.newPage();
   await resume(rival, "trading-rival");
-  await page.getByRole("button", { name: "Trade", exact: true }).click();
+  await page.getByRole("button", { name: "Create trade", exact: true }).click();
+  await page.getByRole("dialog", {name:"Trade negotiation"}).getByRole("button", {name: "Trade with Trade Rival", exact: true}).click();
   const editor = page.locator(".exchange");
-  await editor
-    .getByRole("radio", { name: "Trade Rival · $1,500", exact: true })
-    .check();
   await editor
     .getByRole("checkbox", { name: /Auntie’s Tax-Free Corner/ })
     .check();
@@ -78,22 +76,18 @@ test("two crews negotiate properties, cash and cards through an editable counter
   await expect(
     rival.locator(".crew-row").filter({ hasText: "Trade Rival" }),
   ).toContainText("$1,650");
-  await rival.getByRole("button", { name: "Trade", exact: true }).click();
-  await counter
-    .getByRole("radio", { name: "Trade Ace · $1,350", exact: true })
-    .check();
+  await rival.getByRole("button", { name: "Create trade", exact: true }).click();
+  await rival.getByRole("dialog", {name:"Trade negotiation"}).getByRole("button", {name: "Trade with Trade Ace", exact: true}).click();
   await counter.getByLabel("Cash to give", { exact: true }).fill("10");
   await counter
     .getByRole("button", { name: "Send offer", exact: true })
     .click();
-  await counter
-    .getByRole("button", { name: "Withdraw offer", exact: true })
-    .click();
+  await rival.getByRole("button", {name: "Withdraw", exact: true}).click();
   await expect(page.locator(".trade-inbox")).toHaveCount(0);
   await context.close();
 });
 
-test("room chat stays available while viewing trade controls and messages arrive in another browser", async ({
+test("room chat remains available after closing the exclusive trade overlay", async ({
   page,
   browser,
 }) => {
@@ -101,7 +95,9 @@ test("room chat stays available while viewing trade controls and messages arrive
   const context = await browser.newContext();
   const rival = await context.newPage();
   await resume(rival, "trading-rival");
-  await page.getByRole("button", { name: "Trade", exact: true }).click();
+  await page.getByRole("button", { name: "Create trade", exact: true }).click();
+  await expect(page.getByRole("dialog", {name: "Trade negotiation"})).toBeVisible();
+  await page.keyboard.press("Escape");
   await page
     .getByRole("textbox", { name: "Chat message" })
     .fill("Let’s talk about that corner.");
@@ -120,7 +116,7 @@ test("room chat stays available while viewing trade controls and messages arrive
     .locator(".board-chat")
     .screenshot({ path: "work/chat-mobile.png" });
   await expect(
-    page.getByRole("heading", { name: "Let’s make a deal." }),
+    page.getByRole("button", { name: "Create trade", exact: true }),
   ).toBeVisible();
   await expect(page.getByRole("textbox", { name: "Chat message" })).toHaveValue(
     "",
@@ -191,39 +187,26 @@ test("eliminated mobile player exits even during an event, clears seat and canno
   }
 });
 
-test("eight crews expose held cards and all trade partners without nested scrolling", async ({
-  page,
-}) => {
+test("eight crews remain available in the trade chooser and held cards stay readable", async ({page}) => {
   await resume(page, "pieces-ace");
-  await page.getByRole("button", { name: "Trade", exact: true }).click();
-  const choices = page.locator(".trade-crew-choices");
-  await expect(choices.getByRole("radio")).toHaveCount(7);
-  const owner = page.locator(".crew-row").filter({ hasText: "Big Stepper" });
+  const owner = page.locator(".crew-row").filter({hasText: "Big Stepper"});
   await expect(owner.locator(".held-cards")).toHaveText("2 escape cards");
-  await expect(
-    page
-      .locator(".crew-row")
-      .filter({ hasText: "Gold Chain" })
-      .locator(".held-cards"),
-  ).toHaveText("1 escape card");
-  for (const width of [1280, 390]) {
-    await page.setViewportSize({ width, height: 900 });
-    await choices.getByRole("radio").last().check();
-    await expect(choices.getByRole("radio").last()).toBeChecked();
-    expect(
-      await choices.evaluate((el) => el.scrollHeight <= el.clientHeight),
-    ).toBeTruthy();
-    expect(
-      await page.evaluate(
-        () => document.documentElement.scrollWidth <= innerWidth,
-      ),
-    ).toBeTruthy();
+  await expect(page.locator(".crew-row").filter({hasText: "Gold Chain"}).locator(".held-cards")).toHaveText("1 escape card");
+  for (const width of [1280,390]) {
+    await page.setViewportSize({width,height:900});
+    await page.getByRole("button", {name:"Create trade",exact:true}).click();
+    const dialog = page.getByRole("dialog", {name:"Trade negotiation"});
+    const choices = dialog.locator(".trade-rival-choice");
+    await expect(choices).toHaveCount(7);
+    await choices.last().click();
+    await expect(dialog.getByLabel("Cash to give slider", {exact:true})).toBeVisible();
+    const box = await dialog.boundingBox();
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x+box.width).toBeLessThanOrEqual(width);
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();
+    await page.keyboard.press("Escape");
     const cardBox = await owner.locator(".held-cards").boundingBox();
     const crewBox = await owner.locator(".crew-main small").boundingBox();
-    expect(cardBox.y).toBeGreaterThanOrEqual(crewBox.y + crewBox.height);
-    await page
-      .locator(".crew-sidebar")
-      .screenshot({ path: `work/cards-${width}.png` });
-    await choices.screenshot({ path: `work/trade-partners-${width}.png` });
+    expect(cardBox.y).toBeGreaterThanOrEqual(crewBox.y+crewBox.height);
   }
 });

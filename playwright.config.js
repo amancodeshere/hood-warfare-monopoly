@@ -1,4 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
+const browserDataDir = process.env.STB_BROWSER_DATA_DIR || "/tmp/stb-playwright-" + Date.now();
+process.env.STB_BROWSER_DATA_DIR = browserDataDir;
 export default defineConfig({
   testDir: "tests/e2e",
   fullyParallel: false,
@@ -14,7 +16,7 @@ export default defineConfig({
   webServer: {
     command: "node tests/prepare-browser.js && node server/index.js",
     url: "http://127.0.0.1:4173/api/health",
-    env: { PORT: "4173", DATA_DIR: "/tmp/stb-playwright-" + Date.now() },
-    reuseExistingServer: !process.env.CI,
+    env: { PORT: "4173", DATA_DIR: browserDataDir },
+    reuseExistingServer: false,
   },
 });

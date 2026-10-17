@@ -149,19 +149,19 @@ test("Main JSX Verification: DeedCardPopover and CTA shimmer buttons integrated"
     "DeedCardPopover must use deed-card-popover class",
   );
   assert.ok(
-    popoverJsx.includes("deed-close-btn"),
+    popoverJsx.includes("Close property details"),
     "DeedCardPopover must include 1-click close button",
   );
   assert.ok(
-    popoverJsx.includes("deed-rent-ladder"),
+    popoverJsx.includes("building-rent-list"),
     "DeedCardPopover must render visual rent ladder",
   );
   assert.ok(
-    popoverJsx.includes("deed-finance-grid"),
+    popoverJsx.includes("building-cost-line"),
     "DeedCardPopover must render build, mortgage, and redemption financials",
   );
   assert.ok(
-    popoverJsx.includes("deed-residents-section"),
+    popoverJsx.includes("building-residents"),
     "DeedCardPopover must render resident tokens on the block",
   );
 

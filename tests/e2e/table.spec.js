@@ -78,7 +78,7 @@ test("mobile table is usable without horizontal page overflow and rules are keyb
   await page
     .getByRole("button", { name: "Auntie’s Bodega, $60", exact: true })
     .click();
-  const detail = page.getByRole("region", { name: "Auntie’s Bodega" });
+  const detail = page.getByRole("dialog", { name: "Auntie’s Bodega" });
   await expect(detail).toBeFocused();
   await expect
     .poll(async () => {

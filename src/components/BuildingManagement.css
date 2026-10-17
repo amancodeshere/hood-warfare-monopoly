@@ -1,0 +1,260 @@
+.deed-popover-backdrop:has(.building-popover) { z-index: 1100; }
+.deed-card-popover.building-popover {
+  width: min(100%, 392px);
+  max-height: min(780px, calc(100dvh - 24px));
+  overflow: auto;
+  background: #202722;
+  border: 1px solid #53634a;
+  border-radius: 10px;
+  box-shadow: 0 18px 44px #090e0b99;
+  color: #edf0e6;
+  outline: none;
+}
+
+.building-popover:focus-visible {
+  outline: 2px solid #c6ed72;
+  outline-offset: -3px;
+}
+
+.building-heading {
+  min-height: 64px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #192019;
+}
+
+.building-heading-copy { min-width: 0; }
+.building-district {
+  display: block;
+  margin-bottom: 2px;
+  color: #263326;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.building-heading h2 {
+  margin: 0;
+  color: #192019;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 25px;
+  font-weight: 800;
+  line-height: 1.02;
+  text-transform: uppercase;
+}
+.building-heading-neutral,
+.building-heading-neutral .building-district,
+.building-heading-neutral h2 {
+  color: #edf0e6;
+}
+.building-close {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: #19201928;
+  color: #192019;
+  cursor: pointer;
+}
+.building-close:hover { background: #19201945; }
+.building-heading-neutral .building-close {
+  background: #edf0e620;
+  color: #edf0e6;
+}
+.building-heading-neutral .building-close:hover { background: #edf0e63d; }
+.building-close:focus-visible,
+.building-action:focus-visible {
+  outline: 2px solid #c6ed72;
+  outline-offset: 2px;
+}
+
+.building-content {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  padding: 12px 14px 14px;
+}
+
+.building-rent-section {
+  padding: 9px 10px 7px;
+  border: 1px solid #3d493d;
+  border-radius: 7px;
+  background: #171e19;
+}
+.building-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 5px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #343f35;
+  color: #c5cebd;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.building-section-title b {
+  color: #d6e0cb;
+  font-size: 10px;
+  letter-spacing: 0;
+  text-align: right;
+  text-transform: none;
+}
+.building-rent-list { display: flex; flex-direction: column; gap: 1px; }
+.building-rent-row {
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 3px 6px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: #d2d9cd;
+  font-size: 12px;
+  line-height: 1.15;
+}
+.building-rent-row b {
+  flex: none;
+  color: #edf0e6;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+}
+.building-rent-row.is-current {
+  border-color: #53634a;
+  background: #33412d;
+  color: #f1f5e7;
+}
+.building-rent-row.is-current b { color: #c6ed72; }
+.building-inline-note {
+  margin: 5px 4px 0;
+  color: #c5cebd;
+  font-size: 10px;
+}
+
+.building-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+.building-action-wrap { min-width: 0; }
+.building-action {
+  width: 100%;
+  min-height: 43px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 5px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.12;
+  text-align: center;
+  white-space: normal;
+}
+.building-action svg { flex: none; }
+.building-action:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
+.building-reason {
+  display: block;
+  margin: 4px 2px 0;
+  color: #c7d0bd;
+  font-size: 9px;
+  line-height: 1.25;
+}
+
+.building-facts {
+  padding: 8px 10px 7px;
+  border-top: 1px solid #414c40;
+  border-bottom: 1px solid #414c40;
+}
+.building-owner-line {
+  min-height: 25px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #edf0e6;
+  font-size: 12px;
+}
+.building-avatar { width: 22px; height: 22px; flex: none; }
+.building-avatar svg { width: 22px; height: 22px; }
+.building-fact-label { color: #bac4b5; }
+.building-owner-line > b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.building-mortgage-tag {
+  margin-left: auto;
+  color: #e0c38a;
+  font-size: 10px;
+  font-weight: 700;
+}
+.building-cost-line {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 7px;
+}
+.building-cost-line span { display: flex; flex-direction: column; gap: 1px; }
+.building-cost-line small {
+  color: #bac4b5;
+  font-size: 9px;
+  line-height: 1.1;
+}
+.building-cost-line b {
+  color: #f0f2e8;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 15px;
+  line-height: 1;
+}
+.building-description,
+.building-special-info p {
+  margin: 0;
+  color: #d6e0cb;
+  font-size: 11px;
+  line-height: 1.4;
+}
+.building-special-info { display: flex; justify-content: space-between; gap: 12px; }
+.building-special-info b { flex: none; color: #e6edda; font-size: 11px; }
+.building-residents {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #c5cebd;
+  font-size: 10px;
+}
+.building-residents svg { flex: none; color: #c6ed72; }
+
+@media (max-width: 600px) {
+  .deed-popover-backdrop .deed-card-popover.building-popover {
+    width: 100%;
+    max-width: none;
+    max-height: min(84dvh, calc(100dvh - 12px));
+    border-radius: 10px 10px 0 0;
+  }
+}
+
+@media (max-width: 360px) {
+  .building-heading { min-height: 58px; padding: 10px 11px; }
+  .building-heading h2 { font-size: 23px; }
+  .building-content { gap: 8px; padding: 9px 10px 11px; }
+  .building-rent-section { padding: 7px 8px 5px; }
+  .building-rent-row { min-height: 22px; font-size: 11px; }
+  .building-rent-row b { font-size: 14px; }
+  .building-action { min-height: 40px; font-size: 9px; }
+  .building-facts { padding: 6px 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .building-close,
+  .building-action { transition: none; }
+}

@@ -74,10 +74,10 @@ test("Community Plot shows its live balance on the board and in inspection", asy
   await page
     .getByRole("button", { name: /Community Plot, community balance \$325/ })
     .click();
-  await expect(page.locator(".property-detail")).toContainText(
-    "Community Plot balance",
+  await expect(page.getByRole("dialog", {name: "Community Plot"})).toContainText(
+    "Community Plot",
   );
-  await expect(page.locator(".property-detail")).toContainText("$325");
+  await expect(page.getByRole("dialog", {name: "Community Plot"})).toContainText("$325");
   for (const width of [1280, 390]) {
     await page.setViewportSize({ width, height: 900 });
     await page.screenshot({

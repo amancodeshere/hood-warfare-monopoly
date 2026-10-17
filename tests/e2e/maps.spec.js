@@ -1,22 +1,11 @@
 import { test, expect } from "@playwright/test";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 function fixtureToken() {
-  const dirs = readdirSync("/tmp")
-    .filter((d) => d.startsWith("stb-playwright-"))
-    .sort()
-    .reverse();
-  for (const dir of dirs) {
-    try {
-      return JSON.parse(
-        readFileSync(join("/tmp", dir, "map-token.json"), "utf8"),
-      ).token;
-    } catch {
-      /* Earlier fixture folders may not contain accounts. */
-    }
-  }
-  throw new Error("Verified test fixture missing");
+  if (!process.env.STB_BROWSER_DATA_DIR) throw new Error("Browser fixture directory missing");
+  return JSON.parse(readFileSync(join(process.env.STB_BROWSER_DATA_DIR, "map-token.json"), "utf8")).token;
 }
+
 test("login page welcomes guests on mobile and gated maps explain verification", async ({
   page,
 }) => {

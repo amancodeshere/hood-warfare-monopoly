@@ -126,6 +126,16 @@ for (const kind of ["trading", "lost"]) {
     [kind + "-rival", { code: g.code, id: rival.id }],
   );
 }
+// Quick-board property management: isolated from the trading/pieces scenarios.
+const quickBuilder = player("Quick Builder"), quickRival = player("Quick Rival");
+const quickBuild = room("QBUILD", quickBuilder, {settings: {mapSize: "quick", autoFill: false}});
+quickBuild.players.push(quickRival);
+start(quickBuild, quickBuilder.id);
+quickBuilder.cash = 4000;
+for (const tile of quickBuild.board.filter(t => t.group === 0))
+  quickBuild.props[tile.id] = {owner: quickBuilder.id, level: 0, mortgaged: false};
+fixtures.push(quickBuild);
+sessions.push(["quick-builder-ace", {code: quickBuild.code, id: quickBuilder.id}]);
 mkdirSync(process.env.DATA_DIR, { recursive: true });
 writeFileSync(
   resolve(process.env.DATA_DIR, "rooms.json"),

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import "./BoardTiles.css";
 import { Crosshair } from "lucide-react";
 import {
   BOARD as DEFAULT_BOARD,
@@ -339,7 +340,7 @@ export function GameBoard({
           return (
             <button
               key={t.id}
-              className={`tile ${corner ? "corner" : ""} ${selected === t.id ? "selected" : ""} ${q ? "owned" : ""} ${q?.level ? "built" : ""} ${q?.mortgaged ? "mortgaged" : ""} ${q?.owner === highlight ? "highlighted" : ""} ${live && current?.pos === t.id ? "occupied" : ""}`}
+              className={`tile ${t.group !== undefined ? "district-tile" : ""} ${corner ? "corner" : ""} ${selected === t.id ? "selected" : ""} ${q ? "owned" : ""} ${q?.level ? "built" : ""} ${q?.mortgaged ? "mortgaged" : ""} ${q?.owner === highlight ? "highlighted" : ""} ${live && current?.pos === t.id ? "occupied" : ""}`}
               style={{
                 gridRow: pos.row,
                 gridColumn: pos.col,

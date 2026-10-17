@@ -1,0 +1,45 @@
+/* District color is the tile's primary material, with the asphalt frame still
+   carrying the board's visual weight. The color stays under dark ink. */
+.board-shell .board-grid .tile.district-tile {
+  background-color: color-mix(in srgb, var(--district) 64%, #e8e8d7);
+  border-color: color-mix(in srgb, var(--district) 70%, #303b30);
+  color: #263326;
+}
+
+.board-shell .board-grid .tile.district-tile .district-stripe {
+  height: clamp(8px, 18%, 14px);
+  min-height: 8px;
+  background: var(--district);
+  border-bottom: 1px solid color-mix(in srgb, var(--district) 64%, #263326);
+  box-shadow: 0 1px 2px #17201735;
+}
+
+.board-shell .board-grid .tile.district-tile:not(.built):has(.district-stripe) {
+  padding-top: calc(clamp(8px, 18%, 14px) + 5px);
+}
+
+.board-shell .board-grid .tile.district-tile:hover {
+  background-color: color-mix(in srgb, var(--district) 52%, #f0efdf);
+}
+
+.board-shell .board-grid .tile.district-tile.selected {
+  background-color: color-mix(in srgb, var(--district) 48%, #f0efdf);
+}
+
+.board-shell .board-grid .tile.district-tile.occupied {
+  background-color: color-mix(in srgb, var(--district) 70%, #dce4cb);
+  border: 2px dashed #263326;
+}
+
+.board-shell .board-grid .tile.district-tile.mortgaged {
+  background-color: color-mix(in srgb, var(--district) 28%, #7e8875);
+  background-image: repeating-linear-gradient(
+    135deg,
+    #26332612 0 2px,
+    transparent 2px 6px
+  );
+}
+
+.board-shell .board-grid .tile.district-tile.mortgaged .district-stripe {
+  filter: saturate(0.58);
+}

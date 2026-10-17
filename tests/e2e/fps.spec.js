@@ -189,16 +189,14 @@ test("mobile ownership badges and compact street pieces remain inspectable witho
   ).toBeGreaterThanOrEqual(24);
   // Fit mode compacts the pieces; the deed retains full ownership and resident details.
   await tile.click();
-  await expect(page.locator(".property-owner-summary")).toContainText(
-    "Your block",
+  await expect(page.locator(".building-owner-line")).toContainText(
+    "Your crew",
   );
-  await expect(page.locator(".property-owner-summary")).toContainText(
-    "4 houses",
-  );
+  await expect(page.locator(".building-rent-row.is-current")).toContainText("4 houses");
   await expect(
-    page.getByRole("region", { name: "Auntie’s Bodega" }),
+    page.getByRole("dialog", { name: "Auntie’s Bodega" }),
   ).toBeFocused();
-  await expect(page.locator(".deed-residents-list")).toContainText("Gold Chain");
+  await expect(page.locator(".building-residents")).toContainText("Gold Chain");
   await page.getByRole("button", { name: "Close property details" }).click();
   const hotel = page.getByRole("button", {
     name: /No Cap Cuts, \$100, owned by Gold Chain/,

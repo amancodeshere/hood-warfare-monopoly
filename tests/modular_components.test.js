@@ -60,14 +60,14 @@ test("Modular Components: GameBoard.jsx exports BoardCenter, GameBoard, Board wi
   assert.ok(!content.includes("from \"../main.jsx\""), "Must not import main.jsx");
 });
 
-test("Modular Components: DeedCardPopover.jsx preserves dialog/region semantics and escape handling", () => {
+test("Modular Components: DeedCardPopover.jsx preserves dialog semantics and escape handling", () => {
   const content = readFileSync(resolve("src/components/DeedCardPopover.jsx"), "utf8");
 
   assert.ok(content.includes("export function DeedCardPopover("), "Must export DeedCardPopover");
-  assert.ok(content.includes('role="region"'), "Must have role=region on deed popover");
-  assert.ok(content.includes('e.key === "Escape"'), "Must handle Escape key to dismiss popover");
-  assert.ok(content.includes("deed-rent-ladder"), "Must render full rent ladder");
-  assert.ok(content.includes("deed-finance-grid"), "Must render finance grid");
+  assert.ok(content.includes('role="dialog"'), "Must have role=dialog on deed popover");
+  assert.ok(content.includes('event.key === "Escape"'), "Must handle Escape key to dismiss popover");
+  assert.ok(content.includes("building-rent-list"), "Must render full rent ladder");
+  assert.ok(content.includes("building-cost-line"), "Must render finance grid");
   assert.ok(!content.includes("from \"../main.jsx\""), "Must not import main.jsx");
 });
 
