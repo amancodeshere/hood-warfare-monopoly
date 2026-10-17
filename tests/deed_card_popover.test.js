@@ -130,28 +130,38 @@ test("CSS Verification: button press physics, ctaShimmer animation, and glassmor
 
 test("Main JSX Verification: DeedCardPopover and CTA shimmer buttons integrated", () => {
   const jsx = readFileSync(resolve("src/main.jsx"), "utf8");
+  const popoverJsx = readFileSync(
+    resolve("src/components/DeedCardPopover.jsx"),
+    "utf8",
+  );
 
   // DeedCardPopover component definition & usage
-  assert.ok(jsx.includes("function DeedCardPopover"), "main.jsx must define DeedCardPopover");
-  assert.ok(jsx.includes("<DeedCardPopover"), "main.jsx must render DeedCardPopover");
   assert.ok(
-    jsx.includes("deed-card-popover"),
+    popoverJsx.includes("function DeedCardPopover"),
+    "DeedCardPopover.jsx must define DeedCardPopover",
+  );
+  assert.ok(
+    jsx.includes("<DeedCardPopover"),
+    "main.jsx must render DeedCardPopover",
+  );
+  assert.ok(
+    popoverJsx.includes("deed-card-popover"),
     "DeedCardPopover must use deed-card-popover class",
   );
   assert.ok(
-    jsx.includes("deed-close-btn"),
+    popoverJsx.includes("deed-close-btn"),
     "DeedCardPopover must include 1-click close button",
   );
   assert.ok(
-    jsx.includes("deed-rent-ladder"),
+    popoverJsx.includes("deed-rent-ladder"),
     "DeedCardPopover must render visual rent ladder",
   );
   assert.ok(
-    jsx.includes("deed-finance-grid"),
+    popoverJsx.includes("deed-finance-grid"),
     "DeedCardPopover must render build, mortgage, and redemption financials",
   );
   assert.ok(
-    jsx.includes("deed-residents-section"),
+    popoverJsx.includes("deed-residents-section"),
     "DeedCardPopover must render resident tokens on the block",
   );
 

@@ -10,6 +10,7 @@ import { BOARD as LEGACY_BOARD } from "../shared/legacy-board.js";
 import { DEFAULT_SETTINGS } from "../shared/settings.js";
 import { extendedAction } from "./features.js";
 import { handleStreetLuck, settleDuelBets } from "./tacticals.js";
+import { triggerBotBark } from "./botBarks.js";
 export const board = (g) => g.board || DEFAULT_BOARD;
 export const allied = (g, a, b) =>
   a === b ||
@@ -30,9 +31,11 @@ export function migrate(g) {
   }
   g.settings = { ...DEFAULT_SETTINGS, ...g.settings };
   g.chat ||= [];
+  g.lastBotBarkTime ??= 0;
   g.spectators ||= [];
   g.turnStarted ??= Date.now();
   g.players.forEach((p) => {
+    p.lastBarkTime ??= 0;
     p.reserve ??= 60;
     p.afk ??= 0;
     p.team ??= null;
@@ -75,6 +78,7 @@ export function player(name, bot = false) {
     team: null,
     reserve: 60,
     afk: 0,
+    lastBarkTime: 0,
   };
 }
 export function room(code, p) {
@@ -97,6 +101,7 @@ export function room(code, p) {
     settings: { ...DEFAULT_SETTINGS },
     teamNames: { 1: "Eastside", 2: "Sunset", 3: "Northside", 4: "After Hours" },
     chat: [],
+    lastBotBarkTime: 0,
     spectators: [],
     doubleCount: 0,
     extraRoll: false,
@@ -266,7 +271,7 @@ function charge(g, p, amount, owner = null) {
     log(g, `${p.name} owes $${amount}. Time to make a move.`, "bad");
   }
 }
-export function land(g, rng = secureRandom) {
+export function land(g, rng = secureRandom, options = {}) {
   updateHeat(g);
   const BOARD = board(g);
   const p = active(g),
@@ -321,6 +326,14 @@ export function land(g, rng = secureRandom) {
     }
     phase(g, "end");
   } else phase(g, "end");
+  if (
+    p.bot &&
+    p.cash > 0 &&
+    p.cash <= 150 &&
+    !["rent", "buy"].includes(g.phase)
+  ) {
+    triggerBotBark(g, p, "low_cash", { now: options.now });
+  }
 }
 function cardEffect(g, c) {
   const p = active(g);
@@ -381,7 +394,7 @@ export function victory(g) {
   }
   return false;
 }
-export function eliminate(g, p, creditor) {
+export function eliminate(g, p, creditor, options = {}) {
   const wasActive = active(g).id === p.id;
   const interrupted = {
     phase: g.phase,
@@ -415,6 +428,7 @@ export function eliminate(g, p, creditor) {
     `${p.name} is out${heir ? `. ${heir.name} inherits their turf` : ". The turf returns to the market"}.`,
     "bad",
   );
+  triggerBotBark(g, p, "bankrupt", { creditor: heir, now: options.now });
   if (!victory(g)) {
     if (wasActive) phase(g, "end");
     else {
@@ -457,12 +471,28 @@ export function next(g) {
   prepareTurn(g);
   phase(g, active(g).jail ? "jail" : "roll");
 }
-function settleDuel(g, winner) {
+function settleDuel(g, winner, options = {}) {
   const d = g.duel;
   d.winner = winner;
   if (d.mode === "fps") d.stage = "finished";
   const p = g.players.find((p) => p.id === d.attacker),
     owner = g.players.find((p) => p.id === d.defender);
+  const winnerPlayer = g.players.find((x) => x.id === winner);
+  const loserPlayer = g.players.find(
+    (x) => x.id === (winner === d.attacker ? d.defender : d.attacker),
+  );
+  if (winnerPlayer?.bot) {
+    triggerBotBark(g, winnerPlayer, "duel_win", {
+      opponent: loserPlayer,
+      now: options.now,
+    });
+  }
+  if (loserPlayer?.bot) {
+    triggerBotBark(g, loserPlayer, "duel_loss", {
+      opponent: winnerPlayer,
+      now: options.now,
+    });
+  }
   if (d.winner === d.attacker) {
     let bountyMsg = "";
     if ((d.highStakes || d.debt >= 500) && owner) {
@@ -478,7 +508,7 @@ function settleDuel(g, winner) {
       "good",
     );
     g.pending = null;
-  } else eliminate(g, p, owner);
+  } else eliminate(g, p, owner, options);
   settleDuelBets(g, winner);
   if (g.status !== "finished") phase(g, "duel-result");
 }
@@ -634,7 +664,7 @@ export function action(g, id, a, rng = secureRandom, options = {}) {
       steps,
     };
     log(g, `${p.name} rolled ${steps} → ${BOARD[p.pos].name}.`);
-    land(g, rng);
+    land(g, rng, options);
   } else if (a.type === "buy") {
     assert(g.phase === "buy", "Nothing to buy.");
     const t = BOARD[p.pos];
@@ -646,8 +676,12 @@ export function action(g, id, a, rng = secureRandom, options = {}) {
     g.props[t.id] = { owner: id, level: 0, mortgaged: false };
     log(g, `${p.name} claimed ${t.name}.`, "good");
     phase(g, "end");
+    triggerBotBark(g, p, "buy_property", { tile: t, now: options.now });
   } else if (a.type === "skip") {
     assert(g.phase === "buy", "Nothing to pass on.");
+    if (p.bot && p.cash > 0 && p.cash <= 150) {
+      triggerBotBark(g, p, "low_cash", { now: options.now });
+    }
     if (g.settings?.auctions) {
       g.auction = {
         tile: p.pos,
@@ -670,6 +704,18 @@ export function action(g, id, a, rng = secureRandom, options = {}) {
     log(g, `${p.name} paid $${d.amount}${owner ? ` to ${owner.name}` : ""}.`);
     g.pending = null;
     phase(g, "end");
+    if (owner) {
+      triggerBotBark(g, p, "pay_rent", {
+        amount: d.amount,
+        landlord: owner,
+        now: options.now,
+      });
+      triggerBotBark(g, owner, "collect_rent", {
+        amount: d.amount,
+        tenant: p,
+        now: options.now,
+      });
+    }
   } else if (a.type === "shootout") {
     assert(
       g.phase === "rent" && g.pending?.owner && p.cash < g.pending.amount,
@@ -714,6 +760,11 @@ export function action(g, id, a, rng = secureRandom, options = {}) {
         : `${p.name} challenged ${owner.name} to a shootout!`,
       "bad",
     );
+    triggerBotBark(g, p, "duel_challenge", {
+      defender: owner,
+      debt: g.pending.amount,
+      now: options.now,
+    });
   } else if (a.type === "surrender") {
     assert(
       g.phase === "rent" && g.pending && p.cash < g.pending.amount,
@@ -723,6 +774,7 @@ export function action(g, id, a, rng = secureRandom, options = {}) {
       g,
       p,
       g.players.find((x) => x.id === g.pending.owner),
+      options,
     );
   } else if (a.type === "card") {
     assert(g.phase === "card", "No card to draw.");
@@ -994,7 +1046,7 @@ function finishClock(g) {
   );
   if (!g.autoTurn) p.afk = 0;
 }
-export function finishAuction(g) {
+export function finishAuction(g, options = {}) {
   const a = g.auction;
   if (!a) return;
   const p = g.players.find((p) => p.id === a.highBidder);
@@ -1002,6 +1054,10 @@ export function finishAuction(g) {
     p.cash -= a.highBid;
     g.props[a.tile] = { owner: p.id, level: 0, mortgaged: false };
     log(g, `${p.name} won ${board(g)[a.tile].name} for $${a.highBid}.`, "good");
+    triggerBotBark(g, p, "buy_property", {
+      tile: board(g)[a.tile],
+      now: options.now,
+    });
   } else log(g, `No bids. ${board(g)[a.tile].name} stays on the market.`);
   g.auction = null;
   g.turnDeadline = Math.max(g.turnDeadline || 0, Date.now() + 15000);

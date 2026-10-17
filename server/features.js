@@ -11,6 +11,7 @@ import {
   allied,
 } from "./game.js";
 import { tacticalAction } from "./tacticals.js";
+import { triggerBotBark } from "./botBarks.js";
 const movable = (g) => ["roll", "end", "rent", "buy"].includes(g.phase);
 function available(g, tile, id) {
   const q = g.props[tile],
@@ -129,6 +130,11 @@ export function extendedAction(g, id, a, rng, options) {
     );
     g.pending = null;
     phase(g, "end");
+    triggerBotBark(g, p, "stoppa_loss", {
+      percent,
+      amount,
+      now: options?.now,
+    });
     return true;
   }
   if (a.type === "gift") {

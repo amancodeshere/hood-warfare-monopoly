@@ -26,6 +26,7 @@ import {
 } from "./game.js";
 import { settings, matchLimit } from "../shared/settings.js";
 import { profileStore } from "./profiles.js";
+import { setBotBarkIO } from "./botBarks.js";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const dataDir = process.env.DATA_DIR || resolve(root, "data");
 mkdirSync(dataDir, { recursive: true, mode: 0o700 });
@@ -151,6 +152,7 @@ const io = new Server(http, {
     }
   },
 });
+setBotBarkIO(io);
 function profileUpdates() {
   const online = new Set(
     [...io.sockets.sockets.values()].map((s) => s.data.profile),
