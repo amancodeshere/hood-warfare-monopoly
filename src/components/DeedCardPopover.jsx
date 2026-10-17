@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { X, Users, Plus } from "lucide-react";
-import { CREWS, money } from "../../shared/board.js";
+import { CREWS, money, BOARD as DEFAULT_BOARD, DISTRICTS } from "../../shared/board.js";
+import { BOARD as LEGACY_BOARD, DISTRICTS as LEGACY_DISTRICTS } from "../../shared/legacy-board.js";
 import { HoodFigure, StreetBuilding } from "../StreetPieces.jsx";
 import { Button } from "./common.jsx";
 
@@ -16,6 +17,11 @@ export function DeedCardPopover({
   disabled,
   propertyFocus,
 }) {
+  const activeBoard = BOARD || game?.board || (game?.schemaVersion === 1 ? LEGACY_BOARD : DEFAULT_BOARD);
+  const is28 = activeBoard?.length === 28 || game?.schemaVersion === 1;
+  const allDistricts =
+    districts ||
+    (is28 ? LEGACY_DISTRICTS : DISTRICTS);
   const q = game?.props[t.id];
   const owner = game?.players?.find((p) => p.id === q?.owner);
   const residents =
@@ -23,7 +29,7 @@ export function DeedCardPopover({
   const manage = mine && ["roll", "end", "rent", "buy"].includes(game?.phase);
   const full =
     t.group !== undefined &&
-    BOARD.filter((x) => x.group === t.group).every(
+    activeBoard.filter((x) => x.group === t.group).every(
       (x) =>
         (game?.props[x.id]?.owner === me?.id ||
           (game?.settings?.teams &&
@@ -73,7 +79,7 @@ export function DeedCardPopover({
 
   const districtColor =
     t.group !== undefined
-      ? districts[t.group]?.color
+      ? allDistricts[t.group]?.color
       : t.type === "transit"
         ? "#486253"
         : t.type === "utility"
@@ -108,7 +114,7 @@ export function DeedCardPopover({
           <div className="deed-banner-content property-title">
             <span className="deed-banner-tag">
               {t.group !== undefined
-                ? `TITLE DEED · ${districts[t.group]?.name.toUpperCase()}`
+                ? `TITLE DEED · ${allDistricts[t.group]?.name.toUpperCase()}`
                 : isTransit
                   ? "TITLE DEED · CITY TRANSIT"
                   : isUtil
@@ -178,7 +184,7 @@ export function DeedCardPopover({
           <div className="deed-description">
             <p>
               {t.group !== undefined
-                ? districts[t.group]?.name
+                ? allDistricts[t.group]?.name
                 : t.type === "transit"
                   ? "City transit station. Collects scaled fare based on lines held."
                   : t.type === "stoppa"
@@ -285,30 +291,30 @@ export function DeedCardPopover({
               <div className="deed-ladder-header">
                 <span>TRANSIT FARE LADDER</span>
                 <span className="deed-base-rent">
-                  Base: <b>{money(t.rent || 25)}</b>
+                  Base: <b>{money(t.rent || (is28 ? 45 : 25))}</b>
                 </span>
               </div>
               <div className="deed-ladder-rows">
-                <div className="deed-ladder-row">
-                  <span className="tier-label">If 1 Station owned</span>
-                  <span className="tier-dots" />
-                  <span className="tier-val">{money(25)}</span>
-                </div>
-                <div className="deed-ladder-row">
-                  <span className="tier-label">If 2 Stations owned</span>
-                  <span className="tier-dots" />
-                  <span className="tier-val">{money(50)}</span>
-                </div>
-                <div className="deed-ladder-row">
-                  <span className="tier-label">If 3 Stations owned</span>
-                  <span className="tier-dots" />
-                  <span className="tier-val">{money(100)}</span>
-                </div>
-                <div className="deed-ladder-row">
-                  <span className="tier-label">If 4 Stations owned</span>
-                  <span className="tier-dots" />
-                  <span className="tier-val">{money(200)}</span>
-                </div>
+                {(is28
+                  ? [
+                      { count: 1, val: t.rent || 45 },
+                      { count: 2, val: (t.rent || 45) * 2 },
+                    ]
+                  : [
+                      { count: 1, val: t.rent || 25 },
+                      { count: 2, val: (t.rent || 25) * 2 },
+                      { count: 3, val: (t.rent || 25) * 4 },
+                      { count: 4, val: (t.rent || 25) * 8 },
+                    ]
+                ).map(({ count, val }) => (
+                  <div key={count} className="deed-ladder-row">
+                    <span className="tier-label">
+                      If {count} Station{count > 1 ? "s" : ""} owned
+                    </span>
+                    <span className="tier-dots" />
+                    <span className="tier-val">{money(val)}</span>
+                  </div>
+                ))}
               </div>
             </div>
           )}

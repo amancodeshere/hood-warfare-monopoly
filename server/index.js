@@ -308,14 +308,14 @@ function createRoom(socket, d) {
     !opts.registeredOnly || profile.passwordHash,
     "Create an account before requiring registered seats.",
   );
-  const city = profiles.resolveMap(profile.id, opts.map);
+  const city = profiles.resolveMap(profile.id, opts.map, opts.mapSize);
   let code;
   do {
     code = randomBytes(4).toString("hex").slice(0, 6).toUpperCase();
   } while (rooms.has(code));
   const p = player(cleanName(d.name || profile.name));
   Object.assign(p, { profileId: profile.id, appearance: profile.appearance });
-  const g = room(code, p);
+  const g = room(code, p, { settings: opts, limit: matchLimit(d.limit) });
   g.settings = opts;
   g.limit = matchLimit(d.limit);
   Object.assign(g, city);
@@ -660,7 +660,7 @@ io.on("connection", (socket) => {
             ),
           "Every human seat needs an account for this rule.",
         );
-        const city = profiles.resolveMap(socket.data.profile, next.map);
+        const city = profiles.resolveMap(socket.data.profile, next.map, next.mapSize);
         const limit = "limit" in d ? matchLimit(d.limit) : g.limit;
         g.settings = next;
         g.limit = limit;
@@ -758,6 +758,7 @@ io.on("connection", (socket) => {
     return { ok: true };
   });
   handle("action", (d) => {
+    assert(d?.type !== "settings", "Change room settings through the lobby.");
     const g = session(socket);
     action(g, socket.data.player, d);
     if (!(

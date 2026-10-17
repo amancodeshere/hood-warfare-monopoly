@@ -88,6 +88,36 @@ export const BOARD = [
   { name: "Street Roulette", type: "roulette" },
   p("Final Boss Estate", 7, 500, 110),
 ].map((t, id) => ({ ...t, id }));
+export const QUICK_BOARD = [
+  { name: "Home Base", type: "start" },
+  p("Corner Store", 0, 100, 24),
+  p("Grove Street", 0, 120, 30),
+  { name: "Street Luck", type: "card" },
+  p("Barbershop", 0, 140, 36),
+  { name: "Night Bus", type: "transit", price: 180, rent: 45 },
+  p("East Market", 1, 160, 42),
+  { name: "County Jail", type: "jail" },
+  p("Studio 808", 1, 180, 48),
+  p("Sneaker Spot", 1, 200, 54),
+  { name: "Roulette", type: "roulette" },
+  p("Old Town Deli", 2, 220, 60),
+  p("Neon Arcade", 2, 240, 66),
+  { name: "The Power Plug", type: "utility", price: 150, rent: 4 },
+  { name: "Community Plot", type: "parking" },
+  p("Rooftop Club", 3, 260, 72),
+  p("Skyline Towers", 3, 280, 78),
+  { name: "The Water Plug", type: "utility", price: 150, rent: 4 },
+  p("Highrise Hotel", 3, 300, 84),
+  { name: "Metro Line", type: "transit", price: 180, rent: 45 },
+  p("Fashion District", 4, 320, 90),
+  { name: "Police Raid", type: "raid" },
+  p("Downtown Loft", 4, 340, 96),
+  p("Penthouse", 4, 360, 102),
+  { name: "Roulette", type: "roulette" },
+  p("Diamond Avenue", 5, 380, 108),
+  p("Empire Plaza", 5, 400, 114),
+  { name: "Oppa Stoppa", type: "stoppa" },
+].map((t, id) => ({ ...t, id }));
 export const MAPS = [
   {
     id: "trenches",
@@ -230,9 +260,18 @@ const NIGHT_NAMES = [
   "Rich Uncle Row",
   "Afterparty Estate",
 ];
-export function makeBoard(map = "trenches") {
+export function makeBoard(map = "trenches", mapSize = "standard") {
+  if (typeof map === "object" && map !== null) {
+    mapSize = map.mapSize || "standard";
+    map = map.map || "trenches";
+  } else if (map === "quick" || map === "blitz") {
+    mapSize = map;
+    map = "trenches";
+  }
+  const isQuick = mapSize === "quick" || mapSize === "blitz";
+  const baseBoard = isQuick ? QUICK_BOARD : BOARD;
   let i = 0;
-  return BOARD.map((t) => {
+  return baseBoard.map((t) => {
     const tile = {
       ...t,
       name:
@@ -240,29 +279,36 @@ export function makeBoard(map = "trenches") {
           ? NIGHT_NAMES[i++]
           : t.name,
     };
-    if (THEME_WORDS[map] && t.type === "property")
+    if (
+      THEME_WORDS[map] &&
+      t.type === "property" &&
+      t.group !== undefined &&
+      THEME_WORDS[map][t.group]
+    )
       tile.name =
         THEME_WORDS[map][t.group] +
         (t.id % 3 === 0 ? " Heights" : t.id % 3 === 1 ? " Row" : " Corner");
-    if (["neon", "festival"].includes(map) && [2, 17].includes(t.id)) {
-      tile.type = "roulette";
-      tile.name = map === "neon" ? "Arcade Jackpot" : "Uncle’s Lucky Draw";
-    }
-    if (map === "boardwalk" && t.id === 28) {
-      tile.type = "stoppa";
-      tile.name = "Seagull Stoppa";
-    }
-    if (map === "snow-day" && t.id === 22) {
-      tile.type = "card";
-      tile.name = "Cold Street Luck";
-    }
-    if (map === "night-shift" && t.id === 17) {
-      tile.type = "roulette";
-      tile.name = "After Hours Roulette";
-    }
-    if (map === "night-shift" && t.id === 28) {
-      tile.type = "card";
-      tile.name = "Night Shift Luck";
+    if (!isQuick) {
+      if (["neon", "festival"].includes(map) && [2, 17].includes(t.id)) {
+        tile.type = "roulette";
+        tile.name = map === "neon" ? "Arcade Jackpot" : "Uncle’s Lucky Draw";
+      }
+      if (map === "boardwalk" && t.id === 28) {
+        tile.type = "stoppa";
+        tile.name = "Seagull Stoppa";
+      }
+      if (map === "snow-day" && t.id === 22) {
+        tile.type = "card";
+        tile.name = "Cold Street Luck";
+      }
+      if (map === "night-shift" && t.id === 17) {
+        tile.type = "roulette";
+        tile.name = "After Hours Roulette";
+      }
+      if (map === "night-shift" && t.id === 28) {
+        tile.type = "card";
+        tile.name = "Night Shift Luck";
+      }
     }
     return tile;
   });

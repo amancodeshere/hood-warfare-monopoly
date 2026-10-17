@@ -273,15 +273,16 @@ export function profileStore(
     persist();
     return { profile: safe(p) };
   }
-  function resolveMap(id, selection) {
+  function resolveMap(id, selection, mapSize = "standard") {
     if (selection.startsWith("custom:")) {
+      if (mapSize !== "standard") throw new Error("Saved custom maps use 40 tiles. Choose Standard size or a preset city for Quick Blitz.");
       const p = requireVerified(id),
         m = p.savedMaps?.find((m) => "custom:" + m.id === selection);
       assert(m, "That map is not in your collection.");
       return customMap(m.definition);
     }
     if (MAPS.find((m) => m.id === selection)?.verified) requireVerified(id);
-    return presetMap(selection);
+    return presetMap(selection, mapSize);
   }
   function find(value) {
     value = String(value || "").replace(/^@/, "");

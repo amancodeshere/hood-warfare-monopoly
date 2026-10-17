@@ -109,6 +109,7 @@ test("verified email uniqueness is checked on consumption; saved maps are scoped
   d.events[2] = "stoppa";
   const { map } = s.saveMap(a, { definition: d });
   const selected = "custom:" + map.id;
+  assert.throws(() => s.resolveMap(a, selected, "quick"), /Saved custom maps use 40 tiles/);
   const snapshot = s.resolveMap(a, selected);
   assert.equal(snapshot.board[1].name, "Auntie Owes Me");
   assert.equal(snapshot.board[2].type, "stoppa");

@@ -3,6 +3,7 @@ export const DEFAULT_SETTINGS = {
   maxPlayers: 4,
   startingCash: 1500,
   map: "trenches",
+  mapSize: "standard",
   visibility: "private",
   autoFill: true,
   teams: false,
@@ -100,6 +101,11 @@ export function settings(input = {}, previous = DEFAULT_SETTINGS) {
       !(typeof value === "string" && /^custom:[a-f0-9-]{36}$/.test(value))
     )
       throw new Error("Choose a city map.");
+    else if (
+      key === "mapSize" &&
+      !["standard", "quick", "blitz"].includes(value)
+    )
+      throw new Error("Choose a valid map size.");
     else if (key === "visibility" && !["private", "public"].includes(value))
       throw new Error("Choose a room visibility.");
     out[key] = value;

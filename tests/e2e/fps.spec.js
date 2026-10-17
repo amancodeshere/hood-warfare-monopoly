@@ -168,7 +168,7 @@ test("touch arena supports held movement, aiming, ammunition and reload on a nar
   ).toBeTruthy();
   await context.close();
 });
-test("mobile ownership badges and large street pieces remain readable and keyboard inspectable", async ({
+test("mobile ownership badges and compact street pieces remain inspectable without page scrolling", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
@@ -186,7 +186,8 @@ test("mobile ownership badges and large street pieces remain readable and keyboa
   );
   expect(
     (await tile.locator(".token").first().boundingBox()).height,
-  ).toBeGreaterThanOrEqual(36);
+  ).toBeGreaterThanOrEqual(24);
+  // Fit mode compacts the pieces; the deed retains full ownership and resident details.
   await tile.click();
   await expect(page.locator(".property-owner-summary")).toContainText(
     "Your block",
@@ -197,6 +198,8 @@ test("mobile ownership badges and large street pieces remain readable and keyboa
   await expect(
     page.getByRole("region", { name: "Auntie’s Bodega" }),
   ).toBeFocused();
+  await expect(page.locator(".deed-residents-list")).toContainText("Gold Chain");
+  await page.getByRole("button", { name: "Close property details" }).click();
   const hotel = page.getByRole("button", {
     name: /No Cap Cuts, \$100, owned by Gold Chain/,
   });

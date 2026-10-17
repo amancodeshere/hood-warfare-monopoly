@@ -86,8 +86,12 @@ export function getGridLockdownDisabled(game, playerId) {
  */
 export function getEnemyDistricts(game, playerId) {
   const board = game?.board || BOARD;
+  const maxDistrict = board.reduce(
+    (m, x) => (x.group !== undefined && x.group > m ? x.group : m),
+    board.length === 28 ? 5 : 7,
+  );
   const enemyDistricts = [];
-  for (let d = 0; d <= 7; d++) {
+  for (let d = 0; d <= maxDistrict; d++) {
     const districtTiles = board.filter((x) => x.group === d);
     if (districtTiles.length === 0) continue;
     const ownedByTeam = districtTiles.every(

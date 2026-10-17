@@ -21,10 +21,24 @@ export function BoardCenter({
   current,
   BOARD,
 }) {
+  const activeBoard = BOARD || game?.board || DEFAULT_BOARD;
+  const boardSize = size || Math.floor(activeBoard.length / 4) + 1;
+  const cityScale = boardSize === 8 ? 0.75 : 1;
+  const activeDistricts =
+    districts ||
+    (boardSize === 8 || game?.schemaVersion === 1 || activeBoard.length === 28
+      ? (game?.districts || LEGACY_DISTRICTS)
+      : (game?.districts || DISTRICTS));
+
   return (
     <div
       className="board-center"
-      style={{ gridColumn: `2/${size}`, gridRow: `2/${size}` }}
+      data-size={boardSize}
+      style={{
+        gridColumn: `2/${boardSize}`,
+        gridRow: `2/${boardSize}`,
+        "--board-size": boardSize,
+      }}
     >
       <div className="center-top">
         <span className="center-stamp">
@@ -45,8 +59,9 @@ export function BoardCenter({
         <span className="brand-sub">THE STREETS ARE YOURS. TAKE THEM.</span>
       </div>
       <City
-        palette={districts.map((d) => d.color)}
+        palette={activeDistricts.map((d) => d.color)}
         theme={game?.mapTheme}
+        scale={cityScale}
       />
       <div className={`center-bottom ${rolling ? "rolling" : ""}`}>
         {game && game.status !== "lobby" ? (
@@ -61,13 +76,13 @@ export function BoardCenter({
               </span>
               {game.status === "finished"
                 ? " · match complete"
-                : ` · ${BOARD[current?.pos || 0].name}`}
+                : ` · ${activeBoard[current?.pos || 0]?.name || ""}`}
             </p>
           </>
         ) : (
           <>
             <div className="board-sign">
-              <span>{BOARD.length} BLOCKS</span>
+              <span>{activeBoard.length} BLOCKS</span>
               <i />
               <span>2–8 CREWS</span>
               <i />
@@ -108,11 +123,11 @@ export function GameBoard({
   barks: externalBarks,
 }) {
   const BOARD = game?.board || DEFAULT_BOARD,
-    size = BOARD.length / 4 + 1,
+    size = Math.floor(BOARD.length / 4) + 1,
     districts =
-      game?.schemaVersion === 1
-        ? LEGACY_DISTRICTS
-        : game?.districts || DISTRICTS;
+      game?.schemaVersion === 1 || BOARD.length === 28
+        ? (game?.districts || LEGACY_DISTRICTS)
+        : (game?.districts || DISTRICTS);
   const [walking, setWalking] = useState(null),
     lastMove = useRef(game?.lastMove?.id);
 
@@ -300,7 +315,11 @@ export function GameBoard({
     current = game?.players[game.turn];
   return (
     <div className={`board-shell ${live ? "in-play" : ""}`}>
-      <div className="board-grid" style={{ "--board-size": size }}>
+      <div
+        className="board-grid"
+        data-size={size}
+        style={{ "--board-size": size }}
+      >
         {BOARD.map((t) => {
           const pos = coordinates(t.id, BOARD.length),
             q = game?.props[t.id],

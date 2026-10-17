@@ -305,7 +305,9 @@ export function VisualTrade({
   const me = game.players.find((p) => p.id === game.me),
     board = game.board || BOARD;
   const districts =
-    game?.schemaVersion === 1 ? LEGACY_DISTRICTS : game?.districts || DISTRICTS;
+    game?.schemaVersion === 1 || board.length === 28
+      ? game?.districts || LEGACY_DISTRICTS
+      : game?.districts || DISTRICTS;
 
   const [to, setTo] = useState(counter?.from || initialPartnerId || ""),
     [give, setGive] = useState(counter?.takeTiles || []),

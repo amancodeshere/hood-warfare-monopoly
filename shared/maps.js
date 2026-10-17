@@ -44,14 +44,16 @@ export function mapDefinition(input) {
     events,
   };
 }
-export function presetMap(id) {
+export function presetMap(id, mapSize = "standard") {
   const m = MAPS.find((m) => m.id === id);
   if (!m) throw new Error("Choose a city map.");
-  const districts = DISTRICTS.map((d, i) => ({
+  const board = makeBoard(id, mapSize);
+  const count = Math.max(...board.filter(t => t.type === "property").map(t => t.group)) + 1;
+  const districts = DISTRICTS.slice(0, count).map((d, i) => ({
     ...d,
     color: m.colors?.[i] || d.color,
   }));
-  return { board: makeBoard(id), districts, mapName: m.name, mapTheme: id };
+  return { board, districts, mapName: m.name, mapTheme: id };
 }
 export function customMap(definition) {
   const d = mapDefinition(definition);

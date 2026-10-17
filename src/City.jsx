@@ -155,7 +155,7 @@ function Car({ from, to, rest, duration, delay, color, vertical, reverse }) {
     </g>
   );
 }
-export default function City({ palette, theme }) {
+export default function City({ palette, theme, scale = 1, style }) {
   const id = useId().replaceAll(":", ""),
     ref = useRef(null);
   const [paused, setPaused] = useState(false),
@@ -191,16 +191,22 @@ export default function City({ palette, theme }) {
     <div
       ref={ref}
       className={`city-art city-theme-${theme || "trenches"}${paused || !visible ? " traffic-paused" : ""}`}
-      style={
-        palette
+      data-scale={scale}
+      style={{
+        ...(palette
           ? {
               "--city-one": palette[0],
               "--city-two": palette[2],
               "--city-three": palette[4],
               "--city-roof": palette[6],
             }
-          : undefined
-      }
+          : {}),
+        "--city-scale": scale,
+        ...(scale !== 1
+          ? { transform: `scale(${scale})`, transformOrigin: "center center" }
+          : {}),
+        ...style,
+      }}
     >
       <svg
         className="city-drawing"

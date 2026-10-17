@@ -194,6 +194,14 @@ test("real multiplayer: authority, room capacity, reconnect, origin checks, and 
   assert((await send(a, "action", { type: {} })).error);
   const created = await send(a, "create", { name: "Ace", limit: 10 });
   assert(created.token.length === 64);
+  // The gameplay endpoint must not bypass map access, capacity, or account checks.
+  for (const settings of [{ map: "neon" }, { mapSize: "quick" }, { maxPlayers: 2, registeredOnly: true }]) {
+    assert.match((await send(a, "action", { type: "settings", settings })).error, /through the lobby/);
+    assert.equal(a.game.settings.map, "trenches");
+    assert.equal(a.game.board.length, 40);
+  }
+  assert.match((await send(a, "lobby", { type: "settings", settings: { map: "neon" } })).error, /Verify/);
+
   const joined = await send(b, "join", { name: "Rival", code: created.code });
   assert(joined.ok);
   assert.equal(b.game.players.length, 2);

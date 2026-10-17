@@ -100,6 +100,13 @@ export function SettingsPanel({
       <fieldset disabled={!editable || disabled} className="settings-fields">
         <div className="settings-grid">
           <label>
+            Map size
+            <select aria-label="Map size" value={draft.mapSize} onChange={(e) => change("mapSize", e.target.value)}>
+              <option value="standard">Standard · 40 tiles (default)</option>
+              <option value="quick">Quick Blitz · 28 tiles</option>
+            </select>
+          </label>
+          <label>
             Seats
             <select
               value={draft.maxPlayers}

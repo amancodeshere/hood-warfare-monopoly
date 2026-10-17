@@ -7,7 +7,11 @@ import {
   makeBoard,
 } from "../shared/board.js";
 import { BOARD as LEGACY_BOARD } from "../shared/legacy-board.js";
-import { DEFAULT_SETTINGS } from "../shared/settings.js";
+import {
+  DEFAULT_SETTINGS,
+  settings,
+  matchLimit,
+} from "../shared/settings.js";
 import { extendedAction } from "./features.js";
 import { handleStreetLuck, settleDuelBets } from "./tacticals.js";
 import { triggerBotBark } from "./botBarks.js";
@@ -81,7 +85,8 @@ export function player(name, bot = false) {
     lastBarkTime: 0,
   };
 }
-export function room(code, p) {
+export function room(code, p, options = {}) {
+  const initialSettings = { ...DEFAULT_SETTINGS, ...(options.settings || {}) };
   return {
     code,
     host: p.id,
@@ -90,15 +95,15 @@ export function room(code, p) {
     phase: "roll",
     turn: 0,
     round: 1,
-    limit: null,
+    limit: options.limit !== undefined ? options.limit : null,
     heatLevel: 0,
     blackoutDistrict: null,
     blackoutUntilRound: null,
     blackoutExpiresOnPlayer: null,
     lockdownUsedRound: null,
     schemaVersion: 2,
-    board: makeBoard(),
-    settings: { ...DEFAULT_SETTINGS },
+    board: makeBoard(initialSettings.map, initialSettings.mapSize),
+    settings: initialSettings,
     teamNames: { 1: "Eastside", 2: "Sunset", 3: "Northside", 4: "After Hours" },
     chat: [],
     lastBotBarkTime: 0,
@@ -174,36 +179,37 @@ export function rent(g, t) {
       g.players.find((p) => p.id === q.owner)?.jail)
   )
     return 0;
-  if (t.type === "utility")
-    return (
-      (g.dice[0] + g.dice[1]) *
-      (BOARD.filter(
-        (x) =>
-          x.type === "utility" &&
-          g.props[x.id] &&
-          allied(g, g.props[x.id].owner, q.owner) &&
-          !g.props[x.id].mortgaged,
-      ).length >= 2
+  if (t.type === "utility") {
+    const totalUtilities = BOARD.filter((x) => x.type === "utility").length;
+    const ownedUtilities = BOARD.filter(
+      (x) =>
+        x.type === "utility" &&
+        g.props[x.id] &&
+        allied(g, g.props[x.id].owner, q.owner) &&
+        !g.props[x.id].mortgaged,
+    ).length;
+    const multiplier =
+      (totalUtilities > 1 && ownedUtilities >= totalUtilities) ||
+      ownedUtilities >= 2
         ? 15
-        : 4)
-    );
-  if (t.type === "transit")
-    return (
-      (g.schemaVersion === 1 ? 45 : 25) *
-      (g.schemaVersion === 1
-        ? holdings(g, q.owner).filter(
-            (x) => x.type === "transit" && !g.props[x.id].mortgaged,
-          ).length
-        : 2 **
-          (BOARD.filter(
-            (x) =>
-              x.type === "transit" &&
-              g.props[x.id] &&
-              allied(g, g.props[x.id].owner, q.owner) &&
-              !g.props[x.id].mortgaged,
-          ).length -
-            1))
-    );
+        : 4;
+    return (g.dice[0] + g.dice[1]) * multiplier;
+  }
+  if (t.type === "transit") {
+    const is28 = g.schemaVersion === 1 || BOARD.length === 28;
+    const baseRent = t.rent || (is28 ? 45 : 25);
+    const ownedTransits = BOARD.filter(
+      (x) =>
+        x.type === "transit" &&
+        g.props[x.id] &&
+        allied(g, g.props[x.id].owner, q.owner) &&
+        !g.props[x.id].mortgaged,
+    ).length;
+    if (ownedTransits === 0) return 0;
+    return is28
+      ? baseRent * ownedTransits
+      : baseRent * 2 ** (ownedTransits - 1);
+  }
   const calculatedRent =
     t.rent *
     (q.level
@@ -552,9 +558,20 @@ export function resolveDuel(g, rng = secureRandom) {
   } else phase(g, "duel");
 }
 export function action(g, id, a, rng = secureRandom, options = {}) {
+  assert(a && typeof a.type === "string", "Invalid action.");
+  if (a.type === "settings") {
+    assert(g.status === "lobby", "Settings can only be changed in the lobby.");
+    assert(g.host === id, "Only the host can change settings.");
+    const next = settings(a.settings || {}, g.settings);
+    if ("limit" in a) g.limit = matchLimit(a.limit);
+    g.settings = next;
+    if (!g.settings.map?.startsWith("custom:")) {
+      g.board = makeBoard(g.settings.map, g.settings.mapSize);
+    }
+    return;
+  }
   const BOARD = board(g);
   assert(g.status === "playing", "This match is not active.");
-  assert(a && typeof a.type === "string", "Invalid action.");
   const p = g.players.find((x) => x.id === id);
   assert(
     p &&

@@ -538,11 +538,16 @@ export function extendedAction(g, id, a, rng, options) {
       "Grid lockdown can only be activated once per round.",
     );
     assert(p.cash >= 100, "Grid lockdown requires $100 maintenance cost.");
-    assert(
-      Number.isInteger(a.district) && a.district >= 0 && a.district <= 7,
-      "Choose a valid district (0-7).",
+    const b = board(g);
+    const maxDistrict = b.reduce(
+      (m, x) => (x.group !== undefined && x.group > m ? x.group : m),
+      b.length === 28 ? 5 : 7,
     );
-    const districtTiles = board(g).filter((x) => x.group === a.district);
+    assert(
+      Number.isInteger(a.district) && a.district >= 0 && a.district <= maxDistrict,
+      `Choose a valid district (0-${maxDistrict}).`,
+    );
+    const districtTiles = b.filter((x) => x.group === a.district);
     assert(districtTiles.length > 0, "Invalid district.");
     const ownedByTeam = districtTiles.every(
       (x) => g.props[x.id] && allied(g, g.props[x.id].owner, id),

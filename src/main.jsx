@@ -640,7 +640,9 @@ function App() {
   }
   const BOARD = game?.board || DEFAULT_BOARD;
   const districts =
-    game?.schemaVersion === 1 ? LEGACY_DISTRICTS : game?.districts || DISTRICTS;
+    game?.schemaVersion === 1 || BOARD.length === 28
+      ? game?.districts || LEGACY_DISTRICTS
+      : game?.districts || DISTRICTS;
   const me = game?.players.find((p) => p.id === game.me),
     current = game?.players[game.turn],
     mine = me?.id === current?.id && !me?.out,
@@ -1052,7 +1054,7 @@ function App() {
               ? `Room ${game.code}. ${game.players.length} crews joined.`
               : "Create or join a private room to play."}
       </div>
-      <main className="game-layout">
+      <main className={`game-layout${game?.status === "playing" ? " in-play" : ""}`}>
         <aside className="crew-sidebar" aria-label="Crews and standings">
           <CrewRoster
             game={game}
@@ -1120,7 +1122,7 @@ function App() {
               {mapOverview ? "Explore readable streets" : "See full map"}
             </button>
           </div>
-          <div className={`board-viewport ${mapOverview ? "overview" : ""}`}>
+          <div className={`board-viewport ${game?.status === "playing" || mapOverview ? "overview" : ""}`}>
             <Board
               game={game}
               selected={selected}
@@ -1152,8 +1154,11 @@ function App() {
               Crew badges show who owns each block. Tap a tile for details.
             </p>
           )}
-          {game && (
-            <div className="board-chat" ref={chatFocus}>
+          {game && game.status !== "playing" && tab !== "chat" && (
+            <div
+              className="board-chat"
+              ref={chatFocus}
+            >
               <ChatPanel
                 game={game}
                 emit={emit}
@@ -1365,6 +1370,39 @@ function App() {
                   <option value={20}>Classic · 20 rounds</option>
                   <option value={30}>Marathon · 30 rounds</option>
                 </select>
+              </div>
+              <div className="map-size-select">
+                <label>Map size</label>
+                <div className="map-size-picker" role="group" aria-label="Map size">
+                  <button
+                    type="button"
+                    className={`size-chip ${(!game.settings?.mapSize || game.settings?.mapSize === "standard") ? "active" : ""}`}
+                    aria-pressed={!game.settings?.mapSize || game.settings?.mapSize === "standard"}
+                    disabled={game.host !== game.me || disabled}
+                    onClick={() =>
+                      lobby({
+                        type: "settings",
+                        settings: { mapSize: "standard" },
+                      })
+                    }
+                  >
+                    40 Tiles · Standard
+                  </button>
+                  <button
+                    type="button"
+                    className={`size-chip ${(game.settings?.mapSize === "quick" || game.settings?.mapSize === "blitz") ? "active" : ""}`}
+                    aria-pressed={game.settings?.mapSize === "quick" || game.settings?.mapSize === "blitz"}
+                    disabled={game.host !== game.me || disabled}
+                    onClick={() =>
+                      lobby({
+                        type: "settings",
+                        settings: { mapSize: "quick" },
+                      })
+                    }
+                  >
+                    28 Tiles · Quick Blitz
+                  </button>
+                </div>
               </div>
               <Button secondary onClick={() => setSettingsOpen(true)}>
                 House rules & room settings
@@ -1597,15 +1635,15 @@ function App() {
                     key={x.id}
                     className={tab === x.id ? "active" : ""}
                     onClick={() => {
+                      setTab(x.id);
                       if (x.id === "chat") {
-                        chatFocus.current?.scrollIntoView({
-                          block: "center",
-                          behavior: "smooth",
-                        });
-                        chatFocus.current
-                          ?.querySelector("input")
-                          ?.focus({ preventScroll: true });
-                      } else setTab(x.id);
+                        setTimeout(() => {
+                          const input =
+                            document.querySelector(".action-sidebar #chat-message") ||
+                            chatFocus.current?.querySelector("input");
+                          input?.focus({ preventScroll: true });
+                        }, 20);
+                      }
                     }}
                   >
                     {x.label}
@@ -1672,7 +1710,7 @@ function App() {
                 </div>
               )}
               {tab === "turn" ? (
-                turnPanel()
+                <div className="turn-panel">{turnPanel()}</div>
               ) : tab === "turf" ? (
                 <>
                   <div className="turf-heading">
@@ -1839,6 +1877,15 @@ function App() {
                     </div>
                   )}
                 </>
+              ) : tab === "chat" ? (
+                <div className="sidebar-chat-tab">
+                  <ChatPanel
+                    game={game}
+                    emit={emit}
+                    disabled={!connected || !me}
+                    onPlayer={setPlayerOpen}
+                  />
+                </div>
               ) : (
                 <>
                   <div className="trade-tab-popout-wrap">
@@ -1859,6 +1906,11 @@ function App() {
                     clearCounter={() => setCounterOffer(null)}
                   />
                 </>
+              )}
+              {tab !== "chat" && (
+                <div className="board-chat sidebar-chat-tab">
+                  <ChatPanel game={game} emit={emit} disabled={!connected || !me} onPlayer={setPlayerOpen} />
+                </div>
               )}
               {!mine &&
                 me &&
@@ -2135,6 +2187,7 @@ function App() {
     </>
   );
 }
+
 createRoot(document.getElementById("root")).render(<App />);
 
 export { DeedCardPopover, CrewRoster, GameBoard, Board };
