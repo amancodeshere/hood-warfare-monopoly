@@ -55,7 +55,8 @@ export function migrate(g) {
 }
 export const secureRandom = (n) => randomInt(n);
 // Every movement total is equally likely; choose uniformly among its valid pairs.
-export function rollDice(rng = secureRandom) {
+export function rollDice(rng = secureRandom, mode = "balanced") {
+  if (mode === "regular") return [rng(6) + 1, rng(6) + 1];
   const total = rng(11) + 2;
   const lowest = Math.max(1, total - 6);
   const highest = Math.min(6, total - 1);
@@ -662,7 +663,7 @@ export function action(g, id, a, rng = secureRandom, options = {}) {
   assert(active(g).id === id, "Wait for your turn.");
   if (a.type === "roll") {
     assert(g.phase === "roll", "You cannot roll right now.");
-    g.dice = rollDice(rng);
+    g.dice = rollDice(rng, g.settings?.diceMode);
     const doubles = g.settings?.doubles && g.dice[0] === g.dice[1];
     g.doubleCount = doubles ? g.doubleCount + 1 : 0;
     g.extraRoll = !!doubles;

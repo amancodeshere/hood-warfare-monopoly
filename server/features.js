@@ -9,6 +9,7 @@ import {
   finishAuction,
   land,
   allied,
+  rollDice,
 } from "./game.js";
 import { tacticalAction } from "./tacticals.js";
 import { triggerBotBark } from "./botBarks.js";
@@ -388,7 +389,7 @@ export function extendedAction(g, id, a, rng, options) {
       active(g).id === id && g.phase === "jail" && p.jail,
       "You are not in jail.",
     );
-    g.dice = [rng(6) + 1, rng(6) + 1];
+    g.dice = rollDice(rng, g.settings?.diceMode);
     g.extraRoll = false;
     if (g.dice[0] === g.dice[1]) {
       p.jail = 0;

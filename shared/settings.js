@@ -16,6 +16,7 @@ export const DEFAULT_SETTINGS = {
   evenBuild: true,
   randomOrder: false,
   doubles: true,
+  diceMode: "balanced",
   turnSeconds: 90,
   registeredOnly: false,
 };
@@ -90,6 +91,11 @@ export function settings(input = {}, previous = DEFAULT_SETTINGS) {
       if (typeof value !== "boolean")
         throw new Error("Choose an on/off setting.");
     } else if (
+      key === "diceMode" &&
+      !["balanced", "regular"].includes(value)
+    )
+      throw new Error("Choose a valid dice mode.");
+    else if (
       key === "maxPlayers" &&
       (!Number.isInteger(value) || value < 2 || value > 8)
     )

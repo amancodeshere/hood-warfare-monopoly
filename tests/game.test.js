@@ -44,6 +44,22 @@ test("dice draw each total from the same 11-way range and every valid pair unifo
   }
   assert.deepEqual(totals, [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
 });
+test("regular dice draw every ordered pair from two independent six-way draws", () => {
+  const pairs = [];
+  for (let first = 0; first < 6; first++) {
+    for (let second = 0; second < 6; second++) {
+      let calls = 0;
+      const dice = rollDice((limit) => {
+        assert.equal(limit, 6);
+        return calls++ === 0 ? first : second;
+      }, "regular");
+      assert.equal(calls, 2);
+      assert.deepEqual(dice, [first + 1, second + 1]);
+      pairs.push(dice.join(","));
+    }
+  }
+  assert.equal(new Set(pairs).size, 36);
+});
 import { BOARD, coordinates } from "../shared/legacy-board.js";
 function fixture(n = 3) {
   const p = player("Ace"),
@@ -85,6 +101,17 @@ test("roll is server generated and pass home pays exactly once", () => {
   assert.equal(p.pos, 1);
   assert.equal(p.cash, 1700);
   assert.equal(g.phase, "buy");
+});
+test("regular room mode uses server generated independent faces for movement", () => {
+  const { g, p } = fixture();
+  g.settings.diceMode = "regular";
+  const draws = [5, 0];
+  action(g, p.id, { type: "roll", dice: [1, 1] }, (limit) => {
+    assert.equal(limit, 6);
+    return draws.shift();
+  });
+  assert.deepEqual(g.dice, [6, 1]);
+  assert.equal(p.pos, 7);
 });
 test("out-of-turn and duplicate rolls do not alter the game", () => {
   const { g, p, b } = fixture();
@@ -316,6 +343,36 @@ test("jail waits two turns and bail/escape permit rolling", () => {
   action(g, p.id, { type: "jail-card" });
   assert.equal(p.jail, 0);
   assert.equal(p.escapes, 0);
+});
+test("jail rolls use the room dice mode and resolve the resulting faces", () => {
+  for (const { mode, draws, limits, expected } of [
+    {
+      mode: "balanced",
+      draws: [1, 1],
+      limits: [11, 2],
+      expected: [2, 1],
+    },
+    {
+      mode: "regular",
+      draws: [0, 1],
+      limits: [6, 6],
+      expected: [1, 2],
+    },
+  ]) {
+    const { g, p } = fixture();
+    g.phase = "jail";
+    g.settings.diceMode = mode;
+    p.jail = 2;
+    let index = 0;
+    action(g, p.id, { type: "jail-roll" }, (limit) => {
+      assert.equal(limit, limits[index]);
+      return draws[index++];
+    });
+    assert.equal(index, 2);
+    assert.deepEqual(g.dice, expected);
+    assert.equal(p.jail, 1);
+    assert.equal(g.phase, "end");
+  }
 });
 test("tax pot is collected and cleared at Free Parking", () => {
   const { g, p } = fixture();

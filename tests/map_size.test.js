@@ -13,12 +13,23 @@ import {
   action,
   start,
   rent,
+  migrate,
 } from "../server/game.js";
 
 test("DEFAULT_SETTINGS has mapSize defaulting to 'standard'", () => {
   assert.equal(DEFAULT_SETTINGS.mapSize, "standard");
   const s = settings();
   assert.equal(s.mapSize, "standard");
+});
+
+test("dice mode defaults to balanced, validates choices, and migrates old settings", () => {
+  assert.equal(DEFAULT_SETTINGS.diceMode, "balanced");
+  assert.equal(settings().diceMode, "balanced");
+  assert.equal(settings({ diceMode: "regular" }).diceMode, "regular");
+  assert.throws(() => settings({ diceMode: "loaded" }), /valid dice mode/);
+  const g = room("MIGRATE", player("A"));
+  delete g.settings.diceMode;
+  assert.equal(migrate(g).settings.diceMode, "balanced");
 });
 
 test("settings() validates mapSize values: standard, quick, blitz, and rejects invalid", () => {

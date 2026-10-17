@@ -191,6 +191,17 @@ export function SettingsPanel({
               ))}
             </select>
           </label>
+          <label>
+            Dice
+            <select
+              aria-label="Dice mode"
+              value={draft.diceMode}
+              onChange={(e) => change("diceMode", e.target.value)}
+            >
+              <option value="balanced">Balanced · each total equally likely</option>
+              <option value="regular">Regular · two six-sided dice</option>
+            </select>
+          </label>
         </div>
         <div className="rule-switches">
           {RULE_OPTIONS.map(([key, title, description]) => (
@@ -1264,8 +1275,10 @@ export function ExpandedRules({ close, game }) {
               {legacy
                 ? "This saved match uses the original 28-square board."
                 : "2–8 crews move around 40 squares. Fill spare seats with bots or play solo against 1–7 bots."}{" "}
-              Totals 2–12 each have a 1-in-11 chance. The dice show a randomly
-              selected pair for that total. Pass Home Base for $200. With
+              {game?.settings?.diceMode === "regular"
+                ? "Regular dice: each die independently rolls 1–6, so middle totals are more likely than 2 or 12."
+                : "Balanced dice (default): each total from 2–12 has the same 1-in-11 chance; a valid pair is then selected for that total."}{" "}
+              Pass Home Base for $200. With
               doubles enabled, roll again; three doubles in a row send you to
               County. Choose winner takes all (default), or a 10/20/30-round
               cap.
