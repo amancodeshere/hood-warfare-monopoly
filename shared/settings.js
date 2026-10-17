@@ -7,6 +7,7 @@ export const DEFAULT_SETTINGS = {
   visibility: "private",
   autoFill: true,
   teams: false,
+  killerTakesAll: false,
   doubleRent: true,
   communityCash: true,
   auctions: true,
@@ -27,7 +28,12 @@ export const RULE_OPTIONS = [
   [
     "teams",
     "Teams mode",
-    "No teammate rent. Share sets and inherit allied turf.",
+    "No teammate rent. Share sets with your crew.",
+  ],
+  [
+    "killerTakesAll",
+    "Killer Takes All",
+    "When a landlord wins a rent shootout, they inherit the debtor’s properties.",
   ],
   [
     "doubleRent",

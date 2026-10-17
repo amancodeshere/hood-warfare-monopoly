@@ -410,9 +410,19 @@ export function eliminate(g, p, creditor, options = {}) {
   const teammate = g.players.find(
     (x) => !x.out && x.id !== p.id && allied(g, x.id, p.id),
   );
+  // Cash and escapes retain their existing crew/creditor behavior. Property
+  // follows the market rule unless a resolved rent shootout explicitly grants it.
   const heir = teammate || creditor;
+  const propertyHeir =
+    options.rentShootoutWinner &&
+    g.settings?.killerTakesAll &&
+    g.duel?.attacker === p.id &&
+    g.duel?.defender === creditor?.id
+      ? creditor
+      : null;
   if (!wasActive && interrupted.pending?.owner === p.id) {
-    if (heir) interrupted.pending = { ...interrupted.pending, owner: heir.id };
+    if (propertyHeir)
+      interrupted.pending = { ...interrupted.pending, owner: propertyHeir.id };
     else {
       interrupted.pending = null;
       interrupted.phase = "end";
@@ -420,7 +430,7 @@ export function eliminate(g, p, creditor, options = {}) {
   }
   p.out = true;
   for (const t of holdings(g, p.id)) {
-    if (heir) g.props[t.id].owner = heir.id;
+    if (propertyHeir) g.props[t.id].owner = propertyHeir.id;
     else delete g.props[t.id];
   }
   if (heir) heir.cash += p.cash;
@@ -431,7 +441,7 @@ export function eliminate(g, p, creditor, options = {}) {
   g.trade = null;
   log(
     g,
-    `${p.name} is out${heir ? `. ${heir.name} inherits their turf` : ". The turf returns to the market"}.`,
+    `${p.name} is out${propertyHeir ? `. ${propertyHeir.name} inherits their turf` : ". The turf returns to the market"}.`,
     "bad",
   );
   triggerBotBark(g, p, "bankrupt", { creditor: heir, now: options.now });
@@ -514,7 +524,11 @@ function settleDuel(g, winner, options = {}) {
       "good",
     );
     g.pending = null;
-  } else eliminate(g, p, owner, options);
+  } else
+    eliminate(g, p, owner, {
+      ...options,
+      rentShootoutWinner: winner === d.defender,
+    });
   settleDuelBets(g, winner);
   if (g.status !== "finished") phase(g, "duel-result");
 }

@@ -162,22 +162,36 @@ test("new rent shootouts use FPS; attacker victory wipes debt exactly once and s
     /over/,
   );
 });
-test("ready forfeits and landlord wins transfer challenger assets; exact ties protect the block", () => {
-  const { g, a, b } = fixture();
+test("ready forfeits return challenger turf to market by default; exact ties protect the block", () => {
+  const { g, a } = fixture();
   g.props[3] = { owner: a.id, level: 0, mortgaged: false };
   tickDuel(g, g.deadline + 1);
   assert.equal(a.out, true);
-  assert.equal(g.props[3].owner, b.id);
+  assert.equal(g.props[3], undefined);
   const f = fixture();
   action(f.g, f.a.id, { type: "duel-ready" });
   tickDuel(f.g, f.g.deadline + 1);
   assert.equal(f.g.duel.winner, f.a.id);
   assert.equal(f.g.pending, null);
 });
+test("Killer Takes All transfers challenger turf when the landlord wins a readiness timeout", () => {
+  const { g, a, b } = fixture();
+  g.settings.killerTakesAll = true;
+  g.props[3] = { owner: a.id, level: 1, mortgaged: false };
+  tickDuel(g, g.deadline + 1);
+  assert.equal(a.out, true);
+  assert.deepEqual(g.props[3], {
+    owner: b.id,
+    level: 1,
+    mortgaged: false,
+  });
+});
 test("forfeiting either FPS participant settles immediately without leaving a ghost opponent", () => {
   const f = fixture();
+  f.g.props[3] = { owner: f.b.id, level: 0, mortgaged: true };
   action(f.g, f.b.id, { type: "forfeit" });
   assert.equal(f.b.out, true);
+  assert.equal(f.g.props[3], undefined);
   assert.equal(f.g.duel.winner, f.a.id);
   assert.equal(f.g.pending, null);
   assert.equal(f.g.duel.stage, "finished");

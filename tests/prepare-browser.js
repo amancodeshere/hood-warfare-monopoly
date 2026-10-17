@@ -7,6 +7,85 @@ if (!process.env.DATA_DIR?.includes("stb-playwright-"))
   throw new Error("Refusing to seed outside a browser test directory");
 const fixtures = [];
 const sessions = [];
+// Rent-duel elimination fixtures use a bot challenger with a locked final
+// tactic. The landlord can settle the duel deterministically from the browser.
+for (const killerTakesAll of [false, true]) {
+  const landlord = player("Landlord"),
+    challenger = player("Challenger Bot", true),
+    witness = player("Witness Bot", true),
+    code = killerTakesAll ? "KTABOT" : "DEF BOT".replace(" ", ""),
+    g = room(code, landlord, { settings: { autoFill: false, killerTakesAll } });
+  g.players.push(challenger, witness);
+  g.board = LEGACY_BOARD;
+  g.schemaVersion = 1;
+  g.settings.auctions = false;
+  g.settings.doubles = false;
+  start(g, landlord.id);
+  // The bot owes rent; the landlord is one turn after the eliminated bot so
+  // the server can show the settled result without an unrelated roll.
+  g.players = [challenger, landlord, witness];
+  g.turn = 0;
+  challenger.cash = 0;
+  challenger.pos = 1;
+  landlord.cash = 1500;
+  g.props[1] = { owner: landlord.id, level: 0, mortgaged: false };
+  g.props[2] = { owner: challenger.id, level: 2, mortgaged: false };
+  g.props[6] = { owner: challenger.id, level: 0, mortgaged: true };
+  land(g);
+  action(g, challenger.id, { type: "shootout" });
+  delete g.duel.mode;
+  delete g.duel.arena;
+  g.duel.scores[landlord.id] = 1;
+  g.duel.choices[challenger.id] = "fire";
+  fixtures.push(g);
+  sessions.push([`elimination-${killerTakesAll ? "enabled" : "default"}-landlord`, { code, id: landlord.id }]);
+}
+// A post-elimination turn where the returned deed is the active purchase.
+// Resolve the loss through the same authoritative game action before seeding
+// this browser state, then leave the landlord at the returned block.
+const reclaimLandlord = player("Reclaim Landlord"),
+  reclaimBot = player("Reclaim Bot", true),
+  reclaimWitness = player("Reclaim Witness", true),
+  reclaim = room("KTAREB", reclaimLandlord, { settings: { autoFill: false } });
+reclaim.players.push(reclaimBot, reclaimWitness);
+reclaim.board = LEGACY_BOARD;
+reclaim.schemaVersion = 1;
+reclaim.settings.auctions = false;
+reclaim.settings.doubles = false;
+start(reclaim, reclaimLandlord.id);
+reclaim.players = [reclaimBot, reclaimLandlord, reclaimWitness];
+reclaim.turn = 0;
+reclaimBot.cash = 0;
+reclaimBot.pos = 1;
+reclaim.props[1] = { owner: reclaimLandlord.id, level: 0, mortgaged: false };
+reclaim.props[2] = { owner: reclaimBot.id, level: 2, mortgaged: false };
+land(reclaim);
+action(reclaim, reclaimBot.id, { type: "shootout" });
+delete reclaim.duel.mode;
+delete reclaim.duel.arena;
+reclaim.duel.scores[reclaimLandlord.id] = 1;
+reclaim.duel.choices[reclaimBot.id] = "fire";
+action(reclaim, reclaimLandlord.id, { type: "duel-choice", choice: "guard" });
+// The debtor is eliminated; advance to the landlord's turn and stage the
+// returned deed at the market for an ordinary purchase through the UI.
+action(reclaim, reclaimBot.id, { type: "end" });
+reclaim.turn = 1;
+reclaimLandlord.pos = 2;
+reclaim.phase = "buy";
+reclaim.pending = null;
+fixtures.push(reclaim);
+sessions.push(["elimination-reclaim-landlord", { code: reclaim.code, id: reclaimLandlord.id }]);
+
+// Lobby rule settings are exercised from both connected clients before start.
+const ruleHost = player("Rule Host"),
+  ruleGuest = player("Rule Guest"),
+  ruleLobby = room("KTARUL", ruleHost, { settings: { autoFill: false } });
+ruleLobby.players.push(ruleGuest);
+fixtures.push(ruleLobby);
+sessions.push(
+  ["elimination-rules-host", { code: ruleLobby.code, id: ruleHost.id }],
+  ["elimination-rules-guest", { code: ruleLobby.code, id: ruleGuest.id }],
+);
 for (const kind of [
   "wheel",
   "duel",

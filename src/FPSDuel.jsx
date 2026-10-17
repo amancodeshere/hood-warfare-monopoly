@@ -344,7 +344,9 @@ function LegacyFPSDuel({ game, act, disabled }) {
             <p>
               {d.winner === d.attacker
                 ? "Rent wiped. Live to own another block."
-                : "The challenger is out. Cash and turf pass to a living teammate, otherwise the landlord."}
+                : game.settings?.killerTakesAll
+                    ? "Killer takes all: the landlord inherits the challenger’s properties, including buildings and mortgages."
+                    : "The challenger is out. Their properties return to the board with buildings and mortgages cleared."}
             </p>
             {game.me === d.attacker &&
             !game.players.find((p) => p.id === d.attacker).out ? (

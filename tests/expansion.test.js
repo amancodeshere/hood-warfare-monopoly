@@ -166,7 +166,7 @@ test("utilities use dice and transit doubles for combined holdings", () => {
   p.jail = 1;
   assert.equal(rent(g, BOARD[5]), 0);
 });
-test("teams share sets, avoid rent, enforce even building across allies and inherit turf", () => {
+test("teams share sets, avoid rent, and enforce even building across allies", () => {
   const { g, p, b, c } = game(3, { teams: true });
   p.team = b.team = "1";
   c.team = "2";
@@ -182,7 +182,7 @@ test("teams share sets, avoid rent, enforce even building across allies and inhe
   assert.throws(() => action(g, p.id, { type: "mortgage", tile: 1 }));
   g.props[3].level = 0;
   action(g, p.id, { type: "forfeit" });
-  assert.equal(g.props[1].owner, b.id);
+  assert.equal(g.props[1], undefined);
   assert.equal(b.cash, 2970);
   assert.equal(g.status, "playing");
   g.turn = 2;

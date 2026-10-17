@@ -1308,9 +1308,11 @@ export function ExpandedRules({ close, game }) {
               fire, dodge, duck, and reload a six-shot magazine. Body hits deal
               25 damage; headshots deal 40. At 30 seconds, higher health wins;
               an exact tie protects the landlord. Ready within 25 seconds or
-              concede. Win wipes rent; lose eliminates your crew and transfers
-              cash and turf to a living teammate, otherwise the landlord. City
-              debts cannot trigger a shootout.
+              concede. Win wipes rent; lose eliminates your crew. Their cash
+              follows the existing crew/landlord rules, while their properties
+              return to the market unless Killer Takes All is on, in which case
+              the winning landlord inherits them. City debts cannot trigger a
+              shootout.
             </p>
           </div>
         </article>
@@ -1332,8 +1334,9 @@ export function ExpandedRules({ close, game }) {
             <h3>Your crew, your city</h3>
             <p>
               Teams pay no allied rent and combine district, transit, and
-              utility sets. Living teammates inherit an eliminated ally’s
-              empire. Team chat stays private. Trade multiple properties, cash,
+              utility sets. Eliminated players’ properties return to the market
+              unless Killer Takes All applies after a rent shootout. Team chat
+              stays private. Trade multiple properties, cash,
               and escape cards. Public lobbies, spectating, friends,
               invitations, and saved history keep game night moving.
             </p>

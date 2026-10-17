@@ -8,7 +8,7 @@ The comparison uses Richup’s public room settings and its official release not
 | Maps and house rules                         | Two 40-square city maps; configurable starting cash, doubles, auctioning, mortgages, prison rent, even building, community payouts, order and capacity                |
 | Property, utility and transport economy      | Eight districts, four transit lines, two utilities, four houses plus hotel, auctioning and mortgage/redeem                                                            |
 | Trading                                      | Atomic offers containing multiple properties, cash in both directions, and escape cards; rescue gifts; fair-value checks during rent debt                             |
-| Team alliances                               | Up to four named teams, no allied rent, shared district/transit/utility sets, teammate inheritance and server-filtered team chat                                      |
+| Team alliances                               | Up to four named teams, no allied rent, shared district/transit/utility sets, cash/escape-card inheritance and server-filtered team chat                                      |
 | Turn clock                                   | Free thinking time plus personal reserve, debt extension, donated minutes, idle elimination and disconnect pause                                                      |
 | Chat and spectators                          | Global/team chat, readable spectator seats, per-profile mute/block, rate limits and saved reports                                                                     |
 | Friends and account-only rooms               | Guest profiles, optional username/password accounts, friend requests, online status, invitations, registered-only room setting                                        |
@@ -58,3 +58,7 @@ Any active crew can propose multi-property/cash/escape-card deals between events
 Room chat appears beside the board, remains available while editing deals, retains private team channels and mute/block filtering, and has a direct composer shortcut. Eliminated seats get a prominent leave action, are not trapped by event overlays, clear browser seat state on exit, and cannot resume a revoked seat. Browser coverage includes two-crew counters, cross-browser chat, and mobile exit during an event.
 
 Richup’s live game connection was unavailable during this implementation. These negotiation behaviors are implemented and tested; exact parity with its current trading UI/rules has not been verified.
+
+## Elimination property rules
+
+By default, an eliminated human or bot returns every property to the board, unowned, unmortgaged and without buildings. This also applies in teams mode. The host may enable **Killer Takes All** before starting: if the landlord wins an initiated rent shootout, they inherit the debtor’s properties with existing buildings and mortgage status. A concession after the challenge counts as a shootout result. Ordinary forfeits, surrender and idle elimination never transfer properties, even with this option enabled. Cash and escape-card settlement remains unchanged.

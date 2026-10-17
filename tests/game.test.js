@@ -219,7 +219,7 @@ test("winning shootout wipes debt and does not mint cash", () => {
   action(g, p.id, { type: "end" });
   assert.equal(active(g).id, b.id);
 });
-test("losing shootout inherits turf and cash, eliminated turn advances", () => {
+test("losing shootout returns turf to market and retains existing cash behavior", () => {
   const { g, p, b } = duelFixture();
   g.props[2] = { owner: p.id, level: 1, mortgaged: false };
   for (let i = 0; i < 2; i++) {
@@ -228,7 +228,7 @@ test("losing shootout inherits turf and cash, eliminated turn advances", () => {
   }
   assert(p.out);
   assert.equal(b.cash, 1505);
-  assert.equal(g.props[2].owner, b.id);
+  assert.equal(g.props[2], undefined);
   action(g, p.id, { type: "end" });
   assert.equal(active(g).id, b.id);
 });

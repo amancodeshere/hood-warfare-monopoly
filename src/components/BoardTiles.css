@@ -1,38 +1,40 @@
-/* District color is the tile's primary material, with the asphalt frame still
-   carrying the board's visual weight. The color stays under dark ink. */
+/* Saturated district bands make the traditional property groups legible at a
+   glance while the light paper body keeps labels readable. Ownership remains
+   encoded by the separate crew-colored inset and owner bar. */
 .board-shell .board-grid .tile.district-tile {
-  background-color: color-mix(in srgb, var(--district) 64%, #e8e8d7);
+  background-color: color-mix(in srgb, var(--district) 28%, #f1efdf);
   border-color: color-mix(in srgb, var(--district) 70%, #303b30);
   color: #263326;
 }
 
 .board-shell .board-grid .tile.district-tile .district-stripe {
-  height: clamp(8px, 18%, 14px);
-  min-height: 8px;
+  height: clamp(9px, 18%, 15px);
+  min-height: 9px;
   background: var(--district);
-  border-bottom: 1px solid color-mix(in srgb, var(--district) 64%, #263326);
-  box-shadow: 0 1px 2px #17201735;
+  border-bottom: 1px solid color-mix(in srgb, var(--district) 72%, #172017);
+  box-shadow: 0 1px 2px #17201745;
+  filter: saturate(1.8) brightness(0.94);
 }
 
 .board-shell .board-grid .tile.district-tile:not(.built):has(.district-stripe) {
-  padding-top: calc(clamp(8px, 18%, 14px) + 5px);
+  padding-top: calc(clamp(9px, 18%, 15px) + 5px);
 }
 
 .board-shell .board-grid .tile.district-tile:hover {
-  background-color: color-mix(in srgb, var(--district) 52%, #f0efdf);
+  background-color: color-mix(in srgb, var(--district) 34%, #f1efdf);
 }
 
 .board-shell .board-grid .tile.district-tile.selected {
-  background-color: color-mix(in srgb, var(--district) 48%, #f0efdf);
+  background-color: color-mix(in srgb, var(--district) 34%, #f1efdf);
 }
 
 .board-shell .board-grid .tile.district-tile.occupied {
-  background-color: color-mix(in srgb, var(--district) 70%, #dce4cb);
+  background-color: color-mix(in srgb, var(--district) 38%, #e7e9d7);
   border: 2px dashed #263326;
 }
 
 .board-shell .board-grid .tile.district-tile.mortgaged {
-  background-color: color-mix(in srgb, var(--district) 28%, #7e8875);
+  background-color: color-mix(in srgb, var(--district) 25%, #7e8875);
   background-image: repeating-linear-gradient(
     135deg,
     #26332612 0 2px,

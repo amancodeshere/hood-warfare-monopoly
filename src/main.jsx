@@ -272,7 +272,9 @@ function Duel({ game, act, disabled, socket }) {
           <p>
             {d.winner === d.attacker
               ? "Debt wiped. Live to own another block."
-              : "The landlord takes the cash and turf. The challenger is out."}
+              : game.settings?.killerTakesAll
+                ? "Killer takes all: the landlord inherits the challenger’s properties, including buildings and mortgages."
+                : "The challenger is out. Their properties return to the board with buildings and mortgages cleared."}
           </p>
           {game.me === a.id && !a.out ? (
             <Button onClick={() => act({ type: "end" })} disabled={disabled}>
@@ -982,7 +984,7 @@ function App() {
             <Crosshair size={22} />
           </span>
           <span>
-            SPIN THE BLOCK<small>HOOD WARFARE MONOPOLY</small>
+            SPIN THE BLOCK<small>PROPERTY. PRESSURE. PAYBACK.</small>
           </span>
         </a>
         <nav>
@@ -2105,9 +2107,10 @@ function App() {
           close={() => setConfirmForfeit(false)}
         >
           <p>
-            Forfeiting eliminates your crew. Your teammate inherits your turf,
-            or it returns to the market. A rent creditor inherits it when you
-            owe them.
+            {game?.phase === "duel" && game.duel?.mode === "fps" &&
+            game.me === game.duel.attacker && game.settings?.killerTakesAll
+              ? "Conceding this rent shootout eliminates your crew. The landlord inherits your properties, including their buildings and mortgages."
+              : "Forfeiting eliminates your crew. Your properties return to the board, with all buildings and mortgages cleared."}
           </p>
           <Button
             danger
