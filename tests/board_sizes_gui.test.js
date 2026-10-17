@@ -118,11 +118,7 @@ test("BoardCenter grid bounds and dynamic City centerpiece scale: 8x8 vs 11x11",
       gameBoardCode.includes("gridRow: `2/${size}`"),
     "BoardCenter must dynamically set gridRow: 2/${size}",
   );
-  assert.ok(
-    gameBoardCode.includes("cityScale = boardSize === 8 ? 0.75 : 1") ||
-      gameBoardCode.includes("cityScale = size === 8 ? 0.75 : 1"),
-    "BoardCenter must dynamically scale City centerpiece to 0.75 for 8x8 boards",
-  );
+
 
   // City accepts scale and renders scale transform
   assert.ok(cityCode.includes("scale = 1"), "City component must accept scale prop with default 1");

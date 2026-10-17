@@ -8,6 +8,17 @@ if (!process.env.DATA_DIR?.includes("stb-playwright-"))
   throw new Error("Refusing to seed outside a browser test directory");
 const fixtures = [];
 const sessions = [];
+// Legacy-style saved room without mapTheme: settings must still render India.
+const centrePlayer = player("Centre Crew");
+const centreRoom = room("CNTR01", centrePlayer, {settings:{autoFill:false,map:"night-shift"}});
+centreRoom.players.push(player("Centre Rival"));
+start(centreRoom, centrePlayer.id);
+centreRoom.log.push(...Array.from({length:20},(_,i)=>({id:`centre-history-${i}`,time:Date.now()-(i+1)*60000,kind:"info",text:`Earlier street activity ${i+1}: crews explored the neighborhood and claimed blocks.`})));
+centreRoom.phase="buy";
+centrePlayer.pos=1;
+fixtures.push(centreRoom);
+sessions.push(["centre-live", {code:centreRoom.code,id:centrePlayer.id}]);
+
 // Rent-duel elimination fixtures use a bot challenger with a locked final
 // tactic. The landlord can settle the duel deterministically from the browser.
 for (const killerTakesAll of [false, true]) {

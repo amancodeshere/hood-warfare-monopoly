@@ -5,6 +5,7 @@ import {
   BOARD as DEFAULT_BOARD,
   CREWS,
   DISTRICTS,
+  MAPS,
   money,
   coordinates,
 } from "../../shared/board.js";
@@ -12,6 +13,7 @@ import { DISTRICTS as LEGACY_DISTRICTS } from "../../shared/legacy-board.js";
 import { COSMETICS } from "../../shared/cosmetics.js";
 import { HoodFigure, StreetBuilding } from "../StreetPieces.jsx";
 import City from "../City.jsx";
+import { resolveCityTheme } from "../../shared/city-scenes.js";
 import { Icon, Die } from "./common.jsx";
 import { getBoardDisplayName } from "../utils/board-display-name.js";
 
@@ -25,7 +27,8 @@ export function BoardCenter({
 }) {
   const activeBoard = BOARD || game?.board || DEFAULT_BOARD;
   const boardSize = size || Math.floor(activeBoard.length / 4) + 1;
-  const cityScale = boardSize === 8 ? 0.75 : 1;
+  const cityTheme = resolveCityTheme(game);
+  const cityName = cityTheme === "custom" ? (game?.mapName || "Your neighborhood") : MAPS.find((map) => map.id === cityTheme)?.name;
   const activeDistricts =
     districts ||
     (boardSize === 8 || game?.schemaVersion === 1 || activeBoard.length === 28
@@ -53,18 +56,13 @@ export function BoardCenter({
           </span>
         )}
       </div>
-      <div className="brand-on-board">
-        <span className="brand-line">SPIN THE</span>
-        <span className="brand-big">
-          BLOCK<span className="title-star">✳</span>
-        </span>
-        <span className="brand-sub">THE STREETS ARE YOURS. TAKE THEM.</span>
+      <header className="centre-heading">
+        <span>SPIN THE BLOCK</span>
+        <strong>{cityName}</strong>
+      </header>
+      <div className="centre-city">
+        <City palette={activeDistricts.map((d) => d.color)} theme={cityTheme} />
       </div>
-      <City
-        palette={activeDistricts.map((d) => d.color)}
-        theme={game?.settings?.map?.startsWith?.("custom:") ? "custom" : game?.mapTheme}
-        scale={cityScale}
-      />
       <div className={`center-bottom ${rolling ? "rolling" : ""}`}>
         {game && game.status !== "lobby" ? (
           <>
@@ -94,10 +92,17 @@ export function BoardCenter({
           </>
         )}
       </div>
-      <span className="board-coordinate coord-left">
-        STB // CITY LIMITS
-      </span>
-      <span className="board-coordinate coord-right">EST. 2026</span>
+      <section className="centre-log" aria-label="Game log" tabIndex={0}>
+        <h3>Street activity</h3>
+        {game?.log?.length ? (
+          <ol>{game.log.map((entry) => (
+            <li key={entry.id} className={entry.kind}>
+              <time dateTime={new Date(entry.time).toISOString()}>{new Date(entry.time).toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"})}</time>
+              <span>{entry.text}</span>
+            </li>
+          ))}</ol>
+        ) : <p>Roll the dice. Your street story starts here.</p>}
+      </section>
     </div>
   );
 }

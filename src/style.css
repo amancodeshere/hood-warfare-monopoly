@@ -7543,3 +7543,44 @@ body:has(.game-layout.in-play) .page-footer { display: none; }
   .game-layout.in-play { grid-template-rows: 82px minmax(0, 1fr) minmax(160px, 32%); }
   .game-layout.in-play .crew-row { flex-basis: 170px; }
 }
+
+/* The board centre is a bounded dashboard: neighborhood above live street activity. */
+.board-grid .board-center {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto minmax(72px, 23%);
+  align-items: stretch;
+  justify-content: stretch;
+  gap: 8px;
+  padding: 12px;
+  min-width: 0;
+  min-height: 0;
+  isolation: isolate;
+}
+.board-center > .center-top { position: static; grid-row: 1; min-width: 0; font-size: 7px; }
+.board-center .center-stamp { display: none; }
+.board-center .round-tag { margin-left: auto; padding: 3px 5px; }
+.centre-heading { grid-row: 1; grid-column: 1; padding-right: 100px; min-width: 0; }
+.centre-heading > span { display: block; font: 700 10px "Barlow Condensed", sans-serif; letter-spacing: .08em; color: #c6d6ba; }
+.centre-heading > strong { display: block; font: 700 clamp(14px, 1.6vw, 23px)/1.1 "Barlow Condensed", sans-serif; color: #eef0df; }
+.board-center > .center-top { grid-column: 1; align-self: start; pointer-events: none; }
+.centre-city { position: relative; min-width: 0; min-height: 0; grid-row: 2; }
+.board-grid .board-center .centre-city .city-art { position: absolute; inset: 0; width: 100%; height: 100%; aspect-ratio: auto; transform: none; opacity: 1; }
+.board-grid .board-center .center-bottom { position: static; grid-row: 3; min-width: 0; }
+.board-center .center-bottom p { margin: 3px 0 0; font-size: 9px; line-height: 1.2; }
+.board-center .board-dice .die { width: 25px; height: 25px; padding: 5px; gap: 2px; }
+.board-center .board-sign { gap: 8px; font-size: 7px; }
+.board-center .city-traffic-toggle { bottom: 0; right: 0; min-height: 28px; font-size: 9px; }
+.centre-log { grid-row: 4; min-height: 0; min-width: 0; overflow-y: auto; overscroll-behavior: contain; border-top: 1px solid #71866a; padding-top: 7px; text-align: left; scrollbar-width: thin; }
+.centre-log h3 { margin: 0 0 5px; font: 700 12px "Barlow Condensed", sans-serif; color: #e1e8d5; }
+.centre-log ol { margin: 0; padding: 0; list-style: none; }
+.centre-log li { display: flex; align-items: baseline; gap: 7px; margin-bottom: 5px; font-size: clamp(10px, .85vw, 12px); line-height: 1.35; color: #e2e8d8; }
+.centre-log time { flex-shrink: 0; font-size: 9px; color: #b5c6ab; }
+.centre-log li.bad > span { color: #f1b6a4; }
+.centre-log li.good > span { color: #d7ec9e; }
+.centre-log > p { font-size: 10px; color: #c2ceb6; margin: 0; }
+.centre-log:focus-visible { outline: 2px solid var(--lime); outline-offset: -2px; }
+@media (max-height: 800px) and (min-width: 721px) {
+  .board-grid .board-center { padding: 8px; gap: 4px; grid-template-rows: auto minmax(0, 1fr) auto minmax(65px, 23%); }
+  .centre-heading > strong { font-size: 17px; }
+  .centre-log li { margin-bottom: 3px; font-size: 10px; }
+}

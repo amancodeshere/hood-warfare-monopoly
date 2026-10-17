@@ -1,5 +1,6 @@
 import React, { useEffect, useId, useRef, useState } from "react";
 import { Pause, Play } from "lucide-react";
+import { CITY_SCENES } from "../shared/city-scenes.js";
 
 const project = (u, v, height = 0) => [
   300 + (u - v) * 0.63,
@@ -35,17 +36,17 @@ const trees = [
   [260, 388],
   [394, 394],
 ];
-function Building({ u, v, w, d, h, label, tone, theme }) {
+function Building({ u, v, w, d, h, label, tone, theme, elevation = 0 }) {
   const height = theme === "trenches" ? Math.min(h, 58)
     : theme === "night-shift" ? Math.min(h, 72)
     : theme === "boardwalk" ? Math.min(h + 18, 126)
     : theme === "snow-day" ? Math.min(h, 76)
     : theme === "neon" ? Math.min(h, 48)
     : theme === "festival" ? Math.min(h + Math.floor((420 - v) / 45) * 3, 82) : h;
-  const a = project(u, v),
-    b = project(u + w, v),
-    c = project(u + w, v + d),
-    e = project(u, v + d);
+  const a = project(u, v, elevation),
+    b = project(u + w, v, elevation),
+    c = project(u + w, v + d, elevation),
+    e = project(u, v + d, elevation);
   const roof = [a, b, c, e].map(([x, y]) => [x, y - height]);
   const color = `var(--city-${["one", "two", "three"][tone]}, ${["#a6957c", "#85978e", "#94a9a4"][tone]})`;
   const floors = Math.max(1, Math.floor((height - 8) / 17));
@@ -63,29 +64,29 @@ function Building({ u, v, w, d, h, label, tone, theme }) {
       />
       <polygon points={polygon([roof[3], roof[2], c, e])} fill={color} />
       <polygon points={polygon(roof)} fill="var(--city-roof, #b6c5b7)" />
-      {theme === "snow-day" && <g transform={`translate(${project(u + w / 2, v + d / 2, height).join(" ")})`}>
+      {theme === "snow-day" && <g transform={`translate(${project(u + w / 2, v + d / 2, height + elevation).join(" ")})`}>
         <path d="M-19 0L0-12 19 0 15 3 0-6-15 3Z" fill="#a94d3e" stroke="#5d4337" strokeWidth="1" />
         <path d="M0-11v-7h4v9" fill="#754e42" />
       </g>}
-      {theme === "boardwalk" && <g transform={`translate(${project(u + w / 2, v + d / 2, height).join(" ")})`}>
+      {theme === "boardwalk" && <g transform={`translate(${project(u + w / 2, v + d / 2, height + elevation).join(" ")})`}>
         <path d="M-16 1q16-16 32 0M-19 2h38" fill="none" stroke="#b8473c" strokeWidth="2.4" />
         <path d="M-12 3h24" stroke="#e1c17a" strokeWidth="1.3" />
       </g>}
-      {(theme === "night-shift" || theme === "festival") && <g transform={`translate(${project(u + w / 2, v + d / 2, height).join(" ")})`}>
+      {(theme === "night-shift" || theme === "festival") && <g transform={`translate(${project(u + w / 2, v + d / 2, height + elevation).join(" ")})`}>
         <ellipse cx="0" cy="-3" rx="7" ry="3" fill="#6b7770" stroke="#344039" strokeWidth="1" />
         <path d="M-7-3v8q7 4 14 0v-8" fill="#829087" stroke="#344039" strokeWidth="1" />
         <ellipse cx="0" cy="5" rx="7" ry="2.5" fill="#69776c" stroke="#344039" strokeWidth="1" />
       </g>}
-      {theme === "neon" && <g transform={`translate(${project(u + w / 2, v + d / 2, height).join(" ")})`}>
+      {theme === "neon" && <g transform={`translate(${project(u + w / 2, v + d / 2, height + elevation).join(" ")})`}>
         <path d="M-15 0h30M-11-3h22" stroke="#e7c57b" strokeWidth="2" />
         <path d="M-13-4v6m6-8v8m6-8v8m6-6v6" stroke="#4e9076" strokeWidth="1.5" />
       </g>}
       <polygon
         points={polygon([
-          project(u + 4, v + 4, height + 1),
-          project(u + w - 4, v + 4, height + 1),
-          project(u + w - 4, v + d - 4, height + 1),
-          project(u + 4, v + d - 4, height + 1),
+          project(u + 4, v + 4, height + elevation + 1),
+          project(u + w - 4, v + 4, height + elevation + 1),
+          project(u + w - 4, v + d - 4, height + elevation + 1),
+          project(u + 4, v + d - 4, height + elevation + 1),
         ])}
         fill={color}
         opacity=".35"
@@ -93,7 +94,7 @@ function Building({ u, v, w, d, h, label, tone, theme }) {
       {Array.from({ length: floors }, (_, floor) =>
         Array.from({ length: Math.max(1, Math.floor(w / 15)) }, (_, col) => {
           const x = u + 8 + col * 15,
-            level = 12 + floor * 17;
+            level = 12 + floor * 17 + elevation;
           return (
             <polygon
               key={`${floor}-${col}`}
@@ -110,7 +111,7 @@ function Building({ u, v, w, d, h, label, tone, theme }) {
       )}
       {label && (
         <g
-          transform={`translate(${project(u + w / 2, v + d, 12).join(" ")}) rotate(26.565)`}
+          transform={`translate(${project(u + w / 2, v + d, 12 + elevation).join(" ")}) rotate(26.565)`}
         >
           <rect
             x={-w * 0.29}
@@ -308,7 +309,8 @@ function Car({ from, to, rest, duration, delay, color, vertical, reverse }) {
     </g>
   );
 }
-export default function City({ palette, theme, scale = 1, style }) {
+export default function City({ palette, theme = "trenches", scale = 1, style }) {
+  const scene = CITY_SCENES[theme];
   const id = useId().replaceAll(":", ""),
     ref = useRef(null);
   const [paused, setPaused] = useState(false),
@@ -333,25 +335,27 @@ export default function City({ palette, theme, scale = 1, style }) {
     };
   }, []);
   const objects = [
-    ...lots.map((lot) => ({
+    ...(scene?.lots || lots).map((lot) => ({
       depth: lot.u + lot.v + lot.w + lot.d,
       kind: "building",
       ...lot,
     })),
-    ...trees.map(([u, v]) => ({ depth: u + v, kind: "tree", u, v })),
+    ...(scene?.trees || trees).map(([u, v]) => ({ depth: u + v, kind: "tree", u, v })),
   ].sort((a, b) => a.depth - b.depth);
   return (
     <div
       ref={ref}
       className={`city-art city-theme-${theme || "custom"}${paused || !visible ? " traffic-paused" : ""}`}
       data-scale={scale}
+      data-scene={theme}
+      data-building-count={scene?.lots.length || lots.length}
       style={{
-        ...(palette
+        ...((scene?.colors || palette)
           ? {
-              "--city-one": palette[0],
-              "--city-two": palette[2],
-              "--city-three": palette[4],
-              "--city-roof": palette[6],
+              "--city-one": (scene ? scene.colors[0] : palette[0]),
+              "--city-two": (scene ? scene.colors[1] : palette[2]),
+              "--city-three": (scene ? scene.colors[2] : palette[4]),
+              "--city-roof": (scene ? scene.colors[3] : palette[6]),
             }
           : {}),
         "--city-scale": scale,
@@ -365,7 +369,9 @@ export default function City({ palette, theme, scale = 1, style }) {
         className="city-drawing"
         viewBox="0 0 600 400"
         role="img"
-        aria-label={theme === "night-shift"
+        aria-label={theme === "custom"
+          ? "A custom neighborhood with buildings, sidewalks, a court, and moving traffic"
+          : theme === "night-shift"
           ? "India neighborhood with market stalls, a rickshaw lane, a cow crossing, and moving traffic"
           : theme === "boardwalk"
             ? "China neighborhood with crowded alley blocks, hanging laundry, a noodle stall, scooters, and traffic"
@@ -490,6 +496,7 @@ export default function City({ palette, theme, scale = 1, style }) {
             vertical
           />
         </g>
+        <RegionalDetails theme={theme} />
         {objects.map((object, i) =>
           object.kind === "building" ? (
             <Building key={i} {...object} theme={theme} />
@@ -497,7 +504,6 @@ export default function City({ palette, theme, scale = 1, style }) {
             <Tree key={i} {...object} />
           ),
         )}
-        <RegionalDetails theme={theme} />
       </svg>
       <button
         className="city-traffic-toggle"
