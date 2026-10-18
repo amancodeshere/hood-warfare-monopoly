@@ -1,7 +1,7 @@
 import FPSDuel from "./FPSDuel.jsx";
 import { StreetBuilding } from "./StreetPieces.jsx";
 import { EntryPage, MapStudio } from "./LoginMaps.jsx";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { createRoot } from "react-dom/client";
 import { io } from "socket.io-client";
 import {
@@ -38,6 +38,7 @@ import {
   BOARD as DEFAULT_BOARD,
   CREWS,
   DISTRICTS,
+  MAPS,
   ROULETTE,
   money,
 } from "../shared/board.js";
@@ -61,6 +62,7 @@ import {
   PlayerPanel,
 } from "./Extras.jsx";
 import { DEFAULT_SETTINGS } from "../shared/settings.js";
+import { presetMap, customMap } from "../shared/maps.js";
 import { filterChatMessages } from "../shared/chat.js";
 import "@fontsource/barlow/latin-400.css";
 import "@fontsource/barlow/latin-500.css";
@@ -641,11 +643,17 @@ function App() {
       notify(`Room code: ${game.code}`);
     }
   }
-  const BOARD = game?.board || DEFAULT_BOARD;
-  const districts =
-    game?.schemaVersion === 1 || BOARD.length === 28
-      ? game?.districts || LEGACY_DISTRICTS
-      : game?.districts || DISTRICTS;
+  const boardGame = useMemo(() => {
+    if (game) return game;
+    const saved = profile?.savedMaps?.find((map) => "custom:" + map.id === options.map);
+    const city = saved ? customMap(saved.definition) : presetMap(options.map.startsWith("custom:") ? "trenches" : options.map, options.mapSize);
+    return {
+      ...city, status: "lobby", round: 1, settings: options,
+      players: [], props: {}, pot: 0, log: [],
+    };
+  }, [game, options, profile?.savedMaps]);
+  const BOARD = boardGame.board || DEFAULT_BOARD;
+  const districts = boardGame.districts || (game?.schemaVersion === 1 || BOARD.length === 28 ? LEGACY_DISTRICTS : DISTRICTS);
   const me = game?.players.find((p) => p.id === game.me),
     current = game?.players[game.turn],
     mine = me?.id === current?.id && !me?.out,
@@ -1120,6 +1128,36 @@ function App() {
               <span>PRIVATE ROOMS · PLAY WITH FRIENDS</span>
             )}
           </div>
+          {(!game || game.status === "lobby") && (
+            <div className="map-preview-controls">
+              <label htmlFor="preview-map">Preview map</label>
+              <select
+                id="preview-map"
+                value={game?.settings.map || options.map}
+                disabled={disabled || (game && game.host !== game.me)}
+                onChange={async (event) => {
+                  const map = event.target.value;
+                  setSelected(null);
+                  const selection = { map, ...(map.startsWith("custom:") ? {mapSize: "standard"} : {}) };
+                  if (game) await lobby({type: "settings", settings: selection});
+                  else setOptions((previous) => ({...previous, ...selection}));
+                }}
+              >
+                {MAPS.map((map) => (
+                  <option key={map.id} value={map.id} disabled={map.verified && !profile?.verified}>
+                    {map.name}{map.verified && !profile?.verified ? " · Verify email to unlock" : ""}
+                  </option>
+                ))}
+                {profile?.savedMaps?.map((map) => (
+                  <option key={map.id} value={"custom:" + map.id}>{map.definition.name}</option>
+                ))}
+                {game?.settings.map?.startsWith("custom:") && !profile?.savedMaps?.some((map) => "custom:" + map.id === game.settings.map) && (
+                  <option value={game.settings.map}>{game.mapName}</option>
+                )}
+              </select>
+              <span>{BOARD.length} tiles · {game && game.host !== game.me ? "Host chooses the map" : "Choose a map to see its streets and centre"}</span>
+            </div>
+          )}
           <div className="map-controls">
             <span>{BOARD.length} blocks to explore</span>
             <button onClick={() => setMapOverview(!mapOverview)}>
@@ -1128,7 +1166,7 @@ function App() {
           </div>
           <div className={`board-viewport ${game?.status === "playing" || mapOverview ? "overview" : ""}`}>
             <Board
-              game={game}
+              game={boardGame}
               selected={selected}
               setSelected={setSelected}
               rolling={rolling}
@@ -2043,7 +2081,7 @@ function App() {
               });
               if (r) setSettingsOpen(false);
             } else {
-              setOptions(opts);
+              setOptions(opts.map.startsWith("custom:") ? {...opts, mapSize:"standard"} : opts);
               setLimit(len);
               setSettingsOpen(false);
             }
@@ -2077,9 +2115,9 @@ function App() {
           close={() => setStudio(false)}
           select={async (map) => {
             if (game) {
-              if (!(await lobby({ type: "settings", settings: { map } })))
+              if (!(await lobby({ type: "settings", settings: { map, mapSize:"standard" } })))
                 return;
-            } else setOptions((o) => ({ ...o, map }));
+            } else setOptions((o) => ({ ...o, map, mapSize:"standard" }));
             setStudio(false);
             setSettingsOpen(true);
           }}

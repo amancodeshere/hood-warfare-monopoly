@@ -7584,3 +7584,8 @@ body:has(.game-layout.in-play) .page-footer { display: none; }
   .centre-heading > strong { font-size: 17px; }
   .centre-log li { margin-bottom: 3px; font-size: 10px; }
 }
+
+.map-preview-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; margin: 0 0 12px; color: #d8e2ca; }
+.map-preview-controls label { font-size: 12px; font-weight: 700; }
+.map-preview-controls select { min-height: 38px; max-width: 100%; padding: 6px 10px; border: 1px solid #637752; border-radius: 5px; background: #202b23; color: #eef1e5; font: inherit; }
+.map-preview-controls > span { font-size: 10px; color: #bdcbb0; }
